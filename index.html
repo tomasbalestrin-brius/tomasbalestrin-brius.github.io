@@ -722,7 +722,6 @@
 
         function parseSheetData(data) {
             const productRanges = {
-                'Geral': { start: 2, end: 5, tendencia: 6 },
                 '50 Scripts': { start: 9, end: 12, tendencia: 13 },
                 'Teste': { start: 16, end: 19, tendencia: 20 },
                 'IA Julia': { start: 23, end: 26, tendencia: 27 },
@@ -746,6 +745,139 @@
 
                 allData[productName] = { semanas, tendencia };
             }
+
+            // Calcula o Geral somando todos os produtos
+            calculateGeral();
+        }
+
+        function calculateGeral() {
+            const produtos = ['50 Scripts', 'Teste', 'IA Julia', 'MPM', 'Couply'];
+            
+            // Encontra o número máximo de semanas
+            let maxSemanas = 0;
+            produtos.forEach(produto => {
+                if (allData[produto] && allData[produto].semanas) {
+                    maxSemanas = Math.max(maxSemanas, allData[produto].semanas.length);
+                }
+            });
+
+            const semanas = [];
+            
+            // Soma os dados de cada semana de todos os produtos
+            for (let i = 0; i < maxSemanas; i++) {
+                const semanaSoma = {
+                    investido: 0,
+                    faturamentoTrafego: 0,
+                    roasTrafego: 0,
+                    alunos: 0,
+                    qualificados: 0,
+                    agendados: 0,
+                    taxaAgendamento: 0,
+                    callRealizada: 0,
+                    taxaComparecimento: 0,
+                    numeroVenda: 0,
+                    taxaConversao: 0,
+                    taxaAscensao: 0,
+                    vendaMonetizacao: 0,
+                    entradas: 0,
+                    faturamentoFunil: 0,
+                    lucroFunil: 0
+                };
+
+                let countProdutos = 0;
+                
+                produtos.forEach(produto => {
+                    if (allData[produto] && allData[produto].semanas[i]) {
+                        const semana = allData[produto].semanas[i];
+                        semanaSoma.investido += semana.investido;
+                        semanaSoma.faturamentoTrafego += semana.faturamentoTrafego;
+                        semanaSoma.roasTrafego += semana.roasTrafego;
+                        semanaSoma.alunos += semana.alunos;
+                        semanaSoma.qualificados += semana.qualificados;
+                        semanaSoma.agendados += semana.agendados;
+                        semanaSoma.callRealizada += semana.callRealizada;
+                        semanaSoma.numeroVenda += semana.numeroVenda;
+                        semanaSoma.vendaMonetizacao += semana.vendaMonetizacao;
+                        semanaSoma.entradas += semana.entradas;
+                        semanaSoma.faturamentoFunil += semana.faturamentoFunil;
+                        semanaSoma.lucroFunil += semana.lucroFunil;
+                        
+                        // Para taxas, fazemos média
+                        semanaSoma.taxaAgendamento += semana.taxaAgendamento;
+                        semanaSoma.taxaComparecimento += semana.taxaComparecimento;
+                        semanaSoma.taxaConversao += semana.taxaConversao;
+                        semanaSoma.taxaAscensao += semana.taxaAscensao;
+                        
+                        countProdutos++;
+                    }
+                });
+
+                // Calcula médias das taxas
+                if (countProdutos > 0) {
+                    semanaSoma.taxaAgendamento /= countProdutos;
+                    semanaSoma.taxaComparecimento /= countProdutos;
+                    semanaSoma.taxaConversao /= countProdutos;
+                    semanaSoma.taxaAscensao /= countProdutos;
+                }
+
+                semanas.push(semanaSoma);
+            }
+
+            // Calcula a tendência somando todas as tendências
+            const tendencia = {
+                investido: 0,
+                faturamentoTrafego: 0,
+                roasTrafego: 0,
+                alunos: 0,
+                qualificados: 0,
+                agendados: 0,
+                taxaAgendamento: 0,
+                callRealizada: 0,
+                taxaComparecimento: 0,
+                numeroVenda: 0,
+                taxaConversao: 0,
+                taxaAscensao: 0,
+                vendaMonetizacao: 0,
+                entradas: 0,
+                faturamentoFunil: 0,
+                lucroFunil: 0
+            };
+
+            let countTendencias = 0;
+
+            produtos.forEach(produto => {
+                if (allData[produto] && allData[produto].tendencia) {
+                    const tend = allData[produto].tendencia;
+                    tendencia.investido += tend.investido;
+                    tendencia.faturamentoTrafego += tend.faturamentoTrafego;
+                    tendencia.roasTrafego += tend.roasTrafego;
+                    tendencia.alunos += tend.alunos;
+                    tendencia.qualificados += tend.qualificados;
+                    tendencia.agendados += tend.agendados;
+                    tendencia.callRealizada += tend.callRealizada;
+                    tendencia.numeroVenda += tend.numeroVenda;
+                    tendencia.vendaMonetizacao += tend.vendaMonetizacao;
+                    tendencia.entradas += tend.entradas;
+                    tendencia.faturamentoFunil += tend.faturamentoFunil;
+                    tendencia.lucroFunil += tend.lucroFunil;
+                    
+                    tendencia.taxaAgendamento += tend.taxaAgendamento;
+                    tendencia.taxaComparecimento += tend.taxaComparecimento;
+                    tendencia.taxaConversao += tend.taxaConversao;
+                    tendencia.taxaAscensao += tend.taxaAscensao;
+                    
+                    countTendencias++;
+                }
+            });
+
+            if (countTendencias > 0) {
+                tendencia.taxaAgendamento /= countTendencias;
+                tendencia.taxaComparecimento /= countTendencias;
+                tendencia.taxaConversao /= countTendencias;
+                tendencia.taxaAscensao /= countTendencias;
+            }
+
+            allData['Geral'] = { semanas, tendencia };
         }
 
         function parseRow(row) {
