@@ -421,27 +421,32 @@
             }
         }
 
-        function parseRow(row) {
-            const parseValue = (val) => {
-                if (!val || val === '#N/A' || val === '#DIV/0!') return 0;
-                return parseFloat(val.toString().replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
-            };
+       function parseRow(row) {
+    const parseValue = (val) => {
+        if (!val || val === '#N/A' || val === '#DIV/0!') return 0;
+        // Remove tudo exceto números, vírgula e ponto
+        let cleanVal = val.toString().replace(/[^\d,.-]/g, '');
+        // Remove pontos (separadores de milhares)
+        cleanVal = cleanVal.replace(/\./g, '');
+        // Substitui vírgula por ponto (decimal)
+        cleanVal = cleanVal.replace(',', '.');
+        return parseFloat(cleanVal) || 0;
+    };
 
-            return {
-                investido: parseValue(row[1]),
-                faturado: parseValue(row[2]),
-                roas: parseValue(row[3]),
-                alunos: parseValue(row[4]),
-                qualificados: parseValue(row[5]),
-                agendados: parseValue(row[6]),
-                taxaAgendamento: parseValue(row[7]),
-                callRealizada: parseValue(row[8]),
-                taxaComparecimento: parseValue(row[9]),
-                numeroVenda: parseValue(row[10]),
-                taxaConversao: parseValue(row[11])
-            };
-        }
-
+    return {
+        investido: parseValue(row[1]),
+        faturado: parseValue(row[2]),
+        roas: parseValue(row[3]),
+        alunos: parseValue(row[4]),
+        qualificados: parseValue(row[5]),
+        agendados: parseValue(row[6]),
+        taxaAgendamento: parseValue(row[7]),
+        callRealizada: parseValue(row[8]),
+        taxaComparecimento: parseValue(row[9]),
+        numeroVenda: parseValue(row[10]),
+        taxaConversao: parseValue(row[11])
+    };
+}
         function renderUI() {
             renderMonthButtons();
             renderProductButtons();
