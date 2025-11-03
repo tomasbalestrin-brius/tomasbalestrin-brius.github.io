@@ -421,32 +421,35 @@
             }
         }
 
-       function parseRow(row) {
-    const parseValue = (val) => {
-        if (!val || val === '#N/A' || val === '#DIV/0!') return 0;
-        // Remove tudo exceto números, vírgula e ponto
-        let cleanVal = val.toString().replace(/[^\d,.-]/g, '');
-        // Remove pontos (separadores de milhares)
-        cleanVal = cleanVal.replace(/\./g, '');
-        // Substitui vírgula por ponto (decimal)
-        cleanVal = cleanVal.replace(',', '.');
-        return parseFloat(cleanVal) || 0;
-    };
+        function parseRow(row) {
+            const parseValue = (val) => {
+                if (!val || val === '#N/A' || val === '#DIV/0!') return 0;
+                // Remove tudo exceto números, vírgula e ponto
+                let cleanVal = val.toString().replace(/[^\d,.-]/g, '');
+                // Remove pontos (separadores de milhares)
+                cleanVal = cleanVal.replace(/\./g, '');
+                // Substitui vírgula por ponto (decimal)
+                cleanVal = cleanVal.replace(',', '.');
+                return parseFloat(cleanVal) || 0;
+            };
 
-    return {
-        investido: parseValue(row[1]),
-        faturado: parseValue(row[2]),
-        roas: parseValue(row[3]),
-        alunos: parseValue(row[4]),
-        qualificados: parseValue(row[5]),
-        agendados: parseValue(row[6]),
-        taxaAgendamento: parseValue(row[7]),
-        callRealizada: parseValue(row[8]),
-        taxaComparecimento: parseValue(row[9]),
-        numeroVenda: parseValue(row[10]),
-        taxaConversao: parseValue(row[11])
-    };
-}
+            return {
+                investido: parseValue(row[1]),
+                faturado: parseValue(row[2]),
+                roas: parseValue(row[3]),
+                alunos: parseValue(row[4]),
+                qualificados: parseValue(row[5]),
+                agendados: parseValue(row[6]),
+                taxaAgendamento: parseValue(row[7]),
+                callRealizada: parseValue(row[8]),
+                taxaComparecimento: parseValue(row[9]),
+                numeroVenda: parseValue(row[10]),
+                taxaConversao: parseValue(row[11]),
+                faturamentoFunil: parseValue(row[15]),
+                lucroFunil: parseValue(row[16])
+            };
+        }
+
         function renderUI() {
             renderMonthButtons();
             renderProductButtons();
@@ -495,6 +498,8 @@
             
             const totalInvestido = semanas.reduce((sum, s) => sum + s.investido, 0);
             const totalFaturado = semanas.reduce((sum, s) => sum + s.faturado, 0);
+            const totalFaturamentoFunil = semanas.reduce((sum, s) => sum + s.faturamentoFunil, 0);
+            const totalLucroFunil = semanas.reduce((sum, s) => sum + s.lucroFunil, 0);
             const margemTotal = totalFaturado - totalInvestido;
 
             const taxaAscensao = tendencia ? calcularTaxaAscensao(semanas) : 0;
@@ -506,13 +511,17 @@
                     <div class="stat-value">R$ ${totalFaturado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-label">💵 Faturamento do Funil</div>
+                    <div class="stat-value">R$ ${totalFaturamentoFunil.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                </div>
+                <div class="stat-card">
                     <div class="stat-label">💸 Investido Total</div>
                     <div class="stat-value">R$ ${totalInvestido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">📊 Margem Total</div>
-                    <div class="stat-value ${margemTotal >= 0 ? 'positive' : 'negative'}">
-                        R$ ${margemTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                    <div class="stat-label">📊 Lucro do Funil (ROAS)</div>
+                    <div class="stat-value ${totalLucroFunil >= 0 ? 'positive' : 'negative'}">
+                        R$ ${totalLucroFunil.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                     </div>
                 </div>
                 ${tendencia ? `
@@ -525,6 +534,10 @@
                     <div class="tendencia-item">
                         <span class="tendencia-label">Faturado</span>
                         <span class="tendencia-value">R$ ${tendencia.faturado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    </div>
+                    <div class="tendencia-item">
+                        <span class="tendencia-label">Faturamento Funil</span>
+                        <span class="tendencia-value">R$ ${tendencia.faturamentoFunil.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
                     </div>
                     <div class="tendencia-item">
                         <span class="tendencia-label">Alunos</span>
