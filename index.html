@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Funis - Análise de Performance</title>
+    <title>Dashboard Funis - Análise Completa</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
@@ -22,28 +22,52 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
-            animation: fadeIn 0.8s ease-in;
+            margin-bottom: 30px;
         }
 
         .header h1 {
-            font-size: 3.5rem;
-            margin-bottom: 10px;
+            font-size: 3rem;
             background: linear-gradient(45deg, #3b82f6, #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
+            margin-bottom: 10px;
         }
 
-        .header p {
-            font-size: 1.2rem;
-            color: #94a3b8;
+        .month-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .month-btn {
+            padding: 12px 25px;
+            border: 2px solid #475569;
+            border-radius: 8px;
+            background: #1e293b;
+            color: #e2e8f0;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .month-btn:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+
+        .month-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
         }
 
         .product-selector {
@@ -61,7 +85,7 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
             background: #334155;
             color: #e2e8f0;
         }
@@ -79,33 +103,32 @@
         }
 
         .dashboard-content {
-            display: flex;
+            display: grid;
+            grid-template-columns: 250px 1fr 280px;
             gap: 20px;
-            animation: slideIn 0.6s ease-out;
+            margin-bottom: 30px;
         }
 
         .sidebar {
-            width: 280px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .metric-btn {
-            padding: 18px 20px;
+            padding: 15px 18px;
             border: none;
-            border-radius: 12px;
-            font-size: 1rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
             background: #1e293b;
             color: #e2e8f0;
             text-align: left;
             display: flex;
             align-items: center;
-            gap: 12px;
-            border: 2px solid transparent;
+            gap: 10px;
         }
 
         .metric-btn:hover {
@@ -116,58 +139,154 @@
         .metric-btn.active {
             background: #3b82f6;
             color: white;
-            border-color: #60a5fa;
             transform: translateX(5px);
         }
 
-        .metric-icon {
-            font-size: 1.3rem;
-        }
-
-        .main-content {
-            flex: 1;
+        .main-chart {
             background: #1e293b;
             border-radius: 16px;
-            padding: 30px;
+            padding: 25px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.4);
         }
 
         .chart-title {
-            font-size: 1.8rem;
-            margin-bottom: 25px;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
             color: #e2e8f0;
         }
 
         .chart-container {
             position: relative;
             height: 400px;
-            margin-bottom: 30px;
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+        .stats-panel {
+            display: flex;
+            flex-direction: column;
             gap: 15px;
-            margin-top: 30px;
         }
 
         .stat-card {
-            background: #334155;
+            background: #1e293b;
             padding: 20px;
             border-radius: 12px;
-            text-align: center;
+            border-left: 4px solid #3b82f6;
         }
 
         .stat-label {
             color: #94a3b8;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .stat-value {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: bold;
             color: #e2e8f0;
+        }
+
+        .stat-value.positive {
+            color: #10b981;
+        }
+
+        .stat-value.negative {
+            color: #ef4444;
+        }
+
+        .tendencias {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #8b5cf6;
+        }
+
+        .tendencias h3 {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: #a78bfa;
+        }
+
+        .tendencia-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .tendencia-item:last-child {
+            border-bottom: none;
+        }
+
+        .tendencia-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .tendencia-value {
+            color: #e2e8f0;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .ranking-section {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .ranking-title {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            text-align: center;
+            color: #e2e8f0;
+        }
+
+        .ranking-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .ranking-card {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #475569;
+            transition: all 0.3s;
+        }
+
+        .ranking-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .ranking-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .ranking-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .ranking-product {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #e2e8f0;
+            margin-bottom: 5px;
+        }
+
+        .ranking-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #3b82f6;
         }
 
         .loading {
@@ -177,25 +296,13 @@
             color: #94a3b8;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        @media (max-width: 768px) {
+        @media (max-width: 1200px) {
             .dashboard-content {
-                flex-direction: column;
+                grid-template-columns: 1fr;
             }
-            .sidebar {
-                width: 100%;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .stats-panel {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             }
         }
     </style>
@@ -204,42 +311,43 @@
     <div class="container">
         <div class="header">
             <h1>📊 DASHBOARD FUNIS</h1>
-            <p>Análise de Performance por Produto - 4 Semanas</p>
+            <p>Análise Completa de Performance por Produto</p>
         </div>
 
-        <div class="product-selector" id="productSelector">
-            <!-- Botões de produtos serão inseridos aqui -->
-        </div>
+        <div class="month-selector" id="monthSelector"></div>
+
+        <div class="product-selector" id="productSelector"></div>
 
         <div class="dashboard-content">
-            <div class="sidebar" id="sidebar">
-                <!-- Botões de métricas serão inseridos aqui -->
-            </div>
+            <div class="sidebar" id="sidebar"></div>
 
-            <div class="main-content">
+            <div class="main-chart">
                 <h2 class="chart-title" id="chartTitle">Carregando dados...</h2>
                 <div class="chart-container">
                     <canvas id="mainChart"></canvas>
                 </div>
-                <div class="stats-grid" id="statsGrid">
-                    <!-- Cards de estatísticas serão inseridos aqui -->
-                </div>
             </div>
+
+            <div class="stats-panel" id="statsPanel"></div>
+        </div>
+
+        <div class="ranking-section">
+            <h2 class="ranking-title">🏆 RANKING DE PRODUTOS - COMPARAÇÃO</h2>
+            <div class="ranking-grid" id="rankingGrid"></div>
         </div>
     </div>
 
     <script>
-        // Configuração
         const SHEET_ID = '1V0-yWzGbDWUEQ21CPtNcHrzPQfLTXKHNBYUlSfzO2Pc';
-        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=799831430`;
+        
+        const MONTHS = [
+            { id: 'out', name: 'Outubro', gid: '0' },
+            { id: 'nov', name: 'Novembro', gid: '799831430' },
+            { id: 'dez', name: 'Dezembro', gid: '1796217875' },
+            { id: 'jan', name: 'Janeiro', gid: '1107738440' },
+            { id: 'fev', name: 'Fevereiro', gid: '668056747' }
+        ];
 
-        // Estado da aplicação
-        let currentProduct = 'Teste';
-        let currentMetric = 'geral';
-        let chartInstance = null;
-        let productsData = {};
-
-        // Produtos disponíveis
         const products = [
             { id: '50 Scripts', name: '50 Scripts', icon: '📝' },
             { id: 'Teste', name: 'Teste', icon: '🧪' },
@@ -248,45 +356,53 @@
             { id: 'Couply', name: 'Couply', icon: '💑' }
         ];
 
-        // Métricas disponíveis
         const metrics = [
             { id: 'geral', name: 'Visão Geral', icon: '📊' },
-            { id: 'investido', name: 'Valor Investido', icon: '💰' },
-            { id: 'faturado', name: 'Valor Faturado', icon: '💵' },
-            { id: 'margem', name: 'Margem (ROAS)', icon: '📈' },
-            { id: 'alunos', name: 'Número de Alunos', icon: '👥' }
+            { id: 'investido', name: 'Investido', icon: '💰' },
+            { id: 'faturado', name: 'Faturado', icon: '💵' },
+            { id: 'margem', name: 'Margem', icon: '📈' },
+            { id: 'alunos', name: 'Alunos', icon: '👥' },
+            { id: 'qualificados', name: 'Qualificados', icon: '✅' },
+            { id: 'agendados', name: 'Agendados', icon: '📅' }
         ];
 
-        // Função para carregar dados do Google Sheets
+        let currentMonth = 'nov';
+        let currentProduct = 'Teste';
+        let currentMetric = 'geral';
+        let chartInstance = null;
+        let allData = {};
+
         async function loadData() {
+            const month = MONTHS.find(m => m.id === currentMonth);
+            if (!month) return;
+
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${month.gid}`;
+            
             try {
-                const response = await fetch(SHEET_URL);
+                const response = await fetch(url);
                 const csvText = await response.text();
                 
                 Papa.parse(csvText, {
                     complete: function(results) {
                         parseSheetData(results.data);
                         renderUI();
-                    },
-                    error: function(error) {
-                        console.error('Erro ao processar CSV:', error);
                     }
                 });
             } catch (error) {
                 console.error('Erro ao carregar dados:', error);
-                document.getElementById('chartTitle').textContent = 'Erro ao carregar dados. Verifique a conexão.';
             }
         }
 
-        // Função para parsear os dados da planilha
         function parseSheetData(data) {
             const productRanges = {
-                '50 Scripts': { start: 1, end: 5 },
-                'Teste': { start: 8, end: 12 },
-                'IA Julia': { start: 15, end: 19 },
-                'MPM': { start: 22, end: 26 },
-                'Couply': { start: 29, end: 33 }
+                '50 Scripts': { start: 1, end: 4, tendencia: 5 },
+                'Teste': { start: 8, end: 11, tendencia: 12 },
+                'IA Julia': { start: 15, end: 18, tendencia: 19 },
+                'MPM': { start: 22, end: 25, tendencia: 26 },
+                'Couply': { start: 29, end: 32, tendencia: 33 }
             };
+
+            allData = {};
 
             for (const [productName, range] of Object.entries(productRanges)) {
                 const semanas = [];
@@ -295,33 +411,56 @@
                     const row = data[i];
                     if (!row) continue;
 
-                    const investido = parseFloat(row[1]?.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
-                    const faturado = parseFloat(row[2]?.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
-                    const roas = parseFloat(row[3]?.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
-                    const alunos = parseFloat(row[4]?.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
-
-                    semanas.push({
-                        semana: `Semana ${i - range.start + 1}`,
-                        investido,
-                        faturado,
-                        roas,
-                        alunos,
-                        margem: faturado - investido
-                    });
+                    semanas.push(parseRow(row));
                 }
 
-                productsData[productName] = semanas;
+                const tendenciaRow = data[range.tendencia];
+                const tendencia = tendenciaRow ? parseRow(tendenciaRow) : null;
+
+                allData[productName] = { semanas, tendencia };
             }
         }
 
-        // Função para renderizar a UI
-        function renderUI() {
-            renderProductButtons();
-            renderMetricButtons();
-            updateChart();
+        function parseRow(row) {
+            const parseValue = (val) => {
+                if (!val || val === '#N/A' || val === '#DIV/0!') return 0;
+                return parseFloat(val.toString().replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+            };
+
+            return {
+                investido: parseValue(row[1]),
+                faturado: parseValue(row[2]),
+                roas: parseValue(row[3]),
+                alunos: parseValue(row[4]),
+                qualificados: parseValue(row[5]),
+                agendados: parseValue(row[6]),
+                taxaAgendamento: parseValue(row[7]),
+                callRealizada: parseValue(row[8]),
+                taxaComparecimento: parseValue(row[9]),
+                numeroVenda: parseValue(row[10]),
+                taxaConversao: parseValue(row[11])
+            };
         }
 
-        // Renderizar botões de produtos
+        function renderUI() {
+            renderMonthButtons();
+            renderProductButtons();
+            renderMetricButtons();
+            renderStatsPanel();
+            updateChart();
+            renderRanking();
+        }
+
+        function renderMonthButtons() {
+            const container = document.getElementById('monthSelector');
+            container.innerHTML = MONTHS.map(month => `
+                <button class="month-btn ${month.id === currentMonth ? 'active' : ''}" 
+                        onclick="selectMonth('${month.id}')">
+                    ${month.name}
+                </button>
+            `).join('');
+        }
+
         function renderProductButtons() {
             const container = document.getElementById('productSelector');
             container.innerHTML = products.map(product => `
@@ -332,43 +471,92 @@
             `).join('');
         }
 
-        // Renderizar botões de métricas
         function renderMetricButtons() {
             const container = document.getElementById('sidebar');
             container.innerHTML = metrics.map(metric => `
                 <button class="metric-btn ${metric.id === currentMetric ? 'active' : ''}" 
                         onclick="selectMetric('${metric.id}')">
-                    <span class="metric-icon">${metric.icon}</span>
+                    <span>${metric.icon}</span>
                     <span>${metric.name}</span>
                 </button>
             `).join('');
         }
 
-        // Selecionar produto
-        function selectProduct(productId) {
-            currentProduct = productId;
-            renderUI();
-        }
-
-        // Selecionar métrica
-        function selectMetric(metricId) {
-            currentMetric = metricId;
-            renderUI();
-        }
-
-        // Atualizar gráfico
-        function updateChart() {
-            const data = productsData[currentProduct];
+        function renderStatsPanel() {
+            const data = allData[currentProduct];
             if (!data) return;
 
+            const { semanas, tendencia } = data;
+            
+            const totalInvestido = semanas.reduce((sum, s) => sum + s.investido, 0);
+            const totalFaturado = semanas.reduce((sum, s) => sum + s.faturado, 0);
+            const margemTotal = totalFaturado - totalInvestido;
+
+            const taxaAscensao = tendencia ? calcularTaxaAscensao(semanas) : 0;
+
+            const container = document.getElementById('statsPanel');
+            container.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">💰 Faturamento Total</div>
+                    <div class="stat-value">R$ ${totalFaturado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">💸 Investido Total</div>
+                    <div class="stat-value">R$ ${totalInvestido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">📊 Margem Total</div>
+                    <div class="stat-value ${margemTotal >= 0 ? 'positive' : 'negative'}">
+                        R$ ${margemTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                    </div>
+                </div>
+                ${tendencia ? `
+                <div class="tendencias">
+                    <h3>📈 TENDÊNCIAS</h3>
+                    <div class="tendencia-item">
+                        <span class="tendencia-label">Investido</span>
+                        <span class="tendencia-value">R$ ${tendencia.investido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    </div>
+                    <div class="tendencia-item">
+                        <span class="tendencia-label">Faturado</span>
+                        <span class="tendencia-value">R$ ${tendencia.faturado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    </div>
+                    <div class="tendencia-item">
+                        <span class="tendencia-label">Alunos</span>
+                        <span class="tendencia-value">${tendencia.alunos}</span>
+                    </div>
+                    <div class="tendencia-item">
+                        <span class="tendencia-label">Taxa Ascensão</span>
+                        <span class="tendencia-value ${taxaAscensao >= 0 ? 'positive' : 'negative'}">
+                            ${taxaAscensao >= 0 ? '+' : ''}${taxaAscensao.toFixed(2)}%
+                        </span>
+                    </div>
+                </div>
+                ` : ''}
+            `;
+        }
+
+        function calcularTaxaAscensao(semanas) {
+            const primeiroValor = semanas[0]?.faturado || 0;
+            const ultimoValor = semanas[semanas.length - 1]?.faturado || 0;
+            
+            if (primeiroValor === 0) return 0;
+            return ((ultimoValor - primeiroValor) / primeiroValor) * 100;
+        }
+
+        function updateChart() {
+            const data = allData[currentProduct];
+            if (!data) return;
+
+            const { semanas } = data;
             const ctx = document.getElementById('mainChart').getContext('2d');
             
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
+            if (chartInstance) chartInstance.destroy();
 
             let datasets = [];
             let title = '';
+
+            const labels = semanas.map((_, i) => `Semana ${i + 1}`);
 
             switch (currentMetric) {
                 case 'geral':
@@ -376,7 +564,7 @@
                     datasets = [
                         {
                             label: 'Investido',
-                            data: data.map(d => d.investido),
+                            data: semanas.map(s => s.investido),
                             borderColor: '#ef4444',
                             backgroundColor: 'rgba(239, 68, 68, 0.1)',
                             borderWidth: 3,
@@ -384,7 +572,7 @@
                         },
                         {
                             label: 'Faturado',
-                            data: data.map(d => d.faturado),
+                            data: semanas.map(s => s.faturado),
                             borderColor: '#10b981',
                             backgroundColor: 'rgba(16, 185, 129, 0.1)',
                             borderWidth: 3,
@@ -392,7 +580,7 @@
                         },
                         {
                             label: 'Margem',
-                            data: data.map(d => d.margem),
+                            data: semanas.map(s => s.faturado - s.investido),
                             borderColor: '#3b82f6',
                             backgroundColor: 'rgba(59, 130, 246, 0.1)',
                             borderWidth: 3,
@@ -404,7 +592,7 @@
                     title = 'Evolução do Valor Investido';
                     datasets = [{
                         label: 'Investido',
-                        data: data.map(d => d.investido),
+                        data: semanas.map(s => s.investido),
                         borderColor: '#ef4444',
                         backgroundColor: 'rgba(239, 68, 68, 0.2)',
                         borderWidth: 4,
@@ -416,7 +604,7 @@
                     title = 'Evolução do Valor Faturado';
                     datasets = [{
                         label: 'Faturado',
-                        data: data.map(d => d.faturado),
+                        data: semanas.map(s => s.faturado),
                         borderColor: '#10b981',
                         backgroundColor: 'rgba(16, 185, 129, 0.2)',
                         borderWidth: 4,
@@ -425,10 +613,10 @@
                     }];
                     break;
                 case 'margem':
-                    title = 'Evolução da Margem (ROAS)';
+                    title = 'Evolução da Margem';
                     datasets = [{
-                        label: 'ROAS',
-                        data: data.map(d => d.roas),
+                        label: 'Margem',
+                        data: semanas.map(s => s.faturado - s.investido),
                         borderColor: '#8b5cf6',
                         backgroundColor: 'rgba(139, 92, 246, 0.2)',
                         borderWidth: 4,
@@ -440,9 +628,33 @@
                     title = 'Número de Alunos';
                     datasets = [{
                         label: 'Alunos',
-                        data: data.map(d => d.alunos),
+                        data: semanas.map(s => s.alunos),
                         borderColor: '#f59e0b',
                         backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                        borderWidth: 4,
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    break;
+                case 'qualificados':
+                    title = 'Número de Qualificados';
+                    datasets = [{
+                        label: 'Qualificados',
+                        data: semanas.map(s => s.qualificados),
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.2)',
+                        borderWidth: 4,
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    break;
+                case 'agendados':
+                    title = 'Número de Agendados';
+                    datasets = [{
+                        label: 'Agendados',
+                        data: semanas.map(s => s.agendados),
+                        borderColor: '#ec4899',
+                        backgroundColor: 'rgba(236, 72, 153, 0.2)',
                         borderWidth: 4,
                         tension: 0.4,
                         fill: true
@@ -454,10 +666,7 @@
 
             chartInstance = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: data.map(d => d.semana),
-                    datasets: datasets
-                },
+                data: { labels, datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -474,75 +683,142 @@
                             bodyColor: '#e2e8f0',
                             borderColor: '#475569',
                             borderWidth: 1,
-                            padding: 12,
-                            displayColors: true
+                            padding: 12
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            grid: {
-                                color: '#334155'
-                            },
+                            grid: { color: '#334155' },
                             ticks: {
                                 color: '#94a3b8',
                                 callback: function(value) {
-                                    if (currentMetric === 'alunos') return value;
+                                    if (currentMetric === 'alunos' || currentMetric === 'qualificados' || currentMetric === 'agendados') 
+                                        return value;
                                     return 'R$ ' + value.toLocaleString('pt-BR');
                                 }
                             }
                         },
                         x: {
-                            grid: {
-                                color: '#334155'
-                            },
-                            ticks: {
-                                color: '#94a3b8'
-                            }
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
                         }
                     }
                 }
             });
-
-            updateStats(data);
         }
 
-        // Atualizar cards de estatísticas
-        function updateStats(data) {
-            const totalInvestido = data.reduce((sum, d) => sum + d.investido, 0);
-            const totalFaturado = data.reduce((sum, d) => sum + d.faturado, 0);
-            const totalAlunos = data.reduce((sum, d) => sum + d.alunos, 0);
-            const margemTotal = totalFaturado - totalInvestido;
+        function renderRanking() {
+            const rankings = [
+                { icon: '🏆', label: 'Maior Margem', key: 'margem', format: 'currency' },
+                { icon: '⚠️', label: 'Mais Negativo', key: 'margemNegativa', format: 'currency' },
+                { icon: '👥', label: 'Mais Alunos', key: 'alunos', format: 'number' },
+                { icon: '✅', label: 'Mais Qualificados', key: 'qualificados', format: 'number' },
+                { icon: '📅', label: 'Maior Taxa Agendamento', key: 'taxaAgendamento', format: 'percent' },
+                { icon: '📞', label: 'Maior Taxa Comparecimento', key: 'taxaComparecimento', format: 'percent' },
+                { icon: '💼', label: 'Maior Taxa Conversão', key: 'taxaConversao', format: 'percent' },
+                { icon: '📈', label: 'Maior Taxa Ascensão', key: 'taxaAscensao', format: 'percent' }
+            ];
 
-            const statsHTML = `
-                <div class="stat-card">
-                    <div class="stat-label">Total Investido</div>
-                    <div class="stat-value">R$ ${totalInvestido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Total Faturado</div>
-                    <div class="stat-value">R$ ${totalFaturado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Margem Total</div>
-                    <div class="stat-value" style="color: ${margemTotal >= 0 ? '#10b981' : '#ef4444'}">
-                        R$ ${margemTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+            const container = document.getElementById('rankingGrid');
+            
+            container.innerHTML = rankings.map(ranking => {
+                const result = calculateRanking(ranking.key);
+                return `
+                    <div class="ranking-card">
+                        <div class="ranking-icon">${ranking.icon}</div>
+                        <div class="ranking-label">${ranking.label}</div>
+                        <div class="ranking-product">${result.product}</div>
+                        <div class="ranking-value">${formatValue(result.value, ranking.format)}</div>
                     </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Total de Alunos</div>
-                    <div class="stat-value">${totalAlunos}</div>
-                </div>
-            `;
-
-            document.getElementById('statsGrid').innerHTML = statsHTML;
+                `;
+            }).join('');
         }
 
-        // Inicializar aplicação
+        function calculateRanking(key) {
+            let bestProduct = '';
+            let bestValue = key === 'margemNegativa' ? 0 : -Infinity;
+
+            for (const [productName, data] of Object.entries(allData)) {
+                if (!data.semanas || data.semanas.length === 0) continue;
+
+                let value = 0;
+
+                switch(key) {
+                    case 'margem':
+                        value = data.semanas.reduce((sum, s) => sum + (s.faturado - s.investido), 0);
+                        break;
+                    case 'margemNegativa':
+                        value = data.semanas.reduce((sum, s) => sum + (s.faturado - s.investido), 0);
+                        if (value >= 0) continue;
+                        if (value < bestValue) {
+                            bestValue = value;
+                            bestProduct = productName;
+                        }
+                        continue;
+                    case 'alunos':
+                        value = data.semanas.reduce((sum, s) => sum + s.alunos, 0);
+                        break;
+                    case 'qualificados':
+                        value = data.semanas.reduce((sum, s) => sum + s.qualificados, 0);
+                        break;
+                    case 'taxaAgendamento':
+                        const totalQualif = data.semanas.reduce((sum, s) => sum + s.qualificados, 0);
+                        const totalAgend = data.semanas.reduce((sum, s) => sum + s.agendados, 0);
+                        value = totalQualif > 0 ? (totalAgend / totalQualif) * 100 : 0;
+                        break;
+                    case 'taxaComparecimento':
+                        const avgComparecimento = data.semanas.reduce((sum, s) => sum + s.taxaComparecimento, 0) / data.semanas.length;
+                        value = avgComparecimento;
+                        break;
+                    case 'taxaConversao':
+                        const avgConversao = data.semanas.reduce((sum, s) => sum + s.taxaConversao, 0) / data.semanas.length;
+                        value = avgConversao;
+                        break;
+                    case 'taxaAscensao':
+                        value = calcularTaxaAscensao(data.semanas);
+                        break;
+                }
+
+                if (value > bestValue) {
+                    bestValue = value;
+                    bestProduct = productName;
+                }
+            }
+
+            return { product: bestProduct || 'N/A', value: bestValue };
+        }
+
+        function formatValue(value, format) {
+            switch(format) {
+                case 'currency':
+                    return 'R$ ' + value.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                case 'percent':
+                    return value.toFixed(2) + '%';
+                case 'number':
+                    return value.toFixed(0);
+                default:
+                    return value;
+            }
+        }
+
+        function selectMonth(monthId) {
+            currentMonth = monthId;
+            loadData();
+        }
+
+        function selectProduct(productId) {
+            currentProduct = productId;
+            renderUI();
+        }
+
+        function selectMetric(metricId) {
+            currentMetric = metricId;
+            renderUI();
+        }
+
         loadData();
-        
-        // Atualizar dados a cada 30 segundos
-        setInterval(loadData, 30000);
+        setInterval(loadData, 60000);
     </script>
 </body>
 </html>
