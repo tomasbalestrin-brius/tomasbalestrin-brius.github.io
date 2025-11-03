@@ -160,6 +160,48 @@
             height: 400px;
         }
 
+        .metric-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #475569;
+            transition: all 0.3s;
+        }
+
+        .metric-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-3px);
+        }
+
+        .metric-card-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .metric-card-label {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .metric-card-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #e2e8f0;
+        }
+
+        .metric-card-value.highlight {
+            color: #3b82f6;
+        }
+
         .stats-panel {
             display: flex;
             flex-direction: column;
@@ -326,6 +368,7 @@
                 <div class="chart-container">
                     <canvas id="mainChart"></canvas>
                 </div>
+                <div class="metric-cards" id="metricCards"></div>
             </div>
 
             <div class="stats-panel" id="statsPanel"></div>
@@ -455,6 +498,7 @@
             renderMetricButtons();
             renderStatsPanel();
             updateChart();
+            renderMetricCards();
             renderRanking();
         }
 
@@ -500,8 +544,6 @@
             const totalFaturamentoFunil = semanas.reduce((sum, s) => sum + s.faturamentoFunil, 0);
             const totalLucroFunil = semanas.reduce((sum, s) => sum + s.lucroFunil, 0);
             const margemTotal = totalFaturado - totalInvestido;
-            const totalCallRealizada = semanas.reduce((sum, s) => sum + s.callRealizada, 0);
-            const totalNumeroVenda = semanas.reduce((sum, s) => sum + s.numeroVenda, 0);
 
             const taxaAscensao = tendencia ? calcularTaxaAscensao(semanas) : 0;
 
@@ -524,14 +566,6 @@
                     <div class="stat-value ${totalLucroFunil >= 0 ? 'positive' : 'negative'}">
                         R$ ${totalLucroFunil.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                     </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">📞 Call Realizada</div>
-                    <div class="stat-value">${totalCallRealizada}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">💼 Número de Vendas</div>
-                    <div class="stat-value positive">${totalNumeroVenda}</div>
                 </div>
                 ${tendencia ? `
                 <div class="tendencias">
@@ -569,6 +603,291 @@
             
             if (primeiroValor === 0) return 0;
             return ((ultimoValor - primeiroValor) / primeiroValor) * 100;
+        }
+
+        function renderMetricCards() {
+            const data = allData[currentProduct];
+            if (!data) return;
+
+            const { semanas } = data;
+            const container = document.getElementById('metricCards');
+            
+            let cardsHTML = '';
+
+            switch (currentMetric) {
+                case 'geral':
+                    const totalInv = semanas.reduce((sum, s) => sum + s.investido, 0);
+                    const totalFat = semanas.reduce((sum, s) => sum + s.faturado, 0);
+                    const margem = totalFat - totalInv;
+                    const roas = totalInv > 0 ? totalFat / totalInv : 0;
+                    
+                    cardsHTML = `
+                        <div class="metric-card">
+                            <div class="metric-card-icon">💰</div>
+                            <div class="metric-card-label">Total Investido</div>
+                            <div class="metric-card-value">R$ ${totalInv.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">💵</div>
+                            <div class="metric-card-label">Total Faturado</div>
+                            <div class="metric-card-value">R$ ${totalFat.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📈</div>
+                            <div class="metric-card-label">Margem Total</div>
+                            <div class="metric-card-value highlight">R$ ${margem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">🎯</div>
+                            <div class="metric-card-label">ROAS Médio</div>
+                            <div class="metric-card-value highlight">${roas.toFixed(2)}x</div>
+                        </div>
+                    `;
+                    break;
+
+                case 'investido':
+                    const totalInvestido = semanas.reduce((sum, s) => sum + s.investido, 0);
+                    const mediaInvestido = totalInvestido / semanas.length;
+                    const maiorInvestimento = Math.max(...semanas.map(s => s.investido));
+                    const menorInvestimento = Math.min(...semanas.map(s => s.investido));
+                    
+                    cardsHTML = `
+                        <div class="metric-card">
+                            <div class="metric-card-icon">💰</div>
+                            <div class="metric-card-label">Total Investido</div>
+                            <div class="metric-card-value highlight">R$ ${totalInvestido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📊</div>
+                            <div class="metric-card-label">Média Semanal</div>
+                            <div class="metric-card-value">R$ ${mediaInvestido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">⬆️</div>
+                            <div class="metric-card-label">Maior Investimento</div>
+                            <div class="metric-card-value">R$ ${maiorInvestimento.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">⬇️</div>
+                            <div class="metric-card-label">Menor Investimento</div>
+                            <div class="metric-card-value">R$ ${menorInvestimento.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 'faturado':
+                    const totalFaturado = semanas.reduce((sum, s) => sum + s.faturado, 0);
+                    const mediaFaturado = totalFaturado / semanas.length;
+                    const maiorFaturamento = Math.max(...semanas.map(s => s.faturado));
+                    const crescimento = semanas.length > 1 ? ((semanas[semanas.length-1].faturado - semanas[0].faturado) / semanas[0].faturado * 100) : 0;
+                    
+                    cardsHTML = `
+                        <div class="metric-card">
+                            <div class="metric-card-icon">💵</div>
+                            <div class="metric-card-label">Total Faturado</div>
+                            <div class="metric-card-value highlight">R$ ${totalFaturado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📊</div>
+                            <div class="metric-card-label">Média Semanal</div>
+                            <div class="metric-card-value">R$ ${mediaFaturado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">🏆</div>
+                            <div class="metric-card-label">Melhor Semana</div>
+                            <div class="metric-card-value">R$ ${maiorFaturamento.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📈</div>
+                            <div class="metric-card-label">Crescimento</div>
+                            <div class="metric-card-value">${crescimento >= 0 ? '+' : ''}${crescimento.toFixed(1)}%</div>
+                        </div>
+                    `;
+                    break;
+
+                case 'margem':
+                    const margens = semanas.map(s => s.faturado - s.investido);
+                    const margemTotal = margens.reduce((sum, m) => sum + m, 0);
+                    const margemMedia = margemTotal / semanas.length;
+                    const melhorMargem = Math.max(...margens);
+                    const piorMargem = Math.min(...margens);
+                    
+                    cardsHTML = `
+                        <div class="metric-card">
+                            <div class="metric-card-icon">💎</div>
+                            <div class="metric-card-label">Margem Total</div>
+                            <div class="metric-card-value highlight">R$ ${margemTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📊</div>
+                            <div class="metric-card-label">Margem Média</div>
+                            <div class="metric-card-value">R$ ${margemMedia.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">✅</div>
+                            <div class="metric-card-label">Melhor Margem</div>
+                            <div class="metric-card-value">R$ ${melhorMargem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">⚠️</div>
+                            <div class="metric-card-label">Pior Margem</div>
+                            <div class="metric-card-value">R$ ${piorMargem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 'alunos':
+                    const totalAlunos = semanas.reduce((sum, s) => sum + s.alunos, 0);
+                    const mediaAlunos = totalAlunos / semanas.length;
+                    const maxAlunos = Math.max(...semanas.map(s => s.alunos));
+                    const custoAluno = semanas.reduce((sum, s) => sum + s.investido, 0) / totalAlunos;
+                    
+                    cardsHTML = `
+                        <div class="metric-card">
+                            <div class="metric-card-icon">👥</div>
+                            <div class="metric-card-label">Total de Alunos</div>
+                            <div class="metric-card-value highlight">${totalAlunos}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📊</div>
+                            <div class="metric-card-label">Média por Semana</div>
+                            <div class="metric-card-value">${mediaAlunos.toFixed(0)}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">🏆</div>
+                            <div class="metric-card-label">Melhor Semana</div>
+                            <div class="metric-card-value">${maxAlunos}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">💰</div>
+                            <div class="metric-card-label">Custo por Aluno</div>
+                            <div class="metric-card-value">R$ ${custoAluno.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 'qualificados':
+                    const totalQualif = semanas.reduce((sum, s) => sum + s.qualificados, 0);
+                    const mediaQualif = totalQualif / semanas.length;
+                    const maxQualif = Math.max(...semanas.map(s => s.qualificados));
+                    const custoQualif = semanas.reduce((sum, s) => sum + s.investido, 0) / totalQualif;
+                    
+                    cardsHTML = `
+                        <div class="metric-card">
+                            <div class="metric-card-icon">✅</div>
+                            <div class="metric-card-label">Total Qualificados</div>
+                            <div class="metric-card-value highlight">${totalQualif}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📊</div>
+                            <div class="metric-card-label">Média por Semana</div>
+                            <div class="metric-card-value">${mediaQualif.toFixed(0)}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">🏆</div>
+                            <div class="metric-card-label">Melhor Semana</div>
+                            <div class="metric-card-value">${maxQualif}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">💰</div>
+                            <div class="metric-card-label">Custo por Qualificado</div>
+                            <div class="metric-card-value">R$ ${custoQualif.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 'agendados':
+                    const totalAgend = semanas.reduce((sum, s) => sum + s.agendados, 0);
+                    const mediaAgend = totalAgend / semanas.length;
+                    const maxAgend = Math.max(...semanas.map(s => s.agendados));
+                    const taxaAgendGeral = (totalAgend / semanas.reduce((sum, s) => sum + s.qualificados, 0) * 100);
+                    
+                    cardsHTML = `
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📅</div>
+                            <div class="metric-card-label">Total Agendados</div>
+                            <div class="metric-card-value highlight">${totalAgend}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📊</div>
+                            <div class="metric-card-label">Média por Semana</div>
+                            <div class="metric-card-value">${mediaAgend.toFixed(0)}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">🏆</div>
+                            <div class="metric-card-label">Melhor Semana</div>
+                            <div class="metric-card-value">${maxAgend}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📈</div>
+                            <div class="metric-card-label">Taxa Agendamento</div>
+                            <div class="metric-card-value">${taxaAgendGeral.toFixed(1)}%</div>
+                        </div>
+                    `;
+                    break;
+
+                case 'callRealizada':
+                    const totalCalls = semanas.reduce((sum, s) => sum + s.callRealizada, 0);
+                    const mediaCalls = totalCalls / semanas.length;
+                    const maxCalls = Math.max(...semanas.map(s => s.callRealizada));
+                    const taxaComparecGeral = semanas.reduce((sum, s) => sum + s.taxaComparecimento, 0) / semanas.length;
+                    
+                    cardsHTML = `
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📞</div>
+                            <div class="metric-card-label">Total de Calls</div>
+                            <div class="metric-card-value highlight">${totalCalls}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📊</div>
+                            <div class="metric-card-label">Média por Semana</div>
+                            <div class="metric-card-value">${mediaCalls.toFixed(0)}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">🏆</div>
+                            <div class="metric-card-label">Melhor Semana</div>
+                            <div class="metric-card-value">${maxCalls}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📈</div>
+                            <div class="metric-card-label">Taxa Comparecimento</div>
+                            <div class="metric-card-value">${taxaComparecGeral.toFixed(1)}%</div>
+                        </div>
+                    `;
+                    break;
+
+                case 'numeroVenda':
+                    const totalVendas = semanas.reduce((sum, s) => sum + s.numeroVenda, 0);
+                    const mediaVendas = totalVendas / semanas.length;
+                    const maxVendas = Math.max(...semanas.map(s => s.numeroVenda));
+                    const taxaConvGeral = semanas.reduce((sum, s) => sum + s.taxaConversao, 0) / semanas.length;
+                    
+                    cardsHTML = `
+                        <div class="metric-card">
+                            <div class="metric-card-icon">💼</div>
+                            <div class="metric-card-label">Total de Vendas</div>
+                            <div class="metric-card-value highlight">${totalVendas}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📊</div>
+                            <div class="metric-card-label">Média por Semana</div>
+                            <div class="metric-card-value">${mediaVendas.toFixed(1)}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">🏆</div>
+                            <div class="metric-card-label">Melhor Semana</div>
+                            <div class="metric-card-value">${maxVendas}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-card-icon">📈</div>
+                            <div class="metric-card-label">Taxa Conversão</div>
+                            <div class="metric-card-value">${taxaConvGeral.toFixed(1)}%</div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            container.innerHTML = cardsHTML;
         }
 
         function updateChart() {
