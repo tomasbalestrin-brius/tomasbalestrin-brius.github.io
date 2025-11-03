@@ -687,6 +687,19 @@
             `;
         }
 
+        function calcularTaxaAscensao(semanas) {
+            if (semanas.length < 2) return 0;
+            
+            const primeiraMetade = semanas.slice(0, Math.ceil(semanas.length / 2));
+            const segundaMetade = semanas.slice(Math.ceil(semanas.length / 2));
+            
+            const mediaInicial = primeiraMetade.reduce((sum, s) => sum + s.faturado, 0) / primeiraMetade.length;
+            const mediaFinal = segundaMetade.reduce((sum, s) => sum + s.faturado, 0) / segundaMetade.length;
+            
+            if (mediaInicial === 0) return 0;
+            return ((mediaFinal - mediaInicial) / mediaInicial) * 100;
+        }
+
         function renderBottomCards() {
             const data = allData[currentProduct];
             if (!data) return;
@@ -712,6 +725,7 @@
                     <div class="bottom-card-label">ROAS Médio</div>
                     <div class="bottom-card-value">${roasMedio.toFixed(2)}x</div>
                 </div>
+                <div class="bottom-card">
                     <div class="bottom-card-icon">💰</div>
                     <div class="bottom-card-label">Total Investido</div>
                     <div class="bottom-card-value">R$ ${totalInvestido.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
@@ -721,4 +735,334 @@
                     <div class="bottom-card-label">Total Faturado</div>
                     <div class="bottom-card-value">R$ ${totalFaturado.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
                 </div>
-                <div class="bottom-card">
+            `;
+        }
+
+        function renderFunnel(semanas) {
+            const totalAlunos = semanas.reduce((sum, s) => sum + s.alunos, 0);
+            const totalQualificados = semanas.reduce((sum, s) => sum + s.qualificados, 0);
+            const totalAgendados = semanas.reduce((sum, s) => sum + s.agendados, 0);
+            const totalCallRealizada = semanas.reduce((sum, s) => sum + s.callRealizada, 0);
+            const totalVendas = semanas.reduce((sum, s) => sum + s.numeroVenda, 0);
+
+            const chartArea = document.getElementById('chartArea');
+            const chartTitle = document.getElementById('chartTitle');
+            chartTitle.textContent = 'Funil de Conversão - ' + currentProduct;
+
+            chartArea.innerHTML = `
+                <div class="funnel-container">
+                    <div class="funnel-stage funnel-stage-1">
+                        <div class="funnel-label">👥 Alunos</div>
+                        <div class="funnel-value">${totalAlunos}</div>
+                        <div class="funnel-percent">100%</div>
+                    </div>
+                    <div class="funnel-arrow">▼</div>
+                    <div class="funnel-stage funnel-stage-2">
+                        <div class="funnel-label">✅ Qualificados</div>
+                        <div class="funnel-value">${totalQualificados}</div>
+                        <div class="funnel-percent">${totalAlunos > 0 ? ((totalQualificados / totalAlunos) * 100).toFixed(1) : 0}%</div>
+                    </div>
+                    <div class="funnel-arrow">▼</div>
+                    <div class="funnel-stage funnel-stage-3">
+                        <div class="funnel-label">📅 Call Agendadas</div>
+                        <div class="funnel-value">${totalAgendados}</div>
+                        <div class="funnel-percent">${totalQualificados > 0 ? ((totalAgendados / totalQualificados) * 100).toFixed(1) : 0}%</div>
+                    </div>
+                    <div class="funnel-arrow">▼</div>
+                    <div class="funnel-stage funnel-stage-4">
+                        <div class="funnel-label">📞 Call Realizadas</div>
+                        <div class="funnel-value">${totalCallRealizada}</div>
+                        <div class="funnel-percent">${totalAgendados > 0 ? ((totalCallRealizada / totalAgendados) * 100).toFixed(1) : 0}%</div>
+                    </div>
+                    <div class="funnel-arrow">▼</div>
+                    <div class="funnel-stage funnel-stage-5">
+                        <div class="funnel-label">💼 Vendas</div>
+                        <div class="funnel-value">${totalVendas}</div>
+                        <div class="funnel-percent">${totalCallRealizada > 0 ? ((totalVendas / totalCallRealizada) * 100).toFixed(1) : 0}%</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateChart() {
+            const data = allData[currentProduct];
+            if (!data) return;
+
+            const { semanas } = data;
+            const labels = semanas.map((_, i) => `Semana ${i + 1}`);
+
+            const chartArea = document.getElementById('chartArea');
+
+            if (currentMetric === 'geral') {
+                renderFunnel(semanas);
+                return;
+            }
+
+            chartArea.innerHTML = '<div class="chart-container"><canvas id="mainChart"></canvas></div>';
+
+            const ctx = document.getElementById('mainChart').getContext('2d');
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            let datasets = [];
+            let title = '';
+
+            switch(currentMetric) {
+                case 'investido':
+                    datasets = [{
+                        label: 'Investido',
+                        data: semanas.map(s => s.investido),
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    title = 'Investimento por Semana';
+                    break;
+
+                case 'faturado':
+                    datasets = [{
+                        label: 'Faturado',
+                        data: semanas.map(s => s.faturado),
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    title = 'Faturamento por Semana';
+                    break;
+
+                case 'margem':
+                    datasets = [
+                        {
+                            label: 'Investido',
+                            data: semanas.map(s => s.investido),
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Faturado',
+                            data: semanas.map(s => s.faturado),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Margem',
+                            data: semanas.map(s => s.faturado - s.investido),
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ];
+                    title = 'Visão Geral: Investido vs Faturado vs Margem';
+                    break;
+
+                case 'alunos':
+                    datasets = [{
+                        label: 'Alunos',
+                        data: semanas.map(s => s.alunos),
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    title = 'Número de Alunos por Semana';
+                    break;
+
+                case 'qualificados':
+                    datasets = [{
+                        label: 'Qualificados',
+                        data: semanas.map(s => s.qualificados),
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    title = 'Alunos Qualificados por Semana';
+                    break;
+
+                case 'agendados':
+                    datasets = [{
+                        label: 'Agendados',
+                        data: semanas.map(s => s.agendados),
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    title = 'Calls Agendadas por Semana';
+                    break;
+
+                case 'callrealizada':
+                    datasets = [{
+                        label: 'Call Realizada',
+                        data: semanas.map(s => s.callRealizada),
+                        borderColor: '#ec4899',
+                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    title = 'Calls Realizadas por Semana';
+                    break;
+
+                case 'vendas':
+                    datasets = [{
+                        label: 'Número de Vendas',
+                        data: semanas.map(s => s.numeroVenda),
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    title = 'Número de Vendas por Semana';
+                    break;
+            }
+
+            document.getElementById('chartTitle').textContent = title;
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e2e8f0',
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#e2e8f0',
+                            bodyColor: '#e2e8f0',
+                            borderColor: '#475569',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#94a3b8' },
+                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#94a3b8' },
+                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderRanking() {
+            const container = document.getElementById('rankingGrid');
+            
+            const produtosRanking = products.map(product => {
+                const data = allData[product.id];
+                if (!data) return null;
+
+                const { semanas } = data;
+                const totalInvestido = semanas.reduce((sum, s) => sum + s.investido, 0);
+                const totalFaturado = semanas.reduce((sum, s) => sum + s.faturado, 0);
+                const totalFaturamentoFunil = semanas.reduce((sum, s) => sum + s.faturamentoFunil, 0);
+                const totalLucroFunil = semanas.reduce((sum, s) => sum + s.lucroFunil, 0);
+                const totalVendas = semanas.reduce((sum, s) => sum + s.numeroVenda, 0);
+                const roasMedio = totalInvestido > 0 ? totalFaturado / totalInvestido : 0;
+                const taxaAscensao = calcularTaxaAscensao(semanas);
+
+                return {
+                    ...product,
+                    totalInvestido,
+                    totalFaturado,
+                    totalFaturamentoFunil,
+                    totalLucroFunil,
+                    totalVendas,
+                    roasMedio,
+                    taxaAscensao
+                };
+            }).filter(p => p !== null);
+
+            const rankings = [
+                { 
+                    title: '💰 Maior Faturamento', 
+                    icon: '👑', 
+                    key: 'totalFaturado',
+                    format: (val) => `R$ ${val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`
+                },
+                { 
+                    title: '💵 Maior Faturamento do Funil', 
+                    icon: '🏆', 
+                    key: 'totalFaturamentoFunil',
+                    format: (val) => `R$ ${val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`
+                },
+                { 
+                    title: '📊 Maior Lucro do Funil', 
+                    icon: '💎', 
+                    key: 'totalLucroFunil',
+                    format: (val) => `R$ ${val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`
+                },
+                { 
+                    title: '🎯 Melhor ROAS', 
+                    icon: '🌟', 
+                    key: 'roasMedio',
+                    format: (val) => `${val.toFixed(2)}x`
+                },
+                { 
+                    title: '💼 Mais Vendas', 
+                    icon: '🚀', 
+                    key: 'totalVendas',
+                    format: (val) => `${val} vendas`
+                },
+                { 
+                    title: '📈 Maior Taxa de Ascensão', 
+                    icon: '⬆️', 
+                    key: 'taxaAscensao',
+                    format: (val) => `${val >= 0 ? '+' : ''}${val.toFixed(2)}%`
+                }
+            ];
+
+            container.innerHTML = rankings.map(ranking => {
+                const sorted = [...produtosRanking].sort((a, b) => b[ranking.key] - a[ranking.key]);
+                const winner = sorted[0];
+
+                return `
+                    <div class="ranking-card">
+                        <div class="ranking-icon">${ranking.icon}</div>
+                        <div class="ranking-label">${ranking.title}</div>
+                        <div class="ranking-product">${winner.icon} ${winner.name}</div>
+                        <div class="ranking-value">${ranking.format(winner[ranking.key])}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectMonth(monthId) {
+            currentMonth = monthId;
+            loadData();
+        }
+
+        function selectProduct(productId) {
+            currentProduct = productId;
+            renderUI();
+        }
+
+        function selectMetric(metricId) {
+            currentMetric = metricId;
+            renderMetricButtons();
+            updateChart();
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
