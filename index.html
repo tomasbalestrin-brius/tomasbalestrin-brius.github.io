@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Funis - Análise de Performance</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #94a3b8;
+        }
+
+        .product-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .product-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .product-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .product-btn.active {
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+        }
+
+        .dashboard-content {
+            display: flex;
+            gap: 20px;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        .sidebar {
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .metric-btn {
+            padding: 18px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #1e293b;
+            color: #e2e8f0;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 2px solid transparent;
+        }
+
+        .metric-btn:hover {
+            background: #334155;
+            transform: translateX(5px);
+        }
+
+        .metric-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #60a5fa;
+            transform: translateX(5px);
+        }
+
+        .metric-icon {
+            font-size: 1.3rem;
+        }
+
+        .main-content {
+            flex: 1;
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .chart-title {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            color: #e2e8f0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: #334155;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #e2e8f0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: #94a3b8;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-content {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 DASHBOARD FUNIS</h1>
+            <p>Análise de Performance por Produto - 4 Semanas</p>
+        </div>
+
+        <div class="product-selector" id="productSelector">
+            <!-- Botões de produtos serão inseridos aqui -->
+        </div>
+
+        <div class="dashboard-content">
+            <div class="sidebar" id="sidebar">
+                <!-- Botões de métricas serão inseridos aqui -->
+            </div>
+
+            <div class="main-content">
+                <h2 class="chart-title" id="chartTitle">Carregando dados...</h2>
+                <div class="chart-container">
+                    <canvas id="mainChart"></canvas>
+                </div>
+                <div class="stats-grid" id="statsGrid">
+                    <!-- Cards de estatísticas serão inseridos aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração
+        const SHEET_ID = '1V0-yWzGbDWUEQ21CPtNcHrzPQfLTXKHNBYUlSfzO2Pc';
+        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=799831430`;
+
+        // Estado da aplicação
+        let currentProduct = 'Teste';
+        let currentMetric = 'geral';
+        let chartInstance = null;
+        let productsData = {};
+
+        // Produtos disponíveis
+        const products = [
+            { id: '50 Scripts', name: '50 Scripts', icon: '📝' },
+            { id: 'Teste', name: 'Teste', icon: '🧪' },
+            { id: 'IA Julia', name: 'IA Julia', icon: '🤖' },
+            { id: 'MPM', name: 'MPM', icon: '📊' },
+            { id: 'Couply', name: 'Couply', icon: '💑' }
+        ];
+
+        // Métricas disponíveis
+        const metrics = [
+            { id: 'geral', name: 'Visão Geral', icon: '📊' },
+            { id: 'investido', name: 'Valor Investido', icon: '💰' },
+            { id: 'faturado', name: 'Valor Faturado', icon: '💵' },
+            { id: 'margem', name: 'Margem (ROAS)', icon: '📈' },
+            { id: 'alunos', name: 'Número de Alunos', icon: '👥' }
+        ];
+
+        // Função para carregar dados do Google Sheets
+        async function loadData() {
+            try {
+                const response = await fetch(SHEET_URL);
+                const csvText = await response.text();
+                
+                Papa.parse(csvText, {
+                    complete: function(results) {
+                        parseSheetData(results.data);
+                        renderUI();
+                    },
+                    error: function(error) {
+                        console.error('Erro ao processar CSV:', error);
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                document.getElementById('chartTitle').textContent = 'Erro ao carregar dados. Verifique a conexão.';
+            }
+        }
+
+        // Função para parsear os dados da planilha
+        function parseSheetData(data) {
+            const productRanges = {
+                '50 Scripts': { start: 1, end: 5 },
+                'Teste': { start: 8, end: 12 },
+                'IA Julia': { start: 15, end: 19 },
+                'MPM': { start: 22, end: 26 },
+                'Couply': { start: 29, end: 33 }
+            };
+
+            for (const [productName, range] of Object.entries(productRanges)) {
+                const semanas = [];
+                
+                for (let i = range.start; i <= range.end; i++) {
+                    const row = data[i];
+                    if (!row) continue;
+
+                    const investido = parseFloat(row[1]?.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+                    const faturado = parseFloat(row[2]?.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+                    const roas = parseFloat(row[3]?.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+                    const alunos = parseFloat(row[4]?.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+
+                    semanas.push({
+                        semana: `Semana ${i - range.start + 1}`,
+                        investido,
+                        faturado,
+                        roas,
+                        alunos,
+                        margem: faturado - investido
+                    });
+                }
+
+                productsData[productName] = semanas;
+            }
+        }
+
+        // Função para renderizar a UI
+        function renderUI() {
+            renderProductButtons();
+            renderMetricButtons();
+            updateChart();
+        }
+
+        // Renderizar botões de produtos
+        function renderProductButtons() {
+            const container = document.getElementById('productSelector');
+            container.innerHTML = products.map(product => `
+                <button class="product-btn ${product.id === currentProduct ? 'active' : ''}" 
+                        onclick="selectProduct('${product.id}')">
+                    ${product.icon} ${product.name}
+                </button>
+            `).join('');
+        }
+
+        // Renderizar botões de métricas
+        function renderMetricButtons() {
+            const container = document.getElementById('sidebar');
+            container.innerHTML = metrics.map(metric => `
+                <button class="metric-btn ${metric.id === currentMetric ? 'active' : ''}" 
+                        onclick="selectMetric('${metric.id}')">
+                    <span class="metric-icon">${metric.icon}</span>
+                    <span>${metric.name}</span>
+                </button>
+            `).join('');
+        }
+
+        // Selecionar produto
+        function selectProduct(productId) {
+            currentProduct = productId;
+            renderUI();
+        }
+
+        // Selecionar métrica
+        function selectMetric(metricId) {
+            currentMetric = metricId;
+            renderUI();
+        }
+
+        // Atualizar gráfico
+        function updateChart() {
+            const data = productsData[currentProduct];
+            if (!data) return;
+
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            let datasets = [];
+            let title = '';
+
+            switch (currentMetric) {
+                case 'geral':
+                    title = 'Visão Geral: Investido vs Faturado vs Margem';
+                    datasets = [
+                        {
+                            label: 'Investido',
+                            data: data.map(d => d.investido),
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Faturado',
+                            data: data.map(d => d.faturado),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Margem',
+                            data: data.map(d => d.margem),
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4
+                        }
+                    ];
+                    break;
+                case 'investido':
+                    title = 'Evolução do Valor Investido';
+                    datasets = [{
+                        label: 'Investido',
+                        data: data.map(d => d.investido),
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                        borderWidth: 4,
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    break;
+                case 'faturado':
+                    title = 'Evolução do Valor Faturado';
+                    datasets = [{
+                        label: 'Faturado',
+                        data: data.map(d => d.faturado),
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderWidth: 4,
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    break;
+                case 'margem':
+                    title = 'Evolução da Margem (ROAS)';
+                    datasets = [{
+                        label: 'ROAS',
+                        data: data.map(d => d.roas),
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                        borderWidth: 4,
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    break;
+                case 'alunos':
+                    title = 'Número de Alunos';
+                    datasets = [{
+                        label: 'Alunos',
+                        data: data.map(d => d.alunos),
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                        borderWidth: 4,
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    break;
+            }
+
+            document.getElementById('chartTitle').textContent = title;
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.semana),
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e2e8f0',
+                                font: { size: 14 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleColor: '#e2e8f0',
+                            bodyColor: '#e2e8f0',
+                            borderColor: '#475569',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#334155'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    if (currentMetric === 'alunos') return value;
+                                    return 'R$ ' + value.toLocaleString('pt-BR');
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: '#334155'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    }
+                }
+            });
+
+            updateStats(data);
+        }
+
+        // Atualizar cards de estatísticas
+        function updateStats(data) {
+            const totalInvestido = data.reduce((sum, d) => sum + d.investido, 0);
+            const totalFaturado = data.reduce((sum, d) => sum + d.faturado, 0);
+            const totalAlunos = data.reduce((sum, d) => sum + d.alunos, 0);
+            const margemTotal = totalFaturado - totalInvestido;
+
+            const statsHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Total Investido</div>
+                    <div class="stat-value">R$ ${totalInvestido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Faturado</div>
+                    <div class="stat-value">R$ ${totalFaturado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Margem Total</div>
+                    <div class="stat-value" style="color: ${margemTotal >= 0 ? '#10b981' : '#ef4444'}">
+                        R$ ${margemTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total de Alunos</div>
+                    <div class="stat-value">${totalAlunos}</div>
+                </div>
+            `;
+
+            document.getElementById('statsGrid').innerHTML = statsHTML;
+        }
+
+        // Inicializar aplicação
+        loadData();
+        
+        // Atualizar dados a cada 30 segundos
+        setInterval(loadData, 30000);
+    </script>
+</body>
+</html>
