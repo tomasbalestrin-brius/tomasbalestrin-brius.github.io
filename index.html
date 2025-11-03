@@ -7,11 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
@@ -19,14 +15,8 @@
             color: white;
             padding: 20px;
         }
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
         .header h1 {
             font-size: 3rem;
             background: linear-gradient(45deg, #3b82f6, #8b5cf6);
@@ -52,15 +42,8 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        .month-btn:hover {
-            border-color: #3b82f6;
-            transform: translateY(-2px);
-        }
-        .month-btn.active {
-            background: #3b82f6;
-            border-color: #3b82f6;
-            color: white;
-        }
+        .month-btn:hover { border-color: #3b82f6; transform: translateY(-2px); }
+        .month-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
         .product-selector {
             display: flex;
             justify-content: center;
@@ -79,10 +62,7 @@
             background: #334155;
             color: #e2e8f0;
         }
-        .product-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-        }
+        .product-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
         .product-btn.active {
             background: linear-gradient(45deg, #3b82f6, #8b5cf6);
             color: white;
@@ -115,111 +95,101 @@
             align-items: center;
             gap: 10px;
         }
-        .metric-btn:hover {
-            background: #334155;
-            transform: translateX(5px);
-        }
-        .metric-btn.active {
-            background: #3b82f6;
-            color: white;
-            transform: translateX(5px);
-        }
+        .metric-btn:hover { background: #334155; transform: translateX(5px); }
+        .metric-btn.active { background: #3b82f6; color: white; transform: translateX(5px); }
         .main-chart {
             background: #1e293b;
             border-radius: 16px;
             padding: 25px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            min-height: 480px;
+            min-height: 520px;
             display: flex;
             flex-direction: column;
         }
         .chart-title {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
+            font-size: 1.6rem;
+            margin-bottom: 20px;
             color: #e2e8f0;
+            text-align: center;
         }
-        .chart-container {
-            position: relative;
-            flex: 1;
-        }
+        .chart-container { position: relative; flex: 1; }
 
-        /* FUNIL COMPACTO */
+        /* FUNIL GIGANTE E VISUAL */
         .funnel-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            padding: 10px 0;
-            max-width: 380px;
+            gap: 8px;
+            padding: 20px 40px;
+            width: 100%;
+            max-width: 800px;
             margin: 0 auto;
+            flex: 1;
+            justify-content: center;
         }
         .funnel-stage {
-            width: 100%;
+            width: 90%;
+            max-width: 700px;
             text-align: center;
-            padding: 8px 12px;
-            border-radius: 12px;
+            padding: 16px 20px;
+            border-radius: 16px;
             position: relative;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
             cursor: pointer;
+            height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .funnel-stage:hover {
-            transform: scale(1.03);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            transform: scale(1.04) translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
             z-index: 10;
         }
         .funnel-stage-1 { width: 100%; background: linear-gradient(135deg, #059669, #10b981); }
-        .funnel-stage-2 { width: 88%; background: linear-gradient(135deg, #0891b2, #06b6d4); }
-        .funnel-stage-3 { width: 72%; background: linear-gradient(135deg, #2563eb, #3b82f6); }
-        .funnel-stage-4 { width: 56%; background: linear-gradient(135deg, #7c3aed, #8b5cf6); }
+        .funnel-stage-2 { width: 85%; background: linear-gradient(135deg, #0891b2, #06b6d4); }
+        .funnel-stage-3 { width: 70%; background: linear-gradient(135deg, #2563eb, #3b82f6); }
+        .funnel-stage-4 { width: 55%; background: linear-gradient(135deg, #7c3aed, #8b5cf6); }
         .funnel-stage-5 { width: 40%; background: linear-gradient(135deg, #c026d3, #d946ef); }
 
         .funnel-label {
-            font-size: 0.85rem;
-            opacity: 0.9;
-            margin-bottom: 2px;
+            font-size: 1rem;
+            opacity: 0.95;
             font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         .funnel-value {
-            font-size: 1.4rem;
+            font-size: 2.2rem;
             font-weight: bold;
-            margin: 2px 0;
+            line-height: 1;
         }
         .funnel-percent {
-            font-size: 0.8rem;
+            font-size: 0.95rem;
             opacity: 0.9;
             font-weight: 500;
+            margin-top: 2px;
         }
         .funnel-arrow {
-            font-size: 1.2rem;
+            font-size: 2rem;
             color: #94a3b8;
-            margin: -2px 0;
-            opacity: 0.7;
+            opacity: 0.8;
+            margin: 4px 0;
         }
 
-        .stats-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+        .stats-panel { display: flex; flex-direction: column; gap: 15px; }
         .stat-card {
             background: #1e293b;
             padding: 20px;
             border-radius: 12px;
             border-left: 4px solid #3b82f6;
         }
-        .stat-label {
-            color: #94a3b8;
-            font-size: 0.85rem;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .stat-value {
-            font-size: 1.6rem;
-            font-weight: bold;
-            color: #e2e8f0;
-        }
+        .stat-label { color: #94a3b8; font-size: 0.9rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 1.8rem; font-weight: bold; color: #e2e8f0; }
         .stat-value.positive { color: #10b981; }
         .stat-value.negative { color: #ef4444; }
 
@@ -231,18 +201,8 @@
             text-align: center;
             box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
         }
-        .taxa-ascensao-card .stat-label {
-            font-size: 1rem;
-            color: #a78bfa;
-            margin-bottom: 10px;
-        }
-        .taxa-ascensao-card .stat-value {
-            font-size: 2.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
+        .taxa-ascensao-card .stat-label { font-size: 1rem; color: #a78bfa; margin-bottom: 10px; }
+        .taxa-ascensao-card .stat-value { font-size: 2.8rem; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .taxa-ascensao-arrow { font-size: 2rem; }
 
         .tendencias {
@@ -251,17 +211,8 @@
             border-radius: 12px;
             border-left: 4px solid #8b5cf6;
         }
-        .tendencias h3 {
-            font-size: 1rem;
-            margin-bottom: 15px;
-            color: #a78bfa;
-        }
-        .tendencia-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #334155;
-        }
+        .tendencias h3 { font-size: 1rem; margin-bottom: 15px; color: #a78bfa; }
+        .tendencia-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #334155; }
         .tendencia-item:last-child { border-bottom: none; }
         .tendencia-label { color: #94a3b8; font-size: 0.9rem; }
         .tendencia-value { color: #e2e8f0; font-weight: 600; font-size: 0.9rem; }
@@ -280,11 +231,7 @@
             border: 2px solid #475569;
             transition: all 0.3s;
         }
-        .bottom-card:hover {
-            border-color: #3b82f6;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
-        }
+        .bottom-card:hover { border-color: #3b82f6; transform: translateY(-5px); box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3); }
         .bottom-card-icon { font-size: 2.5rem; margin-bottom: 15px; }
         .bottom-card-label { color: #94a3b8; font-size: 0.9rem; margin-bottom: 10px; text-transform: uppercase; }
         .bottom-card-value { font-size: 1.8rem; font-weight: bold; color: #e2e8f0; }
@@ -295,17 +242,8 @@
             padding: 30px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.4);
         }
-        .ranking-title {
-            font-size: 1.8rem;
-            margin-bottom: 25px;
-            text-align: center;
-            color: #e2e8f0;
-        }
-        .ranking-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-        }
+        .ranking-title { font-size: 1.8rem; margin-bottom: 25px; text-align: center; color: #e2e8f0; }
+        .ranking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
         .ranking-card {
             background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
             padding: 20px;
@@ -314,11 +252,7 @@
             border: 2px solid #475569;
             transition: all 0.3s;
         }
-        .ranking-card:hover {
-            border-color: #3b82f6;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
-        }
+        .ranking-card:hover { border-color: #3b82f6; transform: translateY(-5px); box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3); }
         .ranking-icon { font-size: 2rem; margin-bottom: 10px; }
         .ranking-label { color: #94a3b8; font-size: 0.9rem; margin-bottom: 10px; }
         .ranking-product { font-size: 1.3rem; font-weight: bold; color: #e2e8f0; margin-bottom: 5px; }
@@ -326,7 +260,9 @@
 
         @media (max-width: 1200px) {
             .dashboard-content { grid-template-columns: 1fr; }
-            .stats-panel { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+            .funnel-container { padding: 20px; }
+            .funnel-stage { width: 95% !important; height: 55px; }
+            .funnel-value { font-size: 1.8rem; }
             .bottom-cards { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
@@ -343,7 +279,7 @@
             <div class="sidebar" id="sidebar"></div>
             <div class="main-chart">
                 <h2 class="chart-title" id="chartTitle">Carregando dados...</h2>
-                <div id="chartArea"></div>
+                <div id="chartArea" style="flex: 1; display: flex; align-items: center; justify-content: center;"></div>
             </div>
             <div class="stats-panel" id="statsPanel"></div>
         </div>
@@ -776,6 +712,7 @@
             updateChart();
         }
 
+        // INICIA O DASH
         loadData();
     </script>
 </body>
