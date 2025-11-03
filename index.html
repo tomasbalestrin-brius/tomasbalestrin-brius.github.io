@@ -363,7 +363,9 @@
             { id: 'margem', name: 'Margem', icon: '📈' },
             { id: 'alunos', name: 'Alunos', icon: '👥' },
             { id: 'qualificados', name: 'Qualificados', icon: '✅' },
-            { id: 'agendados', name: 'Agendados', icon: '📅' }
+            { id: 'agendados', name: 'Agendados', icon: '📅' },
+            { id: 'callRealizada', name: 'Call Realizada', icon: '📞' },
+            { id: 'numeroVenda', name: 'Número de Vendas', icon: '💼' }
         ];
 
         let currentMonth = 'nov';
@@ -424,11 +426,8 @@
         function parseRow(row) {
             const parseValue = (val) => {
                 if (!val || val === '#N/A' || val === '#DIV/0!') return 0;
-                // Remove tudo exceto números, vírgula e ponto
                 let cleanVal = val.toString().replace(/[^\d,.-]/g, '');
-                // Remove pontos (separadores de milhares)
                 cleanVal = cleanVal.replace(/\./g, '');
-                // Substitui vírgula por ponto (decimal)
                 cleanVal = cleanVal.replace(',', '.');
                 return parseFloat(cleanVal) || 0;
             };
@@ -501,6 +500,8 @@
             const totalFaturamentoFunil = semanas.reduce((sum, s) => sum + s.faturamentoFunil, 0);
             const totalLucroFunil = semanas.reduce((sum, s) => sum + s.lucroFunil, 0);
             const margemTotal = totalFaturado - totalInvestido;
+            const totalCallRealizada = semanas.reduce((sum, s) => sum + s.callRealizada, 0);
+            const totalNumeroVenda = semanas.reduce((sum, s) => sum + s.numeroVenda, 0);
 
             const taxaAscensao = tendencia ? calcularTaxaAscensao(semanas) : 0;
 
@@ -523,6 +524,14 @@
                     <div class="stat-value ${totalLucroFunil >= 0 ? 'positive' : 'negative'}">
                         R$ ${totalLucroFunil.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                     </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">📞 Call Realizada</div>
+                    <div class="stat-value">${totalCallRealizada}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">💼 Número de Vendas</div>
+                    <div class="stat-value positive">${totalNumeroVenda}</div>
                 </div>
                 ${tendencia ? `
                 <div class="tendencias">
@@ -678,6 +687,30 @@
                         fill: true
                     }];
                     break;
+                case 'callRealizada':
+                    title = 'Número de Calls Realizadas';
+                    datasets = [{
+                        label: 'Call Realizada',
+                        data: semanas.map(s => s.callRealizada),
+                        borderColor: '#14b8a6',
+                        backgroundColor: 'rgba(20, 184, 166, 0.2)',
+                        borderWidth: 4,
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    break;
+                case 'numeroVenda':
+                    title = 'Número de Vendas Realizadas';
+                    datasets = [{
+                        label: 'Número de Vendas',
+                        data: semanas.map(s => s.numeroVenda),
+                        borderColor: '#a855f7',
+                        backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                        borderWidth: 4,
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    break;
             }
 
             document.getElementById('chartTitle').textContent = title;
@@ -711,7 +744,7 @@
                             ticks: {
                                 color: '#94a3b8',
                                 callback: function(value) {
-                                    if (currentMetric === 'alunos' || currentMetric === 'qualificados' || currentMetric === 'agendados') 
+                                    if (currentMetric === 'alunos' || currentMetric === 'qualificados' || currentMetric === 'agendados' || currentMetric === 'callRealizada' || currentMetric === 'numeroVenda') 
                                         return value;
                                     return 'R$ ' + value.toLocaleString('pt-BR');
                                 }
