@@ -22,8 +22,304 @@
         }
 
         .container {
-            max-width: 1600px;
+            max-width: 1800px;
             margin: 0 auto;
+        }
+
+        .left-sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 80px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            border-right: 2px solid #334155;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            gap: 15px;
+            z-index: 1000;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar-btn {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 12px;
+            background: #1e293b;
+            color: #94a3b8;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .sidebar-btn:hover {
+            background: #334155;
+            color: #e2e8f0;
+            transform: scale(1.1);
+        }
+
+        .sidebar-btn.active {
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .sidebar-btn .tooltip {
+            position: absolute;
+            left: 75px;
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            border: 1px solid #475569;
+            z-index: 1001;
+        }
+
+        .sidebar-btn:hover .tooltip {
+            opacity: 1;
+        }
+
+        .main-content {
+            margin-left: 100px;
+        }
+
+        .module-view {
+            display: none;
+        }
+
+        .module-view.active {
+            display: block;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .comparison-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #1e293b;
+            border-radius: 12px;
+        }
+
+        .comparison-label {
+            color: #94a3b8;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comparison-selector select {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid #475569;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .comparison-selector select:hover {
+            border-color: #3b82f6;
+        }
+
+        .comparison-selector select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .roi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .roi-card {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 30px;
+            border-radius: 16px;
+            border: 2px solid #475569;
+            transition: all 0.3s;
+        }
+
+        .roi-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .roi-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .roi-card-icon {
+            font-size: 2.5rem;
+        }
+
+        .roi-card-title {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .roi-card-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #e2e8f0;
+            margin-bottom: 10px;
+        }
+
+        .roi-card-subtitle {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .insights-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .insight-card {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid #3b82f6;
+            display: flex;
+            gap: 20px;
+            align-items: start;
+            transition: all 0.3s;
+        }
+
+        .insight-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .insight-card.success {
+            border-left-color: #10b981;
+        }
+
+        .insight-card.warning {
+            border-left-color: #f59e0b;
+        }
+
+        .insight-card.danger {
+            border-left-color: #ef4444;
+        }
+
+        .insight-icon {
+            font-size: 2rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .insight-content {
+            flex: 1;
+        }
+
+        .insight-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+        }
+
+        .insight-description {
+            font-size: 1rem;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        .export-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid #475569;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .export-btn:hover {
+            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .export-btn-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .export-btn-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+        }
+
+        .export-btn-description {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .fullscreen-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5);
+            transition: all 0.3s;
+            z-index: 999;
+        }
+
+        .fullscreen-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.6);
         }
 
         .header {
@@ -568,9 +864,35 @@
             .bottom-cards {
                 grid-template-columns: repeat(2, 1fr);
             }
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
+            .left-sidebar {
+                width: 60px;
+                padding: 15px 0;
+            }
+            
+            .sidebar-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+            
+            .sidebar-btn .tooltip {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+            }
+            
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
             .header h1 {
                 font-size: 2.5rem;
             }
@@ -601,6 +923,14 @@
             .bottom-cards {
                 grid-template-columns: 1fr;
             }
+            
+            .export-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .roi-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 480px) {
@@ -618,11 +948,56 @@
                 max-width: 300px;
                 margin: 0 auto;
             }
+            
+            .left-sidebar {
+                width: 50px;
+            }
+            
+            .sidebar-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            
+            .main-content {
+                margin-left: 60px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Barra Lateral Esquerda -->
+    <div class="left-sidebar">
+        <button class="sidebar-btn active" onclick="showModule('dashboard')" data-module="dashboard">
+            <span>🏠</span>
+            <span class="tooltip">Dashboard Principal</span>
+        </button>
+        <button class="sidebar-btn" onclick="showModule('roi')" data-module="roi">
+            <span>💰</span>
+            <span class="tooltip">ROI/ROAS</span>
+        </button>
+        <button class="sidebar-btn" onclick="showModule('custos')" data-module="custos">
+            <span>📊</span>
+            <span class="tooltip">Custo por Lead</span>
+        </button>
+        <button class="sidebar-btn" onclick="showModule('insights')" data-module="insights">
+            <span>🤖</span>
+            <span class="tooltip">Insights Automáticos</span>
+        </button>
+        <button class="sidebar-btn" onclick="showModule('comparacao')" data-module="comparacao">
+            <span>⚖️</span>
+            <span class="tooltip">Comparar Meses</span>
+        </button>
+        <button class="sidebar-btn" onclick="showModule('exportar')" data-module="exportar">
+            <span>📥</span>
+            <span class="tooltip">Exportar</span>
+        </button>
+    </div>
+
+    <div class="main-content">
     <div class="container">
+        <!-- MÓDULO: Dashboard Principal -->
+        <div class="module-view active" id="module-dashboard">
         <div class="header">
             <h1>📊 ACOMPANHAMENTO GERAL FUNIS</h1>
             <p>Análise Completa de Performance por Produto</p>
@@ -671,9 +1046,417 @@
             <h2 class="ranking-title">🏆 RANKING DE PRODUTOS - COMPARAÇÃO</h2>
             <div class="ranking-grid" id="rankingGrid"></div>
         </div>
+        </div>
+
+        <!-- MÓDULO: ROI/ROAS -->
+        <div class="module-view" id="module-roi">
+            <div class="header">
+                <h1>💰 ANÁLISE ROI/ROAS</h1>
+                <p>Retorno sobre Investimento Detalhado</p>
+            </div>
+            <div class="month-selector" id="monthSelectorROI"></div>
+            <div class="roi-grid" id="roiGrid"></div>
+        </div>
+
+        <!-- MÓDULO: Custo por Lead -->
+        <div class="module-view" id="module-custos">
+            <div class="header">
+                <h1>📊 CUSTO POR LEAD/VENDA</h1>
+                <p>Análise de CAC e Eficiência</p>
+            </div>
+            <div class="month-selector" id="monthSelectorCustos"></div>
+            <div class="roi-grid" id="custosGrid"></div>
+        </div>
+
+        <!-- MÓDULO: Insights -->
+        <div class="module-view" id="module-insights">
+            <div class="header">
+                <h1>🤖 INSIGHTS AUTOMÁTICOS</h1>
+                <p>Análise Inteligente dos Dados</p>
+            </div>
+            <div class="month-selector" id="monthSelectorInsights"></div>
+            <div class="insights-container" id="insightsContainer"></div>
+        </div>
+
+        <!-- MÓDULO: Comparação de Meses -->
+        <div class="module-view" id="module-comparacao">
+            <div class="header">
+                <h1>⚖️ COMPARAÇÃO ENTRE MESES</h1>
+                <p>Análise Comparativa de Performance</p>
+            </div>
+            <div class="comparison-selector">
+                <div>
+                    <span class="comparison-label">📅 Mês 1:</span>
+                    <select id="month1Select" onchange="updateComparison()">
+                        <option value="out">Outubro</option>
+                        <option value="nov" selected>Novembro</option>
+                        <option value="dez">Dezembro</option>
+                        <option value="jan">Janeiro</option>
+                        <option value="fev">Fevereiro</option>
+                    </select>
+                </div>
+                <div>
+                    <span class="comparison-label">📅 Mês 2:</span>
+                    <select id="month2Select" onchange="updateComparison()">
+                        <option value="out" selected>Outubro</option>
+                        <option value="nov">Novembro</option>
+                        <option value="dez">Dezembro</option>
+                        <option value="jan">Janeiro</option>
+                        <option value="fev">Fevereiro</option>
+                    </select>
+                </div>
+            </div>
+            <div class="comparison-grid" id="comparisonGrid"></div>
+        </div>
+
+        <!-- MÓDULO: Exportar -->
+        <div class="module-view" id="module-exportar">
+            <div class="header">
+                <h1>📥 EXPORTAR DADOS</h1>
+                <p>Baixe seus relatórios e compartilhe insights</p>
+            </div>
+            <div class="export-buttons">
+                <div class="export-btn" onclick="exportPDF()">
+                    <div class="export-btn-icon">📄</div>
+                    <div class="export-btn-title">Exportar PDF</div>
+                    <div class="export-btn-description">Relatório completo em PDF</div>
+                </div>
+                <div class="export-btn" onclick="exportExcel()">
+                    <div class="export-btn-icon">📊</div>
+                    <div class="export-btn-title">Exportar Excel</div>
+                    <div class="export-btn-description">Planilha com todos os dados</div>
+                </div>
+                <div class="export-btn" onclick="exportCSV()">
+                    <div class="export-btn-icon">📋</div>
+                    <div class="export-btn-title">Exportar CSV</div>
+                    <div class="export-btn-description">Dados em formato CSV</div>
+                </div>
+                <div class="export-btn" onclick="shareLink()">
+                    <div class="export-btn-icon">🔗</div>
+                    <div class="export-btn-title">Compartilhar Link</div>
+                    <div class="export-btn-description">Gerar link compartilhável</div>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
 
+    <!-- Botão de Modo Apresentação -->
+    <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Modo Apresentação">
+        🖥️
+    </button>
+
     <script>
+        // FUNÇÕES DE NAVEGAÇÃO ENTRE MÓDULOS
+        function showModule(moduleName) {
+            // Oculta todos os módulos
+            document.querySelectorAll('.module-view').forEach(module => {
+                module.classList.remove('active');
+            });
+            
+            // Mostra o módulo selecionado
+            document.getElementById(`module-${moduleName}`).classList.add('active');
+            
+            // Atualiza botões da sidebar
+            document.querySelectorAll('.sidebar-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-module="${moduleName}"]`).classList.add('active');
+            
+            // Renderiza conteúdo do módulo
+            switch(moduleName) {
+                case 'roi':
+                    renderROI();
+                    break;
+                case 'custos':
+                    renderCustos();
+                    break;
+                case 'insights':
+                    renderInsights();
+                    break;
+                case 'comparacao':
+                    renderComparacao();
+                    break;
+            }
+        }
+
+        // FUNÇÕES DO MÓDULO ROI/ROAS
+        function renderROI() {
+            renderMonthSelectorForModule('monthSelectorROI');
+            const container = document.getElementById('roiGrid');
+            
+            const produtos = allProducts.filter(p => p.id !== 'Geral');
+            
+            let html = '';
+            produtos.forEach(product => {
+                const data = allData[product.id];
+                if (!data) return;
+                
+                const { semanas } = data;
+                const totalInvestido = semanas.reduce((sum, s) => sum + s.investido, 0);
+                const totalFaturamentoTrafego = semanas.reduce((sum, s) => sum + s.faturamentoTrafego, 0);
+                const totalFaturamentoFunil = semanas.reduce((sum, s) => sum + s.faturamentoFunil, 0);
+                
+                const roi = totalInvestido > 0 ? ((totalFaturamentoTrafego - totalInvestido) / totalInvestido * 100) : 0;
+                const roas = totalInvestido > 0 ? (totalFaturamentoTrafego / totalInvestido) : 0;
+                const roasFunil = totalInvestido > 0 ? (totalFaturamentoFunil / totalInvestido) : 0;
+                
+                html += `
+                    <div class="roi-card">
+                        <div class="roi-card-header">
+                            <div class="roi-card-icon">${product.icon}</div>
+                            <div class="roi-card-title">${product.name}</div>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <div class="roi-card-value" style="color: ${roi >= 0 ? '#10b981' : '#ef4444'}">
+                                ${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%
+                            </div>
+                            <div class="roi-card-subtitle">ROI - Retorno sobre Investimento</div>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <div class="roi-card-value" style="font-size: 2rem; color: #60a5fa;">
+                                ${roas.toFixed(2)}x
+                            </div>
+                            <div class="roi-card-subtitle">ROAS Tráfego</div>
+                        </div>
+                        <div>
+                            <div class="roi-card-value" style="font-size: 2rem; color: #a78bfa;">
+                                ${roasFunil.toFixed(2)}x
+                            </div>
+                            <div class="roi-card-subtitle">ROAS Funil</div>
+                        </div>
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #475569;">
+                            <div style="font-size: 0.9rem; color: #94a3b8;">
+                                Investido: <strong>R$ ${totalInvestido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong><br>
+                                Retorno: <strong>R$ ${totalFaturamentoTrafego.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // FUNÇÕES DO MÓDULO CUSTOS
+        function renderCustos() {
+            renderMonthSelectorForModule('monthSelectorCustos');
+            const container = document.getElementById('custosGrid');
+            
+            const produtos = allProducts.filter(p => p.id !== 'Geral');
+            
+            let html = '';
+            produtos.forEach(product => {
+                const data = allData[product.id];
+                if (!data) return;
+                
+                const { semanas } = data;
+                const totalInvestido = semanas.reduce((sum, s) => sum + s.investido, 0);
+                const totalAlunos = semanas.reduce((sum, s) => sum + s.alunos, 0);
+                const totalQualificados = semanas.reduce((sum, s) => sum + s.qualificados, 0);
+                const totalAgendados = semanas.reduce((sum, s) => sum + s.agendados, 0);
+                const totalVendas = semanas.reduce((sum, s) => sum + s.numeroVenda, 0);
+                
+                const custoAluno = totalAlunos > 0 ? totalInvestido / totalAlunos : 0;
+                const custoQualificado = totalQualificados > 0 ? totalInvestido / totalQualificados : 0;
+                const custoAgendado = totalAgendados > 0 ? totalInvestido / totalAgendados : 0;
+                const custoVenda = totalVendas > 0 ? totalInvestido / totalVendas : 0;
+                
+                html += `
+                    <div class="roi-card">
+                        <div class="roi-card-header">
+                            <div class="roi-card-icon">${product.icon}</div>
+                            <div class="roi-card-title">${product.name}</div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <div class="roi-card-value" style="font-size: 1.8rem;">
+                                R$ ${custoAluno.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                            </div>
+                            <div class="roi-card-subtitle">💰 Custo por Aluno (${totalAlunos} alunos)</div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <div class="roi-card-value" style="font-size: 1.8rem;">
+                                R$ ${custoQualificado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                            </div>
+                            <div class="roi-card-subtitle">✅ Custo por Qualificado (${totalQualificados})</div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <div class="roi-card-value" style="font-size: 1.8rem;">
+                                R$ ${custoAgendado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                            </div>
+                            <div class="roi-card-subtitle">📅 Custo por Agendado (${totalAgendados})</div>
+                        </div>
+                        <div>
+                            <div class="roi-card-value" style="font-size: 2rem; color: #10b981;">
+                                R$ ${custoVenda.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                            </div>
+                            <div class="roi-card-subtitle">💼 CAC - Custo por Venda (${totalVendas})</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // FUNÇÕES DO MÓDULO INSIGHTS
+        function renderInsights() {
+            renderMonthSelectorForModule('monthSelectorInsights');
+            const container = document.getElementById('insightsContainer');
+            
+            const insights = [];
+            const produtos = allProducts.filter(p => p.id !== 'Geral');
+            
+            // Encontrar melhor e pior produto
+            let melhorROI = { produto: '', valor: -Infinity };
+            let piorROI = { produto: '', valor: Infinity };
+            let melhorTaxaConversao = { produto: '', valor: -Infinity };
+            
+            produtos.forEach(product => {
+                const data = allData[product.id];
+                if (!data) return;
+                
+                const { semanas } = data;
+                const totalInvestido = semanas.reduce((sum, s) => sum + s.investido, 0);
+                const totalFaturado = semanas.reduce((sum, s) => sum + s.faturamentoTrafego, 0);
+                const roi = totalInvestido > 0 ? ((totalFaturado - totalInvestido) / totalInvestido * 100) : 0;
+                const taxaConversaoMedia = semanas.reduce((sum, s) => sum + s.taxaConversao, 0) / semanas.length;
+                
+                if (roi > melhorROI.valor) {
+                    melhorROI = { produto: product.name, valor: roi, icon: product.icon };
+                }
+                if (roi < piorROI.valor && roi < 0) {
+                    piorROI = { produto: product.name, valor: roi, icon: product.icon };
+                }
+                if (taxaConversaoMedia > melhorTaxaConversao.valor) {
+                    melhorTaxaConversao = { produto: product.name, valor: taxaConversaoMedia, icon: product.icon };
+                }
+            });
+            
+            // Insight 1: Melhor ROI
+            if (melhorROI.valor > 0) {
+                insights.push({
+                    type: 'success',
+                    icon: '🎉',
+                    title: 'Melhor Performance de ROI',
+                    description: `${melhorROI.icon} <strong>${melhorROI.produto}</strong> está com excelente ROI de <strong>${melhorROI.valor >= 0 ? '+' : ''}${melhorROI.valor.toFixed(2)}%</strong>! Este produto está gerando retorno positivo sobre o investimento.`
+                });
+            }
+            
+            // Insight 2: Produto com prejuízo
+            if (piorROI.valor < 0) {
+                insights.push({
+                    type: 'danger',
+                    icon: '⚠️',
+                    title: 'Atenção: ROI Negativo',
+                    description: `${piorROI.icon} <strong>${piorROI.produto}</strong> está com ROI negativo de <strong>${piorROI.valor.toFixed(2)}%</strong>. Considere revisar a estratégia de investimento ou otimizar as campanhas.`
+                });
+            }
+            
+            // Insight 3: Melhor taxa de conversão
+            if (melhorTaxaConversao.valor > 0) {
+                insights.push({
+                    type: 'success',
+                    icon: '✨',
+                    title: 'Melhor Taxa de Conversão',
+                    description: `${melhorTaxaConversao.icon} <strong>${melhorTaxaConversao.produto}</strong> tem a melhor taxa de conversão de <strong>${melhorTaxaConversao.valor.toFixed(2)}%</strong>. Use este produto como referência para otimizar os outros funis.`
+                });
+            }
+            
+            // Insight 4: Análise geral do mês
+            const geralData = allData['Geral'];
+            if (geralData) {
+                const totalInvestidoGeral = geralData.semanas.reduce((sum, s) => sum + s.investido, 0);
+                const totalFaturadoGeral = geralData.semanas.reduce((sum, s) => sum + s.faturamentoTrafego, 0);
+                const margemGeral = totalFaturadoGeral - totalInvestidoGeral;
+                
+                insights.push({
+                    type: margemGeral >= 0 ? 'success' : 'warning',
+                    icon: margemGeral >= 0 ? '📈' : '📊',
+                    title: 'Performance Geral do Mês',
+                    description: `No total, foram investidos <strong>R$ ${totalInvestidoGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong> e faturados <strong>R$ ${totalFaturadoGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong>, resultando em uma margem de <strong>R$ ${margemGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong>.`
+                });
+            }
+            
+            // Insight 5: Sugestão de foco
+            insights.push({
+                type: 'warning',
+                icon: '🎯',
+                title: 'Recomendação Estratégica',
+                description: `Baseado nos dados, recomendamos focar os esforços em produtos com ROI positivo e melhorar a taxa de agendamento dos produtos que estão com performance abaixo da média. Considere redistribuir o investimento para maximizar o retorno.`
+            });
+            
+            let html = '';
+            insights.forEach(insight => {
+                html += `
+                    <div class="insight-card ${insight.type}">
+                        <div class="insight-icon">${insight.icon}</div>
+                        <div class="insight-content">
+                            <div class="insight-title">${insight.title}</div>
+                            <div class="insight-description">${insight.description}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // FUNÇÕES DE COMPARAÇÃO
+        function renderComparacao() {
+            // Esta função será implementada quando o usuário selecionar os meses
+        }
+
+        function updateComparison() {
+            // Implementação da comparação entre meses
+            alert('Funcionalidade de comparação em desenvolvimento. Em breve você poderá comparar diferentes meses lado a lado!');
+        }
+
+        // FUNÇÕES DE EXPORTAÇÃO
+        function exportPDF() {
+            alert('📄 Exportação para PDF em desenvolvimento!\n\nEm breve você poderá baixar um relatório completo em PDF com todos os gráficos e dados.');
+        }
+
+        function exportExcel() {
+            alert('📊 Exportação para Excel em desenvolvimento!\n\nEm breve você poderá baixar uma planilha Excel com todos os dados detalhados.');
+        }
+
+        function exportCSV() {
+            alert('📋 Exportação para CSV em desenvolvimento!\n\nEm breve você poderá baixar os dados em formato CSV para importar em outras ferramentas.');
+        }
+
+        function shareLink() {
+            alert('🔗 Compartilhamento em desenvolvimento!\n\nEm breve você poderá gerar um link compartilhável do dashboard.');
+        }
+
+        // MODO APRESENTAÇÃO
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => {
+                    document.querySelector('.left-sidebar').style.display = 'none';
+                    document.querySelector('.fullscreen-btn').innerHTML = '🔙';
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    document.querySelector('.left-sidebar').style.display = 'flex';
+                    document.querySelector('.fullscreen-btn').innerHTML = '🖥️';
+                });
+            }
+        }
+
+        // HELPER: Renderizar seletor de mês para módulos
+        function renderMonthSelectorForModule(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            container.innerHTML = MONTHS.map(month => `
+                <button class="month-btn ${month.id === currentMonth ? 'active' : ''}" 
+                        onclick="selectMonth('${month.id}')">
+                    ${month.name}
+                </button>
+            `).join('');
+        }
+
         const SHEET_ID = '1V0-yWzGbDWUEQ21CPtNcHrzPQfLTXKHNBYUlSfzO2Pc';
         
         const MONTHS = [
@@ -784,6 +1567,12 @@
             updateFunnel();
             renderBottomCards();
             renderRanking();
+            
+            // Atualiza módulo ativo se não for o dashboard
+            const activeModule = document.querySelector('.sidebar-btn.active')?.dataset?.module;
+            if (activeModule && activeModule !== 'dashboard') {
+                showModule(activeModule);
+            }
         }
 
         function renderMonthButtons() {
