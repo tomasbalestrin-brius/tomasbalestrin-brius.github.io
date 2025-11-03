@@ -722,12 +722,12 @@
 
         function parseSheetData(data) {
             const productRanges = {
-                'Geral': { start: 2, end: 5, tendencia: 6 },
-                '50 Scripts': { start: 9, end: 12, tendencia: 13 },
-                'Teste': { start: 16, end: 19, tendencia: 20 },
-                'IA Julia': { start: 23, end: 26, tendencia: 27 },
-                'MPM': { start: 30, end: 33, tendencia: 34 },
-                'Couply': { start: 37, end: 40, tendencia: 41 }
+                'Geral': { start: 1, end: 4, tendencia: 5 },
+                '50 Scripts': { start: 8, end: 11, tendencia: 12 },
+                'Teste': { start: 15, end: 18, tendencia: 19 },
+                'IA Julia': { start: 22, end: 25, tendencia: 26 },
+                'MPM': { start: 29, end: 32, tendencia: 33 },
+                'Couply': { start: 36, end: 39, tendencia: 40 }
             };
 
             allData = {};
@@ -821,6 +821,7 @@
 
             const { semanas, tendencia } = data;
             
+            // TOTAIS REAIS (soma das semanas)
             const totalFaturamentoTrafego = semanas.reduce((sum, s) => sum + s.faturamentoTrafego, 0);
             const totalInvestido = semanas.reduce((sum, s) => sum + s.investido, 0);
             const totalRoasTrafego = semanas.reduce((sum, s) => sum + s.roasTrafego, 0);
