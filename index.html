@@ -1090,6 +1090,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             margin-bottom: 30px;
+            align-items: start;
         }
 
         .comparison-side {
@@ -1097,6 +1098,9 @@
             border-radius: 16px;
             padding: 25px;
             border: 2px solid var(--border-color);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .comparison-side.winner {
@@ -1109,6 +1113,12 @@
             margin-bottom: 25px;
             padding-bottom: 20px;
             border-bottom: 2px solid var(--border-color);
+            position: relative;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         .comparison-header-title {
@@ -1119,20 +1129,29 @@
         }
 
         .comparison-winner-badge {
-            display: inline-block;
+            position: absolute;
+            top: -15px;
+            right: 10px;
             background: linear-gradient(45deg, var(--success), #059669);
             color: white;
             padding: 8px 20px;
             border-radius: 20px;
             font-size: 0.9rem;
             font-weight: 700;
-            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+            animation: winnerPulse 2s infinite;
+        }
+
+        @keyframes winnerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
         .comparison-metrics {
             display: flex;
             flex-direction: column;
             gap: 15px;
+            flex: 1;
         }
 
         .comparison-metric {
@@ -1959,6 +1978,17 @@
                 padding: 20px;
             }
 
+            .comparison-header {
+                min-height: 70px;
+            }
+
+            .comparison-winner-badge {
+                top: -12px;
+                right: 5px;
+                font-size: 0.75rem;
+                padding: 6px 15px;
+            }
+
             .export-buttons {
                 grid-template-columns: 1fr;
             }
@@ -2035,6 +2065,21 @@
 
             .header h1 {
                 font-size: 1.5rem;
+            }
+
+            .comparison-header {
+                min-height: 65px;
+            }
+
+            .comparison-header-title {
+                font-size: 1.4rem;
+            }
+
+            .comparison-winner-badge {
+                top: -10px;
+                right: 5px;
+                font-size: 0.65rem;
+                padding: 5px 12px;
             }
 
             .month-btn {
