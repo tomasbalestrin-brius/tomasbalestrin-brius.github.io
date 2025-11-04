@@ -21,6 +21,380 @@
             padding: 30px 20px;
         }
 
+        /* Tooltips Informativos Ricos */
+        .info-tooltip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            cursor: help;
+        }
+
+        .info-tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            margin-left: 6px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 50%;
+            font-size: 0.7rem;
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            transition: all 0.3s;
+        }
+
+        .info-tooltip:hover .info-tooltip-icon {
+            background: rgba(59, 130, 246, 0.4);
+            transform: scale(1.2);
+        }
+
+        .info-tooltip-content {
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 16px;
+            min-width: 280px;
+            max-width: 350px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .info-tooltip:hover .info-tooltip-content {
+            opacity: 1;
+            visibility: visible;
+            bottom: calc(100% + 15px);
+        }
+
+        .info-tooltip-content::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: #3b82f6;
+        }
+
+        .tooltip-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tooltip-description {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .tooltip-formula {
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin: 8px 0;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .tooltip-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #60a5fa;
+            margin-top: 8px;
+        }
+
+        .tooltip-value.positive {
+            color: #10b981;
+        }
+
+        .tooltip-value.negative {
+            color: #ef4444;
+        }
+
+        /* Loading Skeletons */
+        .skeleton {
+            background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s ease-in-out infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .skeleton-card {
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid #475569;
+        }
+
+        .skeleton-title {
+            height: 24px;
+            width: 60%;
+            margin-bottom: 15px;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .skeleton-text.short {
+            width: 70%;
+        }
+
+        .skeleton-value {
+            height: 32px;
+            width: 50%;
+            margin-top: 15px;
+        }
+
+        /* Micro-interações */
+        .btn-interactive {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-interactive::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-interactive:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-interactive:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-interactive:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-interactive {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-interactive:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .pulse-animation {
+            animation: pulse-subtle 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-subtle {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.9;
+            }
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 16px 20px;
+            min-width: 300px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInRight 0.3s ease-out;
+            pointer-events: all;
+        }
+
+        .toast.success {
+            border-color: #10b981;
+        }
+
+        .toast.error {
+            border-color: #ef4444;
+        }
+
+        .toast.warning {
+            border-color: #f59e0b;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .toast.removing {
+            animation: slideOutRight 0.3s ease-in;
+        }
+
+        .toast-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 4px;
+        }
+
+        .toast-message {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+
+        /* Estados Vazios */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 16px;
+            border: 2px dashed #475569;
+            min-height: 400px;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .empty-state-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 12px;
+        }
+
+        .empty-state-description {
+            font-size: 1.05rem;
+            color: #94a3b8;
+            margin-bottom: 25px;
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        .empty-state-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .empty-state-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: 2px solid #3b82f6;
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .empty-state-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .empty-state-btn.secondary {
+            background: transparent;
+            color: #94a3b8;
+        }
+
+        .empty-state-btn.secondary:hover {
+            color: #e2e8f0;
+            border-color: #60a5fa;
+        }
+
         .container {
             max-width: 1800px;
             margin: 0 auto;
@@ -1640,6 +2014,181 @@
     </button>
 
     <script>
+        // ===================================
+        // FUNÇÕES DE UX/UI
+        // ===================================
+
+        // Sistema de Toast Notifications
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toastContainer');
+            if (!container) {
+                const newContainer = document.createElement('div');
+                newContainer.id = 'toastContainer';
+                newContainer.className = 'toast-container';
+                document.body.appendChild(newContainer);
+            }
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type] || icons.info}</div>
+                <div class="toast-content">
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+            
+            document.getElementById('toastContainer').appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('removing');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // Loading Skeleton para cards
+        function createSkeleton(type = 'card') {
+            if (type === 'card') {
+                return `
+                    <div class="skeleton-card">
+                        <div class="skeleton skeleton-title"></div>
+                        <div class="skeleton skeleton-text"></div>
+                        <div class="skeleton skeleton-text short"></div>
+                        <div class="skeleton skeleton-value"></div>
+                    </div>
+                `;
+            }
+            return '<div class="skeleton" style="height: 200px; width: 100%;"></div>';
+        }
+
+        // Mostrar loading skeleton em um container
+        function showLoadingSkeleton(containerId, count = 3) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                html += createSkeleton('card');
+            }
+            container.innerHTML = html;
+        }
+
+        // Estado vazio genérico
+        function showEmptyState(containerId, options = {}) {
+            const {
+                icon = '📊',
+                title = 'Nenhum dado disponível',
+                description = 'Não há informações para exibir neste momento.',
+                primaryAction = null,
+                secondaryAction = null
+            } = options;
+            
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            let actionsHtml = '';
+            if (primaryAction || secondaryAction) {
+                actionsHtml = '<div class="empty-state-actions">';
+                if (primaryAction) {
+                    actionsHtml += `<button class="empty-state-btn" onclick="${primaryAction.onClick}">${primaryAction.label}</button>`;
+                }
+                if (secondaryAction) {
+                    actionsHtml += `<button class="empty-state-btn secondary" onclick="${secondaryAction.onClick}">${secondaryAction.label}</button>`;
+                }
+                actionsHtml += '</div>';
+            }
+            
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">${icon}</div>
+                    <div class="empty-state-title">${title}</div>
+                    <div class="empty-state-description">${description}</div>
+                    ${actionsHtml}
+                </div>
+            `;
+        }
+
+        // Criar tooltip informativo
+        function createTooltip(label, content) {
+            const { title, description, formula, value, valueClass } = content;
+            
+            return `
+                <span class="info-tooltip">
+                    ${label}
+                    <span class="info-tooltip-icon">?</span>
+                    <div class="info-tooltip-content">
+                        <div class="tooltip-title">${title}</div>
+                        <div class="tooltip-description">${description}</div>
+                        ${formula ? `<div class="tooltip-formula">${formula}</div>` : ''}
+                        ${value ? `<div class="tooltip-value ${valueClass || ''}">${value}</div>` : ''}
+                    </div>
+                </span>
+            `;
+        }
+
+        // Adicionar micro-interações a elementos
+        function addMicroInteractions() {
+            // Adicionar classe aos botões
+            document.querySelectorAll('.month-btn, .team-btn, .product-btn, .sidebar-btn').forEach(btn => {
+                if (!btn.classList.contains('btn-interactive')) {
+                    btn.classList.add('btn-interactive');
+                }
+            });
+            
+            // Adicionar classe aos cards
+            document.querySelectorAll('.bottom-card, .ranking-card, .roi-card').forEach(card => {
+                if (!card.classList.contains('card-interactive')) {
+                    card.classList.add('card-interactive');
+                }
+            });
+        }
+
+        // Definições de tooltips para métricas
+        const tooltipDefinitions = {
+            roi: {
+                title: '📈 ROI (Return on Investment)',
+                description: 'Retorno sobre Investimento - mede o lucro obtido em relação ao valor investido.',
+                formula: 'ROI = ((Faturado - Investido) / Investido) × 100',
+            },
+            roas: {
+                title: '🎯 ROAS (Return on Ad Spend)',
+                description: 'Retorno sobre Gastos com Anúncios - quanto você ganha para cada R$1 investido.',
+                formula: 'ROAS = Faturado / Investido',
+            },
+            taxaConversao: {
+                title: '💼 Taxa de Conversão',
+                description: 'Percentual de calls realizadas que resultaram em vendas.',
+                formula: 'Taxa = (Vendas / Calls Realizadas) × 100',
+            },
+            taxaAgendamento: {
+                title: '📅 Taxa de Agendamento',
+                description: 'Percentual de qualificados que agendaram uma call.',
+                formula: 'Taxa = (Agendados / Qualificados) × 100',
+            },
+            taxaComparecimento: {
+                title: '📞 Taxa de Comparecimento',
+                description: 'Percentual de calls agendadas que foram efetivamente realizadas.',
+                formula: 'Taxa = (Realizadas / Agendadas) × 100',
+            },
+            cac: {
+                title: '💰 CAC (Custo de Aquisição)',
+                description: 'Quanto você gasta para conquistar um novo cliente.',
+                formula: 'CAC = Investimento Total / Número de Vendas',
+            },
+            lucro: {
+                title: '📊 Lucro',
+                description: 'Diferença entre o faturamento e o investimento.',
+                formula: 'Lucro = Faturamento - Investimento',
+            }
+        };
+
+        // ===================================
         // FUNÇÕES DE NAVEGAÇÃO ENTRE MÓDULOS
         function showModule(moduleName) {
             // Oculta todos os módulos
@@ -3087,6 +3636,28 @@
 
             const { alunos, qualificados, agendados, callRealizada, vendas } = data;
 
+            // Verificar se não há dados
+            if (alunos === 0 && qualificados === 0 && agendados === 0) {
+                funnelArea.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <div class="empty-state-title">Sem dados para este período</div>
+                        <div class="empty-state-description">
+                            Não há informações de funil para o período selecionado. 
+                            ${currentWeek !== 'total' ? 'Tente selecionar "Total do Mês" ou outra semana.' : 'Selecione outro produto ou mês.'}
+                        </div>
+                        ${currentWeek !== 'total' ? `
+                        <div class="empty-state-actions">
+                            <button class="empty-state-btn" onclick="document.getElementById('weekSelect').value='total'; updateFunnel();">
+                                Ver Total do Mês
+                            </button>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+                return;
+            }
+
             funnelArea.innerHTML = `
                 <div class="funnel-container">
                     <div class="funnel-stage funnel-stage-1">
@@ -3310,12 +3881,71 @@
             renderUI();
         }
 
-        function selectProduct(productId) {
-            currentProduct = productId;
+        function selectMonth(monthId) {
+            currentMonth = monthId;
+            const monthName = MONTHS.find(m => m.id === monthId)?.name || monthId;
+            showToast(`Carregando dados de ${monthName}...`, 'info', 2000);
+            loadData();
+        }
+
+        function selectTeam(team) {
+            currentTeam = team;
+            
+            // Atualiza os botões de time
+            document.querySelectorAll('.team-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Seleciona o produto adequado para cada time
+            if (team === 'geral') {
+                currentProduct = 'Geral';
+            } else if (team === 'cleiton') {
+                currentProduct = '50 Scripts';
+            } else if (team === 'julia') {
+                currentProduct = 'IA Julia';
+            }
+            
+            const teamNames = {
+                'geral': 'Geral',
+                'cleiton': 'Time Cleiton',
+                'julia': 'Time Julia'
+            };
+            
+            showToast(`Visualizando ${teamNames[team]} ✨`, 'success', 2000);
             renderUI();
         }
 
-        loadData();
+        function selectProduct(productId) {
+            currentProduct = productId;
+            const product = allProducts.find(p => p.id === productId);
+            if (product) {
+                showToast(`${product.icon} ${product.name} selecionado`, 'success', 2000);
+            }
+            renderUI();
+        }
+
+        // Inicializar melhorias de UX/UI
+        function initializeUX() {
+            // Adicionar micro-interações
+            addMicroInteractions();
+            
+            // Mostrar toast de boas-vindas (apenas uma vez)
+            if (!sessionStorage.getItem('welcomeShown')) {
+                setTimeout(() => {
+                    showToast('Dashboard carregado com sucesso! 🎉', 'success', 4000);
+                    sessionStorage.setItem('welcomeShown', 'true');
+                }, 500);
+            }
+        }
+
+        // Carregar dados e inicializar
+        loadData().then(() => {
+            initializeUX();
+        });
     </script>
+    
+    <!-- Container para Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
 </body>
 </html>
