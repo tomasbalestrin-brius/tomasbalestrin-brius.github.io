@@ -1988,10 +1988,14 @@ console.log('[SW] Service Worker loaded!');
                         <span class="product-select-label">🎯 Funil 1:</span>
                         <select id="funil1Select" onchange="updateFunilComparison()">
                             <option value="50 Scripts">🔥 50 Scripts</option>
+                            <option value="Couply">💑 Couply</option>
+                            <option value="Social Selling CL">📱 Social Selling CL</option>
                             <option value="Teste">🧪 Teste</option>
                             <option value="IA Julia">🤖 IA Julia</option>
-                            <option value="MPM">📱 MPM</option>
-                            <option value="Couply">💑 Couply</option>
+                            <option value="MPM">📈 MPM</option>
+                            <option value="Autentiq">🔐 Autentiq</option>
+                            <option value="Mentoria Julia">👩‍🏫 Mentoria Julia</option>
+                            <option value="Social Selling JU">💼 Social Selling JU</option>
                         </select>
                     </div>
                     <div class="comparison-vs">VS</div>
@@ -1999,10 +2003,14 @@ console.log('[SW] Service Worker loaded!');
                         <span class="product-select-label">🎯 Funil 2:</span>
                         <select id="funil2Select" onchange="updateFunilComparison()">
                             <option value="50 Scripts">🔥 50 Scripts</option>
+                            <option value="Couply">💑 Couply</option>
+                            <option value="Social Selling CL">📱 Social Selling CL</option>
                             <option value="Teste" selected>🧪 Teste</option>
                             <option value="IA Julia">🤖 IA Julia</option>
-                            <option value="MPM">📱 MPM</option>
-                            <option value="Couply">💑 Couply</option>
+                            <option value="MPM">📈 MPM</option>
+                            <option value="Autentiq">🔐 Autentiq</option>
+                            <option value="Mentoria Julia">👩‍🏫 Mentoria Julia</option>
+                            <option value="Social Selling JU">💼 Social Selling JU</option>
                         </select>
                     </div>
                 </div>
@@ -2176,9 +2184,13 @@ console.log('[SW] Service Worker loaded!');
             { id: 'Geral', name: 'Geral', icon: '📊', team: 'geral' },
             { id: '50 Scripts', name: '50 Scripts', icon: '📝', team: 'cleiton' },
             { id: 'Couply', name: 'Couply', icon: '💑', team: 'cleiton' },
+            { id: 'Social Selling CL', name: 'Social Selling CL', icon: '📱', team: 'cleiton' },
             { id: 'Teste', name: 'Teste', icon: '🧪', team: 'julia' },
             { id: 'IA Julia', name: 'IA Julia', icon: '🤖', team: 'julia' },
-            { id: 'MPM', name: 'MPM', icon: '📊', team: 'julia' }
+            { id: 'MPM', name: 'MPM', icon: '📈', team: 'julia' },
+            { id: 'Autentiq', name: 'Autentiq', icon: '🔐', team: 'julia' },
+            { id: 'Mentoria Julia', name: 'Mentoria Julia', icon: '👩‍🏫', team: 'julia' },
+            { id: 'Social Selling JU', name: 'Social Selling JU', icon: '💼', team: 'julia' }
         ];
 
         let currentMonth = 'nov';
@@ -2425,7 +2437,11 @@ console.log('[SW] Service Worker loaded!');
                 'Teste': { start: 15, end: 18, tendencia: 19 },
                 'IA Julia': { start: 22, end: 25, tendencia: 26 },
                 'MPM': { start: 29, end: 32, tendencia: 33 },
-                'Couply': { start: 36, end: 39, tendencia: 40 }
+                'Couply': { start: 36, end: 39, tendencia: 40 },
+                'Autentiq': { start: 43, end: 46, tendencia: 47 },
+                'Mentoria Julia': { start: 50, end: 53, tendencia: 54 },
+                'Social Selling CL': { start: 57, end: 60, tendencia: 61 },
+                'Social Selling JU': { start: 64, end: 67, tendencia: 68 }
             };
 
             allData = {};
@@ -3346,7 +3362,11 @@ console.log('[SW] Service Worker loaded!');
                             'Teste': { start: 15, end: 18, tendencia: 19 },
                             'IA Julia': { start: 22, end: 25, tendencia: 26 },
                             'MPM': { start: 29, end: 32, tendencia: 33 },
-                            'Couply': { start: 36, end: 39, tendencia: 40 }
+                            'Couply': { start: 36, end: 39, tendencia: 40 },
+                            'Autentiq': { start: 43, end: 46, tendencia: 47 },
+                            'Mentoria Julia': { start: 50, end: 53, tendencia: 54 },
+                            'Social Selling CL': { start: 57, end: 60, tendencia: 61 },
+                            'Social Selling JU': { start: 64, end: 67, tendencia: 68 }
                         };
 
                         for (const [productName, range] of Object.entries(productRanges)) {
