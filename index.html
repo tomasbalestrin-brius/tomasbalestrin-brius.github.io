@@ -551,6 +551,16 @@
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
+            position: relative;
+        }
+
+        .month-btn::before {
+            content: '📅';
+            position: absolute;
+            left: 10px;
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
         .month-btn:hover {
@@ -559,9 +569,51 @@
         }
 
         .month-btn.active {
-            background: var(--accent-primary);
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
             border-color: var(--accent-primary);
             color: white;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+            padding-left: 45px;
+        }
+
+        .month-btn.active::before {
+            opacity: 1;
+        }
+
+        .month-btn.active::after {
+            content: '';
+        }
+
+        .month-btn.current-month::after {
+            content: 'Mês Atual';
+            position: absolute;
+            top: -10px;
+            right: -5px;
+            background: var(--success);
+            color: white;
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        }
+
+        .month-btn.historical::after {
+            content: 'Histórico';
+            position: absolute;
+            top: -10px;
+            right: -5px;
+            background: var(--warning);
+            color: white;
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
         }
 
         .month-btn.past {
@@ -1699,6 +1751,29 @@
                 font-size: 0.9rem;
             }
 
+            .month-btn.active {
+                padding-left: 35px;
+            }
+
+            .month-btn.active::before {
+                left: 8px;
+                font-size: 1rem;
+            }
+
+            .month-btn.current-month::after {
+                font-size: 0.55rem;
+                padding: 2px 6px;
+                top: -8px;
+                right: -3px;
+            }
+
+            .month-btn.historical::after {
+                font-size: 0.55rem;
+                padding: 2px 6px;
+                top: -8px;
+                right: -3px;
+            }
+
             .team-selector {
                 flex-direction: column;
                 gap: 10px;
@@ -1967,6 +2042,29 @@
                 font-size: 0.85rem;
             }
 
+            .month-btn.active {
+                padding-left: 30px;
+            }
+
+            .month-btn.active::before {
+                left: 6px;
+                font-size: 0.9rem;
+            }
+
+            .month-btn.current-month::after {
+                font-size: 0.5rem;
+                padding: 2px 5px;
+                top: -7px;
+                right: -2px;
+            }
+
+            .month-btn.historical::after {
+                font-size: 0.5rem;
+                padding: 2px 5px;
+                top: -7px;
+                right: -2px;
+            }
+
             .team-btn {
                 padding: 15px;
                 font-size: 1rem;
@@ -2115,9 +2213,9 @@
                 <!-- NOVO: Seletor de Período com Dropdown -->
                 <div class="period-selector-wrapper">
                     <div class="past-months-selector">
-                        <label for="pastMonthsSelect">📅 Meses Anteriores:</label>
+                        <label for="pastMonthsSelect">📅 Selecionar Mês:</label>
                         <select id="pastMonthsSelect" onchange="selectPastMonth()">
-                            <option value="">-- Selecione --</option>
+                            <option value="">-- Selecione um mês --</option>
                         </select>
                     </div>
                     <div class="month-selector" id="monthSelector"></div>
@@ -2175,9 +2273,9 @@
 
                 <div class="period-selector-wrapper">
                     <div class="past-months-selector">
-                        <label for="pastMonthsSelectResumo">📅 Meses Anteriores:</label>
+                        <label for="pastMonthsSelectResumo">📅 Selecionar Mês:</label>
                         <select id="pastMonthsSelectResumo" onchange="selectPastMonth()">
-                            <option value="">-- Selecione --</option>
+                            <option value="">-- Selecione um mês --</option>
                         </select>
                     </div>
                     <div class="month-selector" id="monthSelectorResumo"></div>
@@ -2194,9 +2292,9 @@
                 </div>
                 <div class="period-selector-wrapper">
                     <div class="past-months-selector">
-                        <label for="pastMonthsSelectROI">📅 Meses Anteriores:</label>
+                        <label for="pastMonthsSelectROI">📅 Selecionar Mês:</label>
                         <select id="pastMonthsSelectROI" onchange="selectPastMonth()">
-                            <option value="">-- Selecione --</option>
+                            <option value="">-- Selecione um mês --</option>
                         </select>
                     </div>
                     <div class="month-selector" id="monthSelectorROI"></div>
@@ -2212,9 +2310,9 @@
                 </div>
                 <div class="period-selector-wrapper">
                     <div class="past-months-selector">
-                        <label for="pastMonthsSelectCustos">📅 Meses Anteriores:</label>
+                        <label for="pastMonthsSelectCustos">📅 Selecionar Mês:</label>
                         <select id="pastMonthsSelectCustos" onchange="selectPastMonth()">
-                            <option value="">-- Selecione --</option>
+                            <option value="">-- Selecione um mês --</option>
                         </select>
                     </div>
                     <div class="month-selector" id="monthSelectorCustos"></div>
@@ -2230,9 +2328,9 @@
                 </div>
                 <div class="period-selector-wrapper">
                     <div class="past-months-selector">
-                        <label for="pastMonthsSelectInsights">📅 Meses Anteriores:</label>
+                        <label for="pastMonthsSelectInsights">📅 Selecionar Mês:</label>
                         <select id="pastMonthsSelectInsights" onchange="selectPastMonth()">
-                            <option value="">-- Selecione --</option>
+                            <option value="">-- Selecione um mês --</option>
                         </select>
                     </div>
                     <div class="month-selector" id="monthSelectorInsights"></div>
@@ -2249,9 +2347,9 @@
                 
                 <div class="period-selector-wrapper">
                     <div class="past-months-selector">
-                        <label for="pastMonthsSelectComparacaoFunis">📅 Meses Anteriores:</label>
+                        <label for="pastMonthsSelectComparacaoFunis">📅 Selecionar Mês:</label>
                         <select id="pastMonthsSelectComparacaoFunis" onchange="selectPastMonth()">
-                            <option value="">-- Selecione --</option>
+                            <option value="">-- Selecione um mês --</option>
                         </select>
                     </div>
                     <div class="month-selector" id="monthSelectorComparacaoFunis"></div>
@@ -2467,25 +2565,16 @@
         let allData = {};
         let monthComparisonData = {};
 
-        // NOVO: Função para determinar meses vigentes e passados
+        // NOVO: Função para determinar o mês atual e listar todos para o dropdown
         function categorizeMonths() {
-            const today = new Date();
-            const currentMonths = [];
-            const pastMonths = [];
+            const currentMonthId = getCurrentMonth();
+            const currentMonthObj = MONTHS.find(m => m.id === currentMonthId);
             
-            MONTHS.forEach(month => {
-                const monthEnd = new Date(month.endDate);
-                
-                // Se o mês terminou, é passado
-                if (monthEnd < today) {
-                    pastMonths.push(month);
-                } else {
-                    // Se o mês não terminou ainda (atual ou futuro), é vigente
-                    currentMonths.push(month);
-                }
-            });
-            
-            return { currentMonths, pastMonths };
+            // Retorna apenas o mês atual para a barra principal e todos para o dropdown
+            return { 
+                currentMonths: currentMonthObj ? [currentMonthObj] : [], 
+                pastMonths: MONTHS // Todos os meses no dropdown
+            };
         }
 
         // NOVO: Função para obter o mês atual baseado na data
@@ -2925,22 +3014,39 @@
         // NOVO: Função para renderizar botões de meses com dropdown
         function renderMonthButtons() {
             const { currentMonths, pastMonths } = categorizeMonths();
+            const actualCurrentMonth = getCurrentMonth(); // Mês atual baseado na data
             
-            // Renderizar meses vigentes na barra principal
+            // Renderizar o botão do mês (atual ou selecionado)
             const container = document.getElementById('monthSelector');
             if (!container) return;
             
-            container.innerHTML = currentMonths.map(month => `
-                <button class="month-btn ${month.id === currentMonth ? 'active' : ''}" 
-                        onclick="selectMonth('${month.id}')">
-                    ${month.name}
-                </button>
-            `).join('');
+            // Se estiver visualizando o mês atual
+            if (currentMonth === actualCurrentMonth && currentMonths.length > 0) {
+                container.innerHTML = currentMonths.map(month => {
+                    return `
+                        <button class="month-btn active current-month" 
+                                onclick="selectMonth('${month.id}')">
+                            ${month.name}
+                        </button>
+                    `;
+                }).join('');
+            } else {
+                // Se estiver visualizando um mês diferente
+                const selectedMonth = MONTHS.find(m => m.id === currentMonth);
+                if (selectedMonth) {
+                    container.innerHTML = `
+                        <button class="month-btn active historical" 
+                                onclick="selectMonth('${selectedMonth.id}')">
+                            ${selectedMonth.name}
+                        </button>
+                    `;
+                }
+            }
             
-            // Preencher dropdown de meses passados
+            // Preencher dropdown com TODOS os meses
             const pastMonthsSelect = document.getElementById('pastMonthsSelect');
             if (pastMonthsSelect) {
-                pastMonthsSelect.innerHTML = '<option value="">-- Selecione --</option>' +
+                pastMonthsSelect.innerHTML = '<option value="">-- Selecione um mês --</option>' +
                     pastMonths.map(month => `
                         <option value="${month.id}">${month.name}</option>
                     `).join('');
@@ -2950,22 +3056,39 @@
         // NOVO: Função para renderizar seletores de período em outros módulos
         function renderMonthSelectorForModule(containerId, dropdownId) {
             const { currentMonths, pastMonths } = categorizeMonths();
+            const actualCurrentMonth = getCurrentMonth(); // Mês atual baseado na data
             
-            // Renderizar meses vigentes
+            // Renderizar o botão do mês (atual ou selecionado)
             const container = document.getElementById(containerId);
             if (container) {
-                container.innerHTML = currentMonths.map(month => `
-                    <button class="month-btn ${month.id === currentMonth ? 'active' : ''}" 
-                            onclick="selectMonth('${month.id}')">
-                        ${month.name}
-                    </button>
-                `).join('');
+                // Se estiver visualizando o mês atual
+                if (currentMonth === actualCurrentMonth && currentMonths.length > 0) {
+                    container.innerHTML = currentMonths.map(month => {
+                        return `
+                            <button class="month-btn active current-month" 
+                                    onclick="selectMonth('${month.id}')">
+                                ${month.name}
+                            </button>
+                        `;
+                    }).join('');
+                } else {
+                    // Se estiver visualizando um mês diferente
+                    const selectedMonth = MONTHS.find(m => m.id === currentMonth);
+                    if (selectedMonth) {
+                        container.innerHTML = `
+                            <button class="month-btn active historical" 
+                                    onclick="selectMonth('${selectedMonth.id}')">
+                                ${selectedMonth.name}
+                            </button>
+                        `;
+                    }
+                }
             }
             
-            // Preencher dropdown de meses passados
+            // Preencher dropdown com TODOS os meses
             const pastMonthsSelect = document.getElementById(dropdownId);
             if (pastMonthsSelect) {
-                pastMonthsSelect.innerHTML = '<option value="">-- Selecione --</option>' +
+                pastMonthsSelect.innerHTML = '<option value="">-- Selecione um mês --</option>' +
                     pastMonths.map(month => `
                         <option value="${month.id}">${month.name}</option>
                     `).join('');
@@ -3393,7 +3516,22 @@
         function selectMonth(monthId) {
             currentMonth = monthId;
             const monthName = MONTHS.find(m => m.id === monthId)?.name || monthId;
-            showToast(`Carregando dados de ${monthName}...`, 'info', 2000);
+            const actualCurrentMonth = getCurrentMonth();
+            const isActualCurrent = monthId === actualCurrentMonth;
+            
+            showToast(`${isActualCurrent ? '📅 Mês Atual: ' : '📂 Visualizando: '}${monthName}`, 'info', 2000);
+            
+            // Atualizar todos os botões de mês em todos os módulos
+            document.querySelectorAll('.month-btn').forEach(btn => {
+                btn.textContent = monthName;
+                btn.classList.remove('current-month', 'historical');
+                if (isActualCurrent) {
+                    btn.classList.add('current-month');
+                } else {
+                    btn.classList.add('historical');
+                }
+            });
+            
             loadData();
         }
 
