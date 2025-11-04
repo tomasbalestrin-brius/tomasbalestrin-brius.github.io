@@ -6,10 +6,129 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
     <title>Acompanhamento Geral Funis - Análise Completa</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
+        /* ===================================
+           PWA MANIFEST & SERVICE WORKER
+           =================================== */
+        /*
+{
+  "name": "Dashboard Funis - Análise Completa",
+  "short_name": "Dashboard Funis",
+  "description": "Acompanhamento Geral de Funis - Análise de Performance por Produto",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "categories": ["business", "productivity", "finance"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Ver dashboard principal",
+      "url": "/?module=dashboard",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Comparar Funis",
+      "short_name": "Comparar",
+      "description": "Comparar performance de funis",
+      "url": "/?module=comparar-funis",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
+        */
+
+        /*
+                 // Service Worker para Dashboard Funis PWA
+const CACHE_NAME = 'dashboard-funis-v1';
+const DATA_CACHE_NAME = 'dashboard-funis-data-v1';
+
+const FILES_TO_CACHE = [
+  '/',
+  '/index.html',
+  '/manifest.json'
+];
+
+// Install
+self.addEventListener('install', (event) => {
+  console.log('[SW] Installing...');
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('[SW] Caching app shell');
+      return cache.addAll(FILES_TO_CACHE);
+    }).then(() => self.skipWaiting())
+  );
+});
+
+// Activate
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating...');
+  event.waitUntil(
+    caches.keys().then((keyList) => {
+      return Promise.all(keyList.map((key) => {
+        if (key !== CACHE_NAME && key !== DATA_CACHE_NAME) {
+          console.log('[SW] Removing old cache', key);
+          return caches.delete(key);
+        }
+      }));
+    }).then(() => self.clients.claim())
+  );
+});
+
+// Fetch
+self.addEventListener('fetch', (event) => {
+  if (event.request.url.includes('docs.google.com')) {
+    // Google Sheets: Network First
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const responseToCache = response.clone();
+          caches.open(DATA_CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+  } else {
+    // Static files: Cache First
+    event.respondWith(
+      caches.match(event.request).then((response) => {
+        return response || fetch(event.request).then((fetchResponse) => {
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, fetchResponse.clone());
+            return fetchResponse;
+          });
+        });
+      })
+    );
+  }
+});
+
+console.log('[SW] Service Worker loaded!');
+        */
+
         /* ===================================
            VARIÁVEIS DE TEMA
            =================================== */
@@ -3299,9 +3418,27 @@
         }
 
         // ===================================
+        // PWA - REGISTRO DO SERVICE WORKER
+        // ===================================
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then((registration) => {
+                        console.log('[PWA] Service Worker registrado:', registration);
+                    })
+                    .catch((error) => {
+                        console.log('[PWA] Erro ao registrar Service Worker:', error);
+                    });
+            }
+        }
+
+        // ===================================
         // INICIALIZAÇÃO
         // ===================================
         window.addEventListener('DOMContentLoaded', function() {
+            // Registrar Service Worker para PWA
+            registerServiceWorker();
+            
             // Carregar tema salvo
             loadTheme();
             
