@@ -1251,6 +1251,207 @@
             margin-bottom: 30px;
         }
 
+        /* ===================================
+           CARDS DE RESUMO
+           =================================== */
+        .resumo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .resumo-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 25px;
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .resumo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .resumo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.3);
+            border-color: var(--accent-primary);
+        }
+
+        .resumo-card:hover::before {
+            opacity: 1;
+        }
+
+        .resumo-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .resumo-card-icon {
+            font-size: 2.5rem;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .resumo-card-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .resumo-card-main-value {
+            margin-bottom: 25px;
+        }
+
+        .resumo-card-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .resumo-card-value-large {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .resumo-card-value-large.positive {
+            color: var(--success);
+        }
+
+        .resumo-card-value-large.negative {
+            color: var(--danger);
+        }
+
+        .resumo-card-value-large.neutral {
+            color: var(--text-primary);
+        }
+
+        .resumo-card-metrics {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .resumo-metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+        }
+
+        .resumo-metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .resumo-metric-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .resumo-metric-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .resumo-metric-value.positive {
+            color: var(--success);
+        }
+
+        .resumo-metric-value.negative {
+            color: var(--danger);
+        }
+
+        .resumo-metric-value.trend {
+            color: var(--accent-primary);
+        }
+
+        .resumo-card-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .resumo-card-footer-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .resumo-card-footer-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.8;
+        }
+
+        .resumo-card-footer-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Badge de tendência */
+        .trend-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+
+        .trend-badge.up {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .trend-badge.down {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .trend-badge.neutral {
+            background: rgba(148, 163, 184, 0.15);
+            color: var(--text-secondary);
+        }
+
+        /* Export Buttons */
+        .export-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
         .export-btn {
             background: var(--bg-secondary);
             padding: 30px;
@@ -1622,6 +1823,47 @@
                 padding: 20px;
             }
 
+            .resumo-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .resumo-card {
+                padding: 20px;
+            }
+
+            .resumo-card-icon {
+                font-size: 2rem;
+            }
+
+            .resumo-card-name {
+                font-size: 1rem;
+            }
+
+            .resumo-card-value-large {
+                font-size: 1.8rem;
+            }
+
+            .resumo-metric-label {
+                font-size: 0.85rem;
+            }
+
+            .resumo-metric-value {
+                font-size: 1.05rem;
+            }
+
+            .trend-badge {
+                font-size: 0.7rem;
+                padding: 3px 8px;
+                margin-left: 4px;
+            }
+
+            .resumo-card-footer {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
             .product-selector-comparison {
                 flex-direction: column;
                 padding: 20px;
@@ -1755,6 +1997,22 @@
                 font-size: 1.1rem;
             }
 
+            .resumo-card-value-large {
+                font-size: 1.6rem;
+            }
+
+            .resumo-metric-label {
+                font-size: 0.8rem;
+            }
+
+            .resumo-metric-value {
+                font-size: 0.95rem;
+            }
+
+            .resumo-card-footer-value {
+                font-size: 0.85rem;
+            }
+
             .bottom-nav {
                 height: 65px;
                 padding: 0 5px;
@@ -1814,6 +2072,10 @@
         <button class="sidebar-btn active" onclick="showModule('dashboard')" data-module="dashboard">
             <span>🏠</span>
             <span class="tooltip">Dashboard Principal</span>
+        </button>
+        <button class="sidebar-btn" onclick="showModule('resumo')" data-module="resumo">
+            <span>📋</span>
+            <span class="tooltip">Resumo Geral</span>
         </button>
         <button class="sidebar-btn" onclick="showModule('comparar-funis')" data-module="comparar-funis">
             <span>⚔️</span>
@@ -1902,6 +2164,26 @@
                     <h2 class="ranking-title">🏆 RANKING DE PRODUTOS - COMPARAÇÃO</h2>
                     <div class="ranking-grid" id="rankingGrid"></div>
                 </div>
+            </div>
+
+            <!-- MÓDULO: Resumo Geral -->
+            <div class="module-view" id="module-resumo">
+                <div class="header">
+                    <h1>📋 RESUMO GERAL</h1>
+                    <p>Visão Consolidada de Todos os Funis</p>
+                </div>
+
+                <div class="period-selector-wrapper">
+                    <div class="past-months-selector">
+                        <label for="pastMonthsSelectResumo">📅 Meses Anteriores:</label>
+                        <select id="pastMonthsSelectResumo" onchange="selectPastMonth()">
+                            <option value="">-- Selecione --</option>
+                        </select>
+                    </div>
+                    <div class="month-selector" id="monthSelectorResumo"></div>
+                </div>
+
+                <div class="resumo-grid" id="resumoGrid"></div>
             </div>
 
             <!-- MÓDULO: ROI/ROAS -->
@@ -2082,6 +2364,10 @@
             <span class="nav-icon">🏠</span>
             <span>Home</span>
         </button>
+        <button class="bottom-nav-btn" onclick="showModuleMobile('resumo')" data-nav="resumo">
+            <span class="nav-icon">📋</span>
+            <span>Resumo</span>
+        </button>
         <button class="bottom-nav-btn" onclick="showModuleMobile('comparar-funis')" data-nav="comparar-funis">
             <span class="nav-icon">⚔️</span>
             <span>Comparar</span>
@@ -2089,10 +2375,6 @@
         <button class="bottom-nav-btn" onclick="showModuleMobile('roi')" data-nav="roi">
             <span class="nav-icon">💰</span>
             <span>Lucro</span>
-        </button>
-        <button class="bottom-nav-btn" onclick="showModuleMobile('insights')" data-nav="insights">
-            <span class="nav-icon">🤖</span>
-            <span>Insights</span>
         </button>
         <button class="bottom-nav-btn" onclick="openMobileMenu()">
             <span class="nav-icon">☰</span>
@@ -2277,6 +2559,7 @@
         function updateMobileTitle(moduleName = null) {
             const titles = {
                 'dashboard': 'Dashboard',
+                'resumo': 'Resumo Geral',
                 'comparar-funis': 'Comparar Funis',
                 'comparacao': 'Comparar Meses',
                 'roi': 'Lucro e ROAS',
@@ -2410,6 +2693,9 @@
             updateMobileTitle(moduleName);
             
             switch(moduleName) {
+                case 'resumo':
+                    renderResumo();
+                    break;
                 case 'roi':
                     renderROI();
                     break;
@@ -2428,6 +2714,114 @@
                     updateMonthComparison();
                     break;
             }
+        }
+
+        // ===================================
+        // MÓDULO RESUMO
+        // ===================================
+        function renderResumo() {
+            renderMonthSelectorForModule('monthSelectorResumo', 'pastMonthsSelectResumo');
+            const container = document.getElementById('resumoGrid');
+            if (!container) return;
+            
+            const produtos = allProducts.filter(p => p.id !== 'Geral');
+            
+            let html = '';
+            produtos.forEach(product => {
+                const data = allData[product.id];
+                if (!data) return;
+                
+                const { semanas, tendencia } = data;
+                
+                // Cálculos
+                const faturamentoFunil = semanas.reduce((sum, s) => sum + s.faturamentoFunil, 0);
+                const lucroFunil = semanas.reduce((sum, s) => sum + s.lucroFunil, 0);
+                const tendenciaFaturamento = tendencia ? tendencia.faturamentoFunil : 0;
+                const tendenciaLucro = tendencia ? tendencia.lucroFunil : 0;
+                
+                const roasTrafego = semanas.reduce((sum, s) => sum + s.roasTrafego, 0);
+                const totalInvestido = semanas.reduce((sum, s) => sum + s.investido, 0);
+                const totalRetorno = semanas.reduce((sum, s) => sum + s.faturamentoTrafego, 0);
+                
+                // Determinar classe de cor para lucro
+                const lucroClass = lucroFunil > 0 ? 'positive' : lucroFunil < 0 ? 'negative' : 'neutral';
+                
+                // Calcular variação de tendência
+                const variacaoFaturamento = faturamentoFunil > 0 
+                    ? ((tendenciaFaturamento - faturamentoFunil) / faturamentoFunil * 100) 
+                    : 0;
+                const variacaoLucro = lucroFunil !== 0
+                    ? ((tendenciaLucro - lucroFunil) / Math.abs(lucroFunil) * 100)
+                    : 0;
+                
+                const trendFaturamento = variacaoFaturamento > 5 ? 'up' : variacaoFaturamento < -5 ? 'down' : 'neutral';
+                const trendLucro = variacaoLucro > 5 ? 'up' : variacaoLucro < -5 ? 'down' : 'neutral';
+                
+                html += `
+                    <div class="resumo-card">
+                        <div class="resumo-card-header">
+                            <div class="resumo-card-icon">${product.icon}</div>
+                            <div class="resumo-card-name">${product.name}</div>
+                        </div>
+                        
+                        <div class="resumo-card-main-value">
+                            <div class="resumo-card-label">💰 Lucro / Prejuízo</div>
+                            <div class="resumo-card-value-large ${lucroClass}">
+                                ${lucroFunil >= 0 ? '+' : ''}R$ ${Math.abs(lucroFunil).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                            </div>
+                        </div>
+                        
+                        <div class="resumo-card-metrics">
+                            <div class="resumo-metric-row">
+                                <span class="resumo-metric-label">💵 Faturamento do Funil</span>
+                                <span class="resumo-metric-value">R$ ${faturamentoFunil.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                            </div>
+                            
+                            <div class="resumo-metric-row">
+                                <span class="resumo-metric-label">📈 Tendência Faturamento</span>
+                                <span class="resumo-metric-value trend">
+                                    R$ ${tendenciaFaturamento.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                                    <span class="trend-badge ${trendFaturamento}">
+                                        ${trendFaturamento === 'up' ? '↗' : trendFaturamento === 'down' ? '↘' : '→'} 
+                                        ${Math.abs(variacaoFaturamento).toFixed(1)}%
+                                    </span>
+                                </span>
+                            </div>
+                            
+                            <div class="resumo-metric-row">
+                                <span class="resumo-metric-label">📊 Lucro do Funil</span>
+                                <span class="resumo-metric-value ${lucroFunil >= 0 ? 'positive' : 'negative'}">
+                                    ${lucroFunil >= 0 ? '+' : ''}R$ ${Math.abs(lucroFunil).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                                </span>
+                            </div>
+                            
+                            <div class="resumo-metric-row">
+                                <span class="resumo-metric-label">📈 Tendência Lucro</span>
+                                <span class="resumo-metric-value ${tendenciaLucro >= 0 ? 'positive' : 'negative'}">
+                                    ${tendenciaLucro >= 0 ? '+' : ''}R$ ${Math.abs(tendenciaLucro).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                                    <span class="trend-badge ${trendLucro}">
+                                        ${trendLucro === 'up' ? '↗' : trendLucro === 'down' ? '↘' : '→'} 
+                                        ${Math.abs(variacaoLucro).toFixed(1)}%
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="resumo-card-footer">
+                            <div class="resumo-card-footer-item">
+                                <span class="resumo-card-footer-label">Investido</span>
+                                <span class="resumo-card-footer-value">R$ ${totalInvestido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                            </div>
+                            <div class="resumo-card-footer-item">
+                                <span class="resumo-card-footer-label">Retorno</span>
+                                <span class="resumo-card-footer-value">R$ ${totalRetorno.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
         }
 
         // ===================================
