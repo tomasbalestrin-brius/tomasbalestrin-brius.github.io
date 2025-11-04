@@ -10,131 +10,185 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
+        /* ===================================
+           VARIÁVEIS DE TEMA
+           =================================== */
+        :root {
+            /* Dark Theme (Padrão) */
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #475569;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #cbd5e1;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        [data-theme="blue"] {
+            --bg-primary: #0c4a6e;
+            --bg-secondary: #075985;
+            --bg-tertiary: #0284c7;
+            --text-primary: #e0f2fe;
+            --text-secondary: #bae6fd;
+            --border-color: #0369a1;
+            --accent-primary: #38bdf8;
+            --accent-secondary: #a78bfa;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        [data-theme="green"] {
+            --bg-primary: #064e3b;
+            --bg-secondary: #065f46;
+            --bg-tertiary: #059669;
+            --text-primary: #d1fae5;
+            --text-secondary: #a7f3d0;
+            --border-color: #047857;
+            --accent-primary: #34d399;
+            --accent-secondary: #a78bfa;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        [data-theme="purple"] {
+            --bg-primary: #581c87;
+            --bg-secondary: #6b21a8;
+            --bg-tertiary: #7c3aed;
+            --text-primary: #faf5ff;
+            --text-secondary: #e9d5ff;
+            --border-color: #9333ea;
+            --accent-primary: #a78bfa;
+            --accent-secondary: #60a5fa;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-{
-  "name": "Dashboard Funis - Análise Completa",
-  "short_name": "Dashboard Funis",
-  "description": "Acompanhamento Geral de Funis - Análise de Performance por Produto",
-  "start_url": "/",
-  "scope": "/",
-  "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#3b82f6",
-  "orientation": "portrait-primary",
-  "categories": ["business", "productivity", "finance"],
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "Ver dashboard principal",
-      "url": "/?module=dashboard",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Comparar Funis",
-      "short_name": "Comparar",
-      "description": "Comparar performance de funis",
-      "url": "/?module=comparar-funis",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
-    }
-  ]
-}
-                 // Service Worker para Dashboard Funis PWA
-const CACHE_NAME = 'dashboard-funis-v1';
-const DATA_CACHE_NAME = 'dashboard-funis-data-v1';
 
-const FILES_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json'
-];
-
-// Install
-self.addEventListener('install', (event) => {
-  console.log('[SW] Installing...');
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Caching app shell');
-      return cache.addAll(FILES_TO_CACHE);
-    }).then(() => self.skipWaiting())
-  );
-});
-
-// Activate
-self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating...');
-  event.waitUntil(
-    caches.keys().then((keyList) => {
-      return Promise.all(keyList.map((key) => {
-        if (key !== CACHE_NAME && key !== DATA_CACHE_NAME) {
-          console.log('[SW] Removing old cache', key);
-          return caches.delete(key);
-        }
-      }));
-    }).then(() => self.clients.claim())
-  );
-});
-
-// Fetch
-self.addEventListener('fetch', (event) => {
-  if (event.request.url.includes('docs.google.com')) {
-    // Google Sheets: Network First
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const responseToCache = response.clone();
-          caches.open(DATA_CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-          return response;
-        })
-        .catch(() => caches.match(event.request))
-    );
-  } else {
-    // Static files: Cache First
-    event.respondWith(
-      caches.match(event.request).then((response) => {
-        return response || fetch(event.request).then((fetchResponse) => {
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, fetchResponse.clone());
-            return fetchResponse;
-          });
-        });
-      })
-    );
-  }
-});
-
-console.log('[SW] Service Worker loaded!');
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
             min-height: 100vh;
-            color: white;
+            color: var(--text-primary);
             padding: 30px 20px;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
             touch-action: manipulation;
             overscroll-behavior: contain;
+            transition: background 0.3s ease;
+        }
+
+        /* ===================================
+           SELETOR DE TEMA
+           =================================== */
+        .theme-selector {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            z-index: 9999;
+        }
+
+        .theme-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .theme-menu {
+            position: absolute;
+            top: 70px;
+            right: 0;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 15px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 200px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .theme-menu.active {
+            display: flex;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .theme-option {
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .theme-option:hover {
+            transform: translateX(5px);
+            border-color: var(--accent-primary);
+        }
+
+        .theme-option.active {
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            border-color: var(--accent-primary);
+            color: white;
         }
 
         /* Toast Notifications */
@@ -150,8 +204,8 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .toast {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            border: 2px solid #3b82f6;
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent-primary);
             border-radius: 12px;
             padding: 16px 20px;
             min-width: 300px;
@@ -164,15 +218,15 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .toast.success {
-            border-color: #10b981;
+            border-color: var(--success);
         }
 
         .toast.error {
-            border-color: #ef4444;
+            border-color: var(--danger);
         }
 
         .toast.warning {
-            border-color: #f59e0b;
+            border-color: var(--warning);
         }
 
         @keyframes slideInRight {
@@ -212,7 +266,7 @@ console.log('[SW] Service Worker loaded!');
 
         .toast-message {
             font-size: 0.9rem;
-            color: #cbd5e1;
+            color: var(--text-secondary);
         }
 
         /* Mobile Header */
@@ -223,8 +277,8 @@ console.log('[SW] Service Worker loaded!');
             left: 0;
             right: 0;
             height: 60px;
-            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-            border-bottom: 2px solid #334155;
+            background: var(--bg-primary);
+            border-bottom: 2px solid var(--border-color);
             z-index: 1000;
             align-items: center;
             justify-content: space-between;
@@ -236,7 +290,7 @@ console.log('[SW] Service Worker loaded!');
             height: 45px;
             background: transparent;
             border: none;
-            color: #e2e8f0;
+            color: var(--text-primary);
             font-size: 1.5rem;
             cursor: pointer;
             display: flex;
@@ -253,7 +307,7 @@ console.log('[SW] Service Worker loaded!');
         .mobile-title {
             font-size: 1.1rem;
             font-weight: 700;
-            color: #e2e8f0;
+            color: var(--text-primary);
         }
 
         /* Mobile Overlay */
@@ -283,8 +337,8 @@ console.log('[SW] Service Worker loaded!');
             left: 0;
             right: 0;
             height: 70px;
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-            border-top: 2px solid #334155;
+            background: var(--bg-secondary);
+            border-top: 2px solid var(--border-color);
             z-index: 1000;
             flex-direction: row;
             justify-content: space-around;
@@ -302,7 +356,7 @@ console.log('[SW] Service Worker loaded!');
             padding: 8px 12px;
             background: transparent;
             border: none;
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-size: 0.7rem;
             cursor: pointer;
             border-radius: 8px;
@@ -315,7 +369,7 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .bottom-nav-btn.active {
-            color: #3b82f6;
+            color: var(--accent-primary);
             background: rgba(59, 130, 246, 0.1);
         }
 
@@ -334,8 +388,8 @@ console.log('[SW] Service Worker loaded!');
             top: 0;
             height: 100vh;
             width: 80px;
-            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-            border-right: 2px solid #334155;
+            background: var(--bg-secondary);
+            border-right: 2px solid var(--border-color);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -350,8 +404,8 @@ console.log('[SW] Service Worker loaded!');
             height: 60px;
             border: none;
             border-radius: 12px;
-            background: #1e293b;
-            color: #94a3b8;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
             font-size: 1.5rem;
             cursor: pointer;
             transition: all 0.3s;
@@ -362,13 +416,13 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .sidebar-btn:hover {
-            background: #334155;
-            color: #e2e8f0;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             transform: scale(1.1);
         }
 
         .sidebar-btn.active {
-            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
             color: white;
             transform: scale(1.1);
             box-shadow: 0 5px 20px rgba(59, 130, 246, 0.4);
@@ -377,8 +431,8 @@ console.log('[SW] Service Worker loaded!');
         .sidebar-btn .tooltip {
             position: absolute;
             left: 75px;
-            background: #1e293b;
-            color: #e2e8f0;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
             padding: 8px 12px;
             border-radius: 8px;
             font-size: 0.9rem;
@@ -386,7 +440,7 @@ console.log('[SW] Service Worker loaded!');
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s;
-            border: 1px solid #475569;
+            border: 1px solid var(--border-color);
             z-index: 1001;
         }
 
@@ -414,7 +468,7 @@ console.log('[SW] Service Worker loaded!');
 
         .header h1 {
             font-size: 3.5rem;
-            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 15px;
@@ -423,7 +477,7 @@ console.log('[SW] Service Worker loaded!');
 
         .header p {
             font-size: 1.2rem;
-            color: #94a3b8;
+            color: var(--text-secondary);
             margin-bottom: 10px;
         }
 
@@ -437,10 +491,10 @@ console.log('[SW] Service Worker loaded!');
 
         .month-btn {
             padding: 16px 35px;
-            border: 2px solid #475569;
+            border: 2px solid var(--border-color);
             border-radius: 10px;
-            background: #1e293b;
-            color: #e2e8f0;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
             font-size: 1.15rem;
             font-weight: 700;
             cursor: pointer;
@@ -448,13 +502,13 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .month-btn:hover {
-            border-color: #3b82f6;
+            border-color: var(--accent-primary);
             transform: translateY(-2px);
         }
 
         .month-btn.active {
-            background: #3b82f6;
-            border-color: #3b82f6;
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
             color: white;
         }
 
@@ -467,14 +521,14 @@ console.log('[SW] Service Worker loaded!');
 
         .team-btn {
             padding: 25px 60px;
-            border: 3px solid #475569;
+            border: 3px solid var(--border-color);
             border-radius: 16px;
             font-size: 1.5rem;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.3s;
-            background: #1e293b;
-            color: #e2e8f0;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
         }
 
         .team-btn:hover {
@@ -483,16 +537,16 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .team-btn.active {
-            background: linear-gradient(45deg, #8b5cf6, #a855f7);
-            border-color: #8b5cf6;
+            background: linear-gradient(45deg, var(--accent-secondary), #a855f7);
+            border-color: var(--accent-secondary);
             color: white;
             transform: translateY(-3px);
             box-shadow: 0 10px 30px rgba(139, 92, 246, 0.5);
         }
 
         .team-btn.geral-btn.active {
-            background: linear-gradient(45deg, #3b82f6, #60a5fa);
-            border-color: #3b82f6;
+            background: linear-gradient(45deg, var(--accent-primary), #60a5fa);
+            border-color: var(--accent-primary);
             box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5);
         }
 
@@ -512,8 +566,8 @@ console.log('[SW] Service Worker loaded!');
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
-            background: #334155;
-            color: #e2e8f0;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
 
         .product-btn:hover {
@@ -522,7 +576,7 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .product-btn.active {
-            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
             color: white;
             transform: translateY(-3px);
             box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
@@ -536,7 +590,7 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .main-chart {
-            background: #1e293b;
+            background: var(--bg-secondary);
             border-radius: 16px;
             padding: 18px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.4);
@@ -553,7 +607,7 @@ console.log('[SW] Service Worker loaded!');
 
         .chart-title {
             font-size: 1.15rem;
-            color: #e2e8f0;
+            color: var(--text-primary);
         }
 
         .week-selector {
@@ -563,7 +617,7 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .week-selector label {
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-size: 0.8rem;
             font-weight: 600;
         }
@@ -571,9 +625,9 @@ console.log('[SW] Service Worker loaded!');
         .week-selector select {
             padding: 6px 12px;
             border-radius: 6px;
-            border: 2px solid #475569;
-            background: #0f172a;
-            color: #e2e8f0;
+            border: 2px solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
             font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
@@ -581,12 +635,12 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .week-selector select:hover {
-            border-color: #3b82f6;
+            border-color: var(--accent-primary);
         }
 
         .week-selector select:focus {
             outline: none;
-            border-color: #3b82f6;
+            border-color: var(--accent-primary);
         }
 
         /* Estilo do Funil */
@@ -670,7 +724,7 @@ console.log('[SW] Service Worker loaded!');
 
         .funnel-arrow {
             font-size: 1.5rem;
-            color: #94a3b8;
+            color: var(--text-secondary);
             margin: -6px 0;
         }
 
@@ -681,22 +735,22 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .stats-block {
-            background: #1e293b;
+            background: var(--bg-secondary);
             padding: 32px;
             border-radius: 12px;
-            border-left: 4px solid #3b82f6;
+            border-left: 4px solid var(--accent-primary);
         }
 
         .stats-block.aquisicao {
-            border-left-color: #8b5cf6;
+            border-left-color: var(--accent-secondary);
         }
 
         .stats-block.monetizacao {
-            border-left-color: #10b981;
+            border-left-color: var(--success);
         }
 
         .stats-block.tendencia {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background: var(--bg-primary);
             border-left-width: 3px;
             border-style: dashed;
             padding: 26px;
@@ -706,7 +760,7 @@ console.log('[SW] Service Worker loaded!');
         .stats-block-title {
             font-size: 1.6rem;
             font-weight: 800;
-            color: #e2e8f0;
+            color: var(--text-primary);
             margin-bottom: 22px;
             text-transform: uppercase;
             letter-spacing: 1.2px;
@@ -717,7 +771,7 @@ console.log('[SW] Service Worker loaded!');
 
         .stats-block.tendencia .stats-block-title {
             font-size: 1.3rem;
-            color: #cbd5e1;
+            color: var(--text-secondary);
             margin-bottom: 18px;
         }
 
@@ -726,7 +780,7 @@ console.log('[SW] Service Worker loaded!');
             justify-content: space-between;
             align-items: center;
             padding: 18px 0;
-            border-bottom: 1px solid #334155;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .stat-item:last-child {
@@ -734,23 +788,23 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .stat-item-label {
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-size: 1.15rem;
             font-weight: 600;
         }
 
         .stat-item-value {
-            color: #e2e8f0;
+            color: var(--text-primary);
             font-size: 1.6rem;
             font-weight: 800;
         }
 
         .stat-item-value.positive {
-            color: #10b981;
+            color: var(--success);
         }
 
         .stat-item-value.negative {
-            color: #ef4444;
+            color: var(--danger);
         }
 
         .bottom-cards {
@@ -761,23 +815,23 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .bottom-card {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            background: var(--bg-secondary);
             padding: 18px;
             border-radius: 12px;
             text-align: center;
-            border: 2px solid #475569;
+            border: 2px solid var(--border-color);
             transition: all 0.3s;
         }
 
         .bottom-card:hover {
-            border-color: #3b82f6;
+            border-color: var(--accent-primary);
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
         }
 
         .bottom-card.tendencia {
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
-            border: 2px dashed #3b82f6;
+            background: var(--bg-primary);
+            border: 2px dashed var(--accent-primary);
         }
 
         .bottom-card-icon {
@@ -786,7 +840,7 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .bottom-card-label {
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-size: 0.8rem;
             margin-bottom: 6px;
             text-transform: uppercase;
@@ -795,11 +849,11 @@ console.log('[SW] Service Worker loaded!');
         .bottom-card-value {
             font-size: 1.4rem;
             font-weight: bold;
-            color: #e2e8f0;
+            color: var(--text-primary);
         }
 
         .ranking-section {
-            background: #1e293b;
+            background: var(--bg-secondary);
             border-radius: 16px;
             padding: 30px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.4);
@@ -809,7 +863,7 @@ console.log('[SW] Service Worker loaded!');
             font-size: 1.8rem;
             margin-bottom: 25px;
             text-align: center;
-            color: #e2e8f0;
+            color: var(--text-primary);
         }
 
         .ranking-grid {
@@ -819,16 +873,16 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .ranking-card {
-            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            background: var(--bg-tertiary);
             padding: 20px;
             border-radius: 12px;
             text-align: center;
-            border: 2px solid #475569;
+            border: 2px solid var(--border-color);
             transition: all 0.3s;
         }
 
         .ranking-card:hover {
-            border-color: #3b82f6;
+            border-color: var(--accent-primary);
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
         }
@@ -839,7 +893,7 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .ranking-label {
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-size: 0.9rem;
             margin-bottom: 10px;
         }
@@ -847,14 +901,14 @@ console.log('[SW] Service Worker loaded!');
         .ranking-product {
             font-size: 1.3rem;
             font-weight: bold;
-            color: #e2e8f0;
+            color: var(--text-primary);
             margin-bottom: 5px;
         }
 
         .ranking-value {
             font-size: 1.1rem;
             font-weight: 600;
-            color: #3b82f6;
+            color: var(--accent-primary);
         }
 
         /* Comparison Styles */
@@ -865,9 +919,9 @@ console.log('[SW] Service Worker loaded!');
             gap: 30px;
             margin-bottom: 40px;
             padding: 30px;
-            background: #1e293b;
+            background: var(--bg-secondary);
             border-radius: 16px;
-            border: 2px solid #475569;
+            border: 2px solid var(--border-color);
         }
 
         .product-select-wrapper {
@@ -878,7 +932,7 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .product-select-label {
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-size: 1.1rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -888,9 +942,9 @@ console.log('[SW] Service Worker loaded!');
         .product-selector-comparison select {
             padding: 15px 25px;
             border-radius: 10px;
-            border: 2px solid #475569;
-            background: #0f172a;
-            color: #e2e8f0;
+            border: 2px solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
@@ -899,20 +953,20 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .product-selector-comparison select:hover {
-            border-color: #3b82f6;
+            border-color: var(--accent-primary);
             transform: scale(1.05);
         }
 
         .product-selector-comparison select:focus {
             outline: none;
-            border-color: #3b82f6;
+            border-color: var(--accent-primary);
             box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
         }
 
         .comparison-vs {
             font-size: 2rem;
             font-weight: 900;
-            color: #f59e0b;
+            color: var(--warning);
             text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
             padding: 0 20px;
             animation: pulse 2s infinite;
@@ -931,14 +985,14 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .comparison-side {
-            background: #1e293b;
+            background: var(--bg-secondary);
             border-radius: 16px;
             padding: 25px;
-            border: 2px solid #475569;
+            border: 2px solid var(--border-color);
         }
 
         .comparison-side.winner {
-            border-color: #10b981;
+            border-color: var(--success);
             box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
         }
 
@@ -946,19 +1000,19 @@ console.log('[SW] Service Worker loaded!');
             text-align: center;
             margin-bottom: 25px;
             padding-bottom: 20px;
-            border-bottom: 2px solid #334155;
+            border-bottom: 2px solid var(--border-color);
         }
 
         .comparison-header-title {
             font-size: 1.8rem;
             font-weight: 800;
-            color: #e2e8f0;
+            color: var(--text-primary);
             margin-bottom: 5px;
         }
 
         .comparison-winner-badge {
             display: inline-block;
-            background: linear-gradient(45deg, #10b981, #059669);
+            background: linear-gradient(45deg, var(--success), #059669);
             color: white;
             padding: 8px 20px;
             border-radius: 20px;
@@ -974,7 +1028,7 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .comparison-metric {
-            background: #0f172a;
+            background: var(--bg-primary);
             padding: 15px;
             border-radius: 8px;
             display: flex;
@@ -984,42 +1038,42 @@ console.log('[SW] Service Worker loaded!');
 
         .comparison-metric-label {
             font-size: 0.95rem;
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-weight: 600;
         }
 
         .comparison-metric-value {
             font-size: 1.3rem;
             font-weight: 700;
-            color: #e2e8f0;
+            color: var(--text-primary);
         }
 
         .comparison-metric-value.positive {
-            color: #10b981;
+            color: var(--success);
         }
 
         .comparison-metric-value.negative {
-            color: #ef4444;
+            color: var(--danger);
         }
 
         .comparison-analysis {
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+            background: var(--bg-primary);
             padding: 25px;
             border-radius: 16px;
             margin-top: 30px;
-            border: 2px solid #3b82f6;
+            border: 2px solid var(--accent-primary);
         }
 
         .comparison-analysis-title {
             font-size: 1.4rem;
             font-weight: 700;
-            color: #e2e8f0;
+            color: var(--text-primary);
             margin-bottom: 15px;
         }
 
         .comparison-analysis-content {
             font-size: 1.05rem;
-            color: #cbd5e1;
+            color: var(--text-secondary);
             line-height: 1.8;
         }
 
@@ -1032,15 +1086,15 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .roi-card {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            background: var(--bg-secondary);
             padding: 30px;
             border-radius: 16px;
-            border: 2px solid #475569;
+            border: 2px solid var(--border-color);
             transition: all 0.3s;
         }
 
         .roi-card:hover {
-            border-color: #3b82f6;
+            border-color: var(--accent-primary);
             transform: translateY(-5px);
             box-shadow: 0 15px 40px rgba(59, 130, 246, 0.3);
         }
@@ -1058,7 +1112,7 @@ console.log('[SW] Service Worker loaded!');
 
         .roi-card-title {
             font-size: 1.1rem;
-            color: #94a3b8;
+            color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -1066,13 +1120,13 @@ console.log('[SW] Service Worker loaded!');
         .roi-card-value {
             font-size: 2.5rem;
             font-weight: bold;
-            color: #e2e8f0;
+            color: var(--text-primary);
             margin-bottom: 10px;
         }
 
         .roi-card-subtitle {
             font-size: 0.9rem;
-            color: #64748b;
+            color: var(--text-secondary);
         }
 
         /* Insights */
@@ -1083,10 +1137,10 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .insight-card {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            background: var(--bg-secondary);
             padding: 25px;
             border-radius: 12px;
-            border-left: 4px solid #3b82f6;
+            border-left: 4px solid var(--accent-primary);
             display: flex;
             gap: 20px;
             align-items: start;
@@ -1099,15 +1153,15 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .insight-card.success {
-            border-left-color: #10b981;
+            border-left-color: var(--success);
         }
 
         .insight-card.warning {
-            border-left-color: #f59e0b;
+            border-left-color: var(--warning);
         }
 
         .insight-card.danger {
-            border-left-color: #ef4444;
+            border-left-color: var(--danger);
         }
 
         .insight-icon {
@@ -1123,13 +1177,13 @@ console.log('[SW] Service Worker loaded!');
         .insight-title {
             font-size: 1.2rem;
             font-weight: 700;
-            color: #e2e8f0;
+            color: var(--text-primary);
             margin-bottom: 8px;
         }
 
         .insight-description {
             font-size: 1rem;
-            color: #94a3b8;
+            color: var(--text-secondary);
             line-height: 1.6;
         }
 
@@ -1142,17 +1196,17 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .export-btn {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            background: var(--bg-secondary);
             padding: 30px;
             border-radius: 12px;
-            border: 2px solid #475569;
+            border: 2px solid var(--border-color);
             cursor: pointer;
             transition: all 0.3s;
             text-align: center;
         }
 
         .export-btn:hover {
-            border-color: #3b82f6;
+            border-color: var(--accent-primary);
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
         }
@@ -1165,13 +1219,13 @@ console.log('[SW] Service Worker loaded!');
         .export-btn-title {
             font-size: 1.2rem;
             font-weight: 700;
-            color: #e2e8f0;
+            color: var(--text-primary);
             margin-bottom: 8px;
         }
 
         .export-btn-description {
             font-size: 0.9rem;
-            color: #94a3b8;
+            color: var(--text-secondary);
         }
 
         /* Fullscreen Button */
@@ -1181,7 +1235,7 @@ console.log('[SW] Service Worker loaded!');
             right: 30px;
             width: 60px;
             height: 60px;
-            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
             border: none;
             border-radius: 50%;
             color: white;
@@ -1205,9 +1259,9 @@ console.log('[SW] Service Worker loaded!');
             justify-content: center;
             padding: 60px 20px;
             text-align: center;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background: var(--bg-primary);
             border-radius: 16px;
-            border: 2px dashed #475569;
+            border: 2px dashed var(--border-color);
             min-height: 400px;
         }
 
@@ -1220,13 +1274,13 @@ console.log('[SW] Service Worker loaded!');
         .empty-state-title {
             font-size: 1.8rem;
             font-weight: 700;
-            color: #e2e8f0;
+            color: var(--text-primary);
             margin-bottom: 12px;
         }
 
         .empty-state-description {
             font-size: 1.05rem;
-            color: #94a3b8;
+            color: var(--text-secondary);
             margin-bottom: 25px;
             max-width: 500px;
             line-height: 1.6;
@@ -1242,8 +1296,8 @@ console.log('[SW] Service Worker loaded!');
         .empty-state-btn {
             padding: 12px 24px;
             border-radius: 8px;
-            border: 2px solid #3b82f6;
-            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            border: 2px solid var(--accent-primary);
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
             color: white;
             font-weight: 600;
             cursor: pointer;
@@ -1279,6 +1333,21 @@ console.log('[SW] Service Worker loaded!');
                 padding-bottom: 70px;
                 padding-left: 10px;
                 padding-right: 10px;
+            }
+
+            .theme-selector {
+                top: 10px;
+                right: 70px;
+            }
+
+            .theme-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+
+            .theme-menu {
+                right: -10px;
             }
 
             .mobile-header {
@@ -1322,7 +1391,7 @@ console.log('[SW] Service Worker loaded!');
                 border: none;
                 padding: 0;
                 box-shadow: none;
-                color: #e2e8f0;
+                color: var(--text-primary);
                 font-size: 1rem;
             }
 
@@ -1634,6 +1703,30 @@ console.log('[SW] Service Worker loaded!');
     </style>
 </head>
 <body>
+    <!-- Seletor de Tema -->
+    <div class="theme-selector">
+        <button class="theme-btn" onclick="toggleThemeMenu()" title="Trocar Tema">
+            🎨
+        </button>
+        <div class="theme-menu" id="themeMenu">
+            <button class="theme-option active" onclick="setTheme('dark')" data-theme="dark">
+                🌙 Dark Mode
+            </button>
+            <button class="theme-option" onclick="setTheme('light')" data-theme="light">
+                ☀️ Light Mode
+            </button>
+            <button class="theme-option" onclick="setTheme('blue')" data-theme="blue">
+                🔵 Ocean Blue
+            </button>
+            <button class="theme-option" onclick="setTheme('green')" data-theme="green">
+                🟢 Forest Green
+            </button>
+            <button class="theme-option" onclick="setTheme('purple')" data-theme="purple">
+                🟣 Royal Purple
+            </button>
+        </div>
+    </div>
+
     <!-- Mobile Header -->
     <div class="mobile-header">
         <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
@@ -1898,6 +1991,56 @@ console.log('[SW] Service Worker loaded!');
 
     <script>
         // ===================================
+        // SISTEMA DE TEMAS
+        // ===================================
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('dashboardTheme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeButtons(savedTheme);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('dashboardTheme', theme);
+            updateThemeButtons(theme);
+            
+            const themeNames = {
+                'dark': '🌙 Dark Mode',
+                'light': '☀️ Light Mode',
+                'blue': '🔵 Ocean Blue',
+                'green': '🟢 Forest Green',
+                'purple': '🟣 Royal Purple'
+            };
+            
+            showToast(`Tema alterado para ${themeNames[theme]}!`, 'success', 2000);
+            toggleThemeMenu();
+        }
+
+        function updateThemeButtons(activeTheme) {
+            document.querySelectorAll('.theme-option').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.theme === activeTheme) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        function toggleThemeMenu() {
+            const menu = document.getElementById('themeMenu');
+            menu.classList.toggle('active');
+        }
+
+        // Fechar menu de tema ao clicar fora
+        document.addEventListener('click', function(event) {
+            const themeSelector = document.querySelector('.theme-selector');
+            const themeMenu = document.getElementById('themeMenu');
+            
+            if (themeSelector && !themeSelector.contains(event.target)) {
+                themeMenu.classList.remove('active');
+            }
+        });
+
+        // ===================================
         // CONFIGURAÇÕES E DADOS
         // ===================================
         const SHEET_ID = '1V0-yWzGbDWUEQ21CPtNcHrzPQfLTXKHNBYUlSfzO2Pc';
@@ -1962,7 +2105,6 @@ console.log('[SW] Service Worker loaded!');
         }
         
         function showModuleMobile(moduleName) {
-            // Atualizar bottom nav
             document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -1971,16 +2113,9 @@ console.log('[SW] Service Worker loaded!');
                 activeBtn.classList.add('active');
             }
             
-            // Atualizar título mobile
             updateMobileTitle(moduleName);
-            
-            // Mostrar módulo
             showModule(moduleName);
-            
-            // Fechar menu
             closeMobileMenu();
-            
-            // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         
@@ -2022,23 +2157,19 @@ console.log('[SW] Service Worker loaded!');
             const swipeThreshold = 100;
             const diff = touchStartX - touchEndX;
             
-            // Swipe left (close menu)
             if (diff > swipeThreshold) {
                 closeMobileMenu();
             }
             
-            // Swipe right (open menu from edge)
             if (diff < -swipeThreshold && touchStartX < 50) {
                 openMobileMenu();
             }
         }
         
         function initMobile() {
-            // Add touch event listeners
             document.addEventListener('touchstart', handleTouchStart, false);
             document.addEventListener('touchend', handleTouchEnd, false);
             
-            // Close menu when clicking sidebar button
             const sidebarButtons = document.querySelectorAll('.sidebar-btn');
             sidebarButtons.forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -2046,7 +2177,6 @@ console.log('[SW] Service Worker loaded!');
                 });
             });
             
-            // Prevent zoom on double tap for buttons
             let lastTouchEnd = 0;
             document.addEventListener('touchend', function (event) {
                 const now = Date.now();
@@ -2097,18 +2227,15 @@ console.log('[SW] Service Worker loaded!');
         // FUNÇÕES DE NAVEGAÇÃO
         // ===================================
         function showModule(moduleName) {
-            // Oculta todos os módulos
             document.querySelectorAll('.module-view').forEach(module => {
                 module.classList.remove('active');
             });
             
-            // Mostra o módulo selecionado
             const moduleElement = document.getElementById(`module-${moduleName}`);
             if (moduleElement) {
                 moduleElement.classList.add('active');
             }
             
-            // Atualiza botões da sidebar
             document.querySelectorAll('.sidebar-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -2117,7 +2244,6 @@ console.log('[SW] Service Worker loaded!');
                 sidebarBtn.classList.add('active');
             }
             
-            // Atualiza bottom nav (mobile)
             document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -2126,10 +2252,8 @@ console.log('[SW] Service Worker loaded!');
                 navBtn.classList.add('active');
             }
             
-            // Atualiza título mobile
             updateMobileTitle(moduleName);
             
-            // Renderiza conteúdo do módulo
             switch(moduleName) {
                 case 'roi':
                     renderROI();
@@ -2718,8 +2842,8 @@ console.log('[SW] Service Worker loaded!');
                             </div>
                             <div class="roi-card-subtitle">ROAS Funil</div>
                         </div>
-                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #475569;">
-                            <div style="font-size: 0.9rem; color: #94a3b8;">
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                            <div style="font-size: 0.9rem; color: var(--text-secondary);">
                                 Investido: <strong>R$ ${totalInvestido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong><br>
                                 Retorno: <strong>R$ ${totalFaturamentoTrafego.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong>
                             </div>
@@ -3015,7 +3139,7 @@ console.log('[SW] Service Worker loaded!');
             const container = document.getElementById('monthComparisonContent');
             if (!container) return;
             
-            container.innerHTML = '<div style="text-align: center; padding: 50px; color: #94a3b8;">Carregando dados...</div>';
+            container.innerHTML = '<div style="text-align: center; padding: 50px; color: var(--text-secondary);">Carregando dados...</div>';
             
             try {
                 await loadMonthData(month1Id, 1);
@@ -3178,6 +3302,9 @@ console.log('[SW] Service Worker loaded!');
         // INICIALIZAÇÃO
         // ===================================
         window.addEventListener('DOMContentLoaded', function() {
+            // Carregar tema salvo
+            loadTheme();
+            
             // Inicializar recursos mobile
             initMobile();
             
