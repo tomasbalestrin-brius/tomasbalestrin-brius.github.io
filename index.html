@@ -1808,7 +1808,7 @@
         </button>
         <button class="sidebar-btn" onclick="showModule('roi')" data-module="roi">
             <span>💰</span>
-            <span class="tooltip">ROI/ROAS</span>
+            <span class="tooltip">Lucro e ROAS</span>
         </button>
         <button class="sidebar-btn" onclick="showModule('custos')" data-module="custos">
             <span>📊</span>
@@ -1881,8 +1881,8 @@
         <!-- MÓDULO: ROI/ROAS -->
         <div class="module-view" id="module-roi">
             <div class="header">
-                <h1>💰 ANÁLISE ROI/ROAS</h1>
-                <p>Retorno sobre Investimento Detalhado</p>
+                <h1>💰 ANÁLISE DE LUCRO E ROAS</h1>
+                <p>Lucro Absoluto e Retorno sobre Investimento</p>
             </div>
             <div class="month-selector" id="monthSelectorROI"></div>
             <div class="roi-grid" id="roiGrid"></div>
@@ -2245,7 +2245,7 @@
                 const totalFaturamentoTrafego = semanas.reduce((sum, s) => sum + s.faturamentoTrafego, 0);
                 const totalFaturamentoFunil = semanas.reduce((sum, s) => sum + s.faturamentoFunil, 0);
                 
-                const roi = totalInvestido > 0 ? ((totalFaturamentoTrafego - totalInvestido) / totalInvestido * 100) : 0;
+                const lucroAbsoluto = totalFaturamentoTrafego - totalInvestido;
                 const roas = totalInvestido > 0 ? (totalFaturamentoTrafego / totalInvestido) : 0;
                 const roasFunil = totalInvestido > 0 ? (totalFaturamentoFunil / totalInvestido) : 0;
                 
@@ -2256,10 +2256,10 @@
                             <div class="roi-card-title">${product.name}</div>
                         </div>
                         <div style="margin-bottom: 20px;">
-                            <div class="roi-card-value" style="color: ${roi >= 0 ? '#10b981' : '#ef4444'}">
-                                ${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%
+                            <div class="roi-card-value" style="color: ${lucroAbsoluto >= 0 ? '#10b981' : '#ef4444'}">
+                                ${lucroAbsoluto >= 0 ? '+' : ''}R$ ${Math.abs(lucroAbsoluto).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                             </div>
-                            <div class="roi-card-subtitle">ROI - Retorno sobre Investimento</div>
+                            <div class="roi-card-subtitle">Lucro / Prejuízo</div>
                         </div>
                         <div style="margin-bottom: 20px;">
                             <div class="roi-card-value" style="font-size: 2rem; color: #60a5fa;">
@@ -2278,6 +2278,13 @@
                                 Investido: <strong>R$ ${totalInvestido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong><br>
                                 Retorno: <strong>R$ ${totalFaturamentoTrafego.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong>
                             </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
                         </div>
                     </div>
                 `;
