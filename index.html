@@ -690,6 +690,39 @@
             box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
         }
 
+        /* Destaque especial para produtos consolidados Total */
+        .product-btn[onclick*="Total Cleiton"],
+        .product-btn[onclick*="Total Julia"] {
+            background: linear-gradient(135deg, #1e3a5f, #2d4a6f);
+            border: 3px solid var(--accent-primary);
+            font-weight: 800;
+            position: relative;
+            padding-left: 45px;
+        }
+
+        .product-btn[onclick*="Total Cleiton"]::before,
+        .product-btn[onclick*="Total Julia"]::before {
+            content: '✨';
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.3rem;
+            animation: sparkle 2s infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+            50% { opacity: 0.7; transform: translateY(-50%) scale(1.15); }
+        }
+
+        .product-btn[onclick*="Total Cleiton"].active,
+        .product-btn[onclick*="Total Julia"].active {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-color: var(--success);
+            box-shadow: 0 12px 35px rgba(59, 130, 246, 0.6);
+        }
+
         .dashboard-content {
             display: grid;
             grid-template-columns: 1fr 420px;
@@ -1364,6 +1397,24 @@
             opacity: 1;
         }
 
+        /* Destaque especial para cards de Total Cleiton e Total Julia */
+        .resumo-card.total-card {
+            border: 3px solid var(--accent-primary);
+            background: linear-gradient(135deg, #1e293b, #1e3a5f);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .resumo-card.total-card::before {
+            opacity: 1;
+            height: 6px;
+            background: linear-gradient(90deg, var(--success), var(--accent-primary), var(--accent-secondary));
+        }
+
+        .resumo-card.total-card:hover {
+            box-shadow: 0 15px 50px rgba(59, 130, 246, 0.5);
+            transform: translateY(-8px);
+        }
+
         .resumo-card-header {
             display: flex;
             align-items: center;
@@ -1814,6 +1865,19 @@
                 font-size: 0.9rem;
                 flex: 1 1 calc(50% - 8px);
                 min-width: 140px;
+            }
+
+            .product-btn[onclick*="Total Cleiton"],
+            .product-btn[onclick*="Total Julia"] {
+                padding-left: 35px;
+                font-size: 0.85rem;
+                font-weight: 700;
+            }
+
+            .product-btn[onclick*="Total Cleiton"]::before,
+            .product-btn[onclick*="Total Julia"]::before {
+                left: 8px;
+                font-size: 1.1rem;
             }
 
             .dashboard-content {
@@ -2592,9 +2656,11 @@
 
         const allProducts = [
             { id: 'Geral', name: 'Geral', icon: '📊', team: 'geral' },
+            { id: 'Total Cleiton', name: 'Total Cleiton', icon: '👨‍💼', team: 'cleiton' },
             { id: '50 Scripts', name: '50 Scripts', icon: '📝', team: 'cleiton' },
             { id: 'Couply', name: 'Couply', icon: '💑', team: 'cleiton' },
             { id: 'Social Selling CL', name: 'Social Selling CL', icon: '📱', team: 'cleiton' },
+            { id: 'Total Julia', name: 'Total Julia', icon: '👩‍💼', team: 'julia' },
             { id: 'Teste', name: 'Teste', icon: '🧪', team: 'julia' },
             { id: 'IA Julia', name: 'IA Julia', icon: '🤖', team: 'julia' },
             { id: 'MPM', name: 'MPM', icon: '📈', team: 'julia' },
@@ -2891,8 +2957,12 @@
                 const trendFaturamento = variacaoFaturamento > 5 ? 'up' : variacaoFaturamento < -5 ? 'down' : 'neutral';
                 const trendLucro = variacaoLucro > 5 ? 'up' : variacaoLucro < -5 ? 'down' : 'neutral';
                 
+                // Adicionar classe especial para produtos Total
+                const isTotalCard = product.id === 'Total Cleiton' || product.id === 'Total Julia';
+                const cardClass = isTotalCard ? 'resumo-card total-card' : 'resumo-card';
+                
                 html += `
-                    <div class="resumo-card">
+                    <div class="${cardClass}">
                         <div class="resumo-card-header">
                             <div class="resumo-card-icon">${product.icon}</div>
                             <div class="resumo-card-name">${product.name}</div>
@@ -2986,15 +3056,17 @@
         function parseSheetData(data) {
             const productRanges = {
                 'Geral': { start: 1, end: 4, tendencia: 5 },
-                '50 Scripts': { start: 8, end: 11, tendencia: 12 },
-                'Teste': { start: 15, end: 18, tendencia: 19 },
-                'IA Julia': { start: 22, end: 25, tendencia: 26 },
-                'MPM': { start: 29, end: 32, tendencia: 33 },
-                'Couply': { start: 36, end: 39, tendencia: 40 },
-                'Autentiq': { start: 43, end: 46, tendencia: 47 },
-                'Mentoria Julia': { start: 50, end: 53, tendencia: 54 },
-                'Social Selling CL': { start: 57, end: 60, tendencia: 61 },
-                'Social Selling JU': { start: 64, end: 67, tendencia: 68 }
+                'Total Cleiton': { start: 8, end: 11, tendencia: 12 },
+                '50 Scripts': { start: 15, end: 18, tendencia: 19 },
+                'Couply': { start: 22, end: 25, tendencia: 26 },
+                'Social Selling CL': { start: 29, end: 32, tendencia: 33 },
+                'Total Julia': { start: 36, end: 39, tendencia: 40 },
+                'Teste': { start: 43, end: 46, tendencia: 47 },
+                'IA Julia': { start: 50, end: 53, tendencia: 54 },
+                'MPM': { start: 57, end: 60, tendencia: 61 },
+                'Autentiq': { start: 64, end: 67, tendencia: 68 },
+                'Mentoria Julia': { start: 71, end: 74, tendencia: 75 },
+                'Social Selling JU': { start: 78, end: 81, tendencia: 82 }
             };
 
             allData = {};
@@ -3591,9 +3663,9 @@
             if (team === 'geral') {
                 currentProduct = 'Geral';
             } else if (team === 'cleiton') {
-                currentProduct = '50 Scripts';
+                currentProduct = 'Total Cleiton';
             } else if (team === 'julia') {
-                currentProduct = 'IA Julia';
+                currentProduct = 'Total Julia';
             }
             
             const teamNames = {
