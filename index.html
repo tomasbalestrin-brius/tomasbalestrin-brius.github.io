@@ -3055,6 +3055,7 @@
 
         function parseSheetData(data) {
             const productRanges = {
+                // Estrutura: cada produto ocupa ~7 linhas (1 header + 4 semanas + 1 tendência + 1 separador)
                 'Geral': { start: 1, end: 4, tendencia: 5 },
                 'Total Cleiton': { start: 8, end: 11, tendencia: 12 },
                 '50 Scripts': { start: 15, end: 18, tendencia: 19 },
