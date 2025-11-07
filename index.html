@@ -1467,22 +1467,34 @@
                     <div class="product-select-wrapper">
                         <span class="product-select-label">🎯 Funil 1:</span>
                         <select id="funil1Select" onchange="updateFunilComparison()">
-                            <option value="50 Scripts">🔥 50 Scripts</option>
+                            <option value="Total Cleiton">👨‍💼 Total Cleiton</option>
+                            <option value="50 Scripts">📝 50 Scripts</option>
+                            <option value="Couply">💑 Couply</option>
+                            <option value="Social Selling CL">📱 Social Selling CL</option>
+                            <option value="Total Julia">👩‍💼 Total Julia</option>
                             <option value="Teste">🧪 Teste</option>
                             <option value="IA Julia">🤖 IA Julia</option>
-                            <option value="MPM">📱 MPM</option>
-                            <option value="Couply">💑 Couply</option>
+                            <option value="MPM">📈 MPM</option>
+                            <option value="Autentiq">🔐 Autentiq</option>
+                            <option value="Mentoria Julia">🎓 Mentoria Julia</option>
+                            <option value="Social Selling JU">💼 Social Selling JU</option>
                         </select>
                     </div>
                     <div class="comparison-vs">VS</div>
                     <div class="product-select-wrapper">
                         <span class="product-select-label">🎯 Funil 2:</span>
                         <select id="funil2Select" onchange="updateFunilComparison()">
-                            <option value="50 Scripts">🔥 50 Scripts</option>
-                            <option value="Teste" selected>🧪 Teste</option>
-                            <option value="IA Julia">🤖 IA Julia</option>
-                            <option value="MPM">📱 MPM</option>
+                            <option value="Total Cleiton">👨‍💼 Total Cleiton</option>
+                            <option value="50 Scripts">📝 50 Scripts</option>
                             <option value="Couply">💑 Couply</option>
+                            <option value="Social Selling CL">📱 Social Selling CL</option>
+                            <option value="Total Julia" selected>👩‍💼 Total Julia</option>
+                            <option value="Teste">🧪 Teste</option>
+                            <option value="IA Julia">🤖 IA Julia</option>
+                            <option value="MPM">📈 MPM</option>
+                            <option value="Autentiq">🔐 Autentiq</option>
+                            <option value="Mentoria Julia">🎓 Mentoria Julia</option>
+                            <option value="Social Selling JU">💼 Social Selling JU</option>
                         </select>
                     </div>
                 </div>
@@ -1603,11 +1615,19 @@
 
         const allProducts = [
             { id: 'Geral', name: 'Geral', icon: '📊', team: 'geral' },
+            // Time Cleiton
+            { id: 'Total Cleiton', name: 'Total Cleiton', icon: '👨‍💼', team: 'cleiton' },
             { id: '50 Scripts', name: '50 Scripts', icon: '📝', team: 'cleiton' },
             { id: 'Couply', name: 'Couply', icon: '💑', team: 'cleiton' },
+            { id: 'Social Selling CL', name: 'Social Selling CL', icon: '📱', team: 'cleiton' },
+            // Time Julia
+            { id: 'Total Julia', name: 'Total Julia', icon: '👩‍💼', team: 'julia' },
             { id: 'Teste', name: 'Teste', icon: '🧪', team: 'julia' },
             { id: 'IA Julia', name: 'IA Julia', icon: '🤖', team: 'julia' },
-            { id: 'MPM', name: 'MPM', icon: '📊', team: 'julia' }
+            { id: 'MPM', name: 'MPM', icon: '📈', team: 'julia' },
+            { id: 'Autentiq', name: 'Autentiq', icon: '🔐', team: 'julia' },
+            { id: 'Mentoria Julia', name: 'Mentoria Julia', icon: '🎓', team: 'julia' },
+            { id: 'Social Selling JU', name: 'Social Selling JU', icon: '💼', team: 'julia' }
         ];
 
         let currentMonth = 'nov';
@@ -2944,9 +2964,9 @@
             if (team === 'geral') {
                 currentProduct = 'Geral';
             } else if (team === 'cleiton') {
-                currentProduct = '50 Scripts';
+                currentProduct = 'Total Cleiton';
             } else if (team === 'julia') {
-                currentProduct = 'IA Julia';
+                currentProduct = 'Total Julia';
             }
 
             const teamNames = {
