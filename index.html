@@ -3495,32 +3495,78 @@
     }
 
     function parseSheetData(data) {
-        const productRanges = {
-            'Geral': { start: 1, end: 4, tendencia: 5 },
-            '50 Scripts': { start: 8, end: 11, tendencia: 12 },
-            'Teste': { start: 15, end: 18, tendencia: 19 },
-            'IA Julia': { start: 22, end: 25, tendencia: 26 },
-            'MPM': { start: 29, end: 32, tendencia: 33 },
-            'Couply': { start: 36, end: 39, tendencia: 40 }
-        };
+    console.log('🔍 Iniciando parse dinâmico dos dados...');
+    allData = {};
 
-        allData = {};
+    const targetFunnels = [
+        'Geral',
+        'Total Cleiton',
+        '50 Scripts',
+        'Couply',
+        'Social Selling CL',
+        'Total Julia',
+        'Teste',
+        'IA Julia',
+        'MPM',
+        'Autentiq',
+        'Mentoria Julia',
+        'Social Selling JU'
+    ];
 
-        for (const [productName, range] of Object.entries(productRanges)) {
-            const semanas = [];
-            
-            for (let i = range.start; i <= range.end; i++) {
-                const row = data[i];
-                if (!row) continue;
-                semanas.push(parseRow(row));
+    targetFunnels.forEach(funnelName => {
+        console.log(\`📌 Buscando funil: \${funnelName}\`);
+        
+        let funnelStartRow = -1;
+        for (let i = 0; i < data.length; i++) {
+            const cellValue = data[i][0];
+            if (cellValue && cellValue.toString().trim() === funnelName) {
+                funnelStartRow = i;
+                console.log(\`✅ Encontrado em linha \${i}: \${funnelName}\`);
+                break;
             }
-
-            const tendenciaRow = data[range.tendencia];
-            const tendencia = tendenciaRow ? parseRow(tendenciaRow) : null;
-
-            allData[productName] = { semanas, tendencia };
         }
-    }
+
+        if (funnelStartRow === -1) {
+            console.warn(\`⚠️ Funil não encontrado: \${funnelName}\`);
+            return;
+        }
+
+        const semanas = [];
+        for (let i = 1; i <= 4; i++) {
+            const rowIndex = funnelStartRow + i;
+            if (rowIndex < data.length) {
+                const row = data[rowIndex];
+                const periodo = row[0] ? row[0].toString().trim() : '';
+                
+                if (periodo.includes('Semana') || periodo.match(/\d{2}\/\d{2}/)) {
+                    semanas.push(parseRow(row));
+                    console.log(\`  📅 Semana \${i} adicionada (\${periodo})\`);
+                }
+            }
+        }
+
+        let tendencia = null;
+        const tendenciaRow = funnelStartRow + 5;
+        if (tendenciaRow < data.length) {
+            const row = data[tendenciaRow];
+            const periodo = row[0] ? row[0].toString().trim() : '';
+            
+            if (periodo.toLowerCase().includes('tendência') || periodo.includes('📈')) {
+                tendencia = parseRow(row);
+                console.log(\`  📈 Tendência adicionada\`);
+            }
+        }
+
+        allData[funnelName] = { 
+            semanas, 
+            tendencia,
+            found: true 
+        };
+        console.log(\`✔️ Funil \${funnelName} processado: \${semanas.length} semanas, tendência: \${tendencia ? 'sim' : 'não'}\`);
+    });
+
+    console.log('✅ Parse completo!', allData);
+}
 
     function parseRow(row) {
         const parseValue = (val) => {
