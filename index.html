@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Acompanhamento Geral Funis - Análise Completa</title>
+    <title>Acompanhamento Geral Funis - v6 Completo</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
@@ -27,114 +27,6 @@
             -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
             touch-action: manipulation;
             overscroll-behavior: contain;
-        }
-
-        /* Tooltips Informativos Ricos */
-        .info-tooltip {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            cursor: help;
-        }
-
-        .info-tooltip-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 18px;
-            height: 18px;
-            margin-left: 6px;
-            background: rgba(59, 130, 246, 0.2);
-            border-radius: 50%;
-            font-size: 0.7rem;
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            transition: all 0.3s;
-        }
-
-        .info-tooltip:hover .info-tooltip-icon {
-            background: rgba(59, 130, 246, 0.4);
-            transform: scale(1.2);
-        }
-
-        .info-tooltip-content {
-            position: absolute;
-            bottom: calc(100% + 10px);
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            border: 2px solid #3b82f6;
-            border-radius: 12px;
-            padding: 16px;
-            min-width: 280px;
-            max-width: 350px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-            z-index: 1000;
-            pointer-events: none;
-        }
-
-        .info-tooltip:hover .info-tooltip-content {
-            opacity: 1;
-            visibility: visible;
-            bottom: calc(100% + 15px);
-        }
-
-        .info-tooltip-content::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 8px solid transparent;
-            border-top-color: #3b82f6;
-        }
-
-        .tooltip-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #e2e8f0;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .tooltip-description {
-            font-size: 0.85rem;
-            color: #cbd5e1;
-            line-height: 1.5;
-            margin-bottom: 10px;
-        }
-
-        .tooltip-formula {
-            background: #0f172a;
-            padding: 10px;
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            color: #94a3b8;
-            margin: 8px 0;
-            border-left: 3px solid #3b82f6;
-        }
-
-        /* Loading Skeletons */
-        .skeleton {
-            background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s ease-in-out infinite;
-            border-radius: 8px;
-        }
-
-        @keyframes loading {
-            0% {
-                background-position: 200% 0;
-            }
-            100% {
-                background-position: -200% 0;
-            }
         }
 
         /* Toast Notifications */
@@ -1146,6 +1038,10 @@
             border-left-color: #10b981;
         }
 
+        .stats-block.taxas {
+            border-left-color: #06b6d4;
+        }
+
         .stats-block.tendencia {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             border-left-width: 3px;
@@ -1376,7 +1272,7 @@
             <div class="module-view active" id="module-dashboard">
                 <div class="header">
                     <h1>📊 ACOMPANHAMENTO GERAL FUNIS</h1>
-                    <p>Análise Completa de Performance por Produto</p>
+                    <p>Análise Completa de Performance por Produto - v6</p>
                 </div>
 
                 <div class="month-selector" id="monthSelector"></div>
@@ -1782,7 +1678,7 @@
         }
 
         // ===================================
-        // CARREGAMENTO E PARSING DE DADOS (VERSÃO CORRIGIDA)
+        // CARREGAMENTO E PARSING DE DADOS
         // ===================================
 
         async function loadData() {
@@ -1799,6 +1695,7 @@
                 Papa.parse(csvText, {
                     complete: function(results) {
                         parseSheetData(results.data);
+                        calculateGeral(); // ⭐ NOVA FUNÇÃO: Calcular Geral dinamicamente
                         renderUI();
                         showToast('Dados carregados com sucesso! 🎉', 'success', 3000);
                     }
@@ -1810,16 +1707,15 @@
         }
 
         // ===================================
-        // FUNÇÃO CORRIGIDA: parseSheetData
-        // Agora busca dinamicamente pelos nomes dos funis
+        // FUNÇÃO: parseSheetData (busca dinâmica)
         // ===================================
         
         function parseSheetData(data) {
             console.log('🔍 Iniciando parse dinâmico dos dados...');
             allData = {};
 
+            // REMOVIDO 'Geral' da lista - será calculado dinamicamente
             const targetFunnels = [
-                'Geral',
                 'Total Cleiton',
                 '50 Scripts',
                 'Couply',
@@ -1882,7 +1778,7 @@
                     tendencia,
                     found: true 
                 };
-                console.log(`✔️ Funil ${funnelName} processado: ${semanas.length} semanas, tendência: ${tendencia ? 'sim' : 'não'}`);
+                console.log(`✔️ Funil ${funnelName} processado: ${semanas.length} semanas`);
             });
 
             console.log('✅ Parse completo!', allData);
@@ -1915,6 +1811,129 @@
                 faturamentoFunil: parseValue(row[15]),
                 lucroFunil: parseValue(row[16])
             };
+        }
+
+        // ===================================
+        // ⭐ NOVA FUNÇÃO: Calcular "Geral" Dinamicamente
+        // ===================================
+        
+        function calculateGeral() {
+            console.log('📊 Calculando "Geral" dinamicamente...');
+            
+            // Lista de produtos individuais (sem agregadores)
+            const produtosIndividuais = [
+                '50 Scripts', 'Couply', 'Social Selling CL',
+                'Teste', 'IA Julia', 'MPM', 'Autentiq', 
+                'Mentoria Julia', 'Social Selling JU'
+            ];
+
+            // Inicializar estrutura do Geral
+            const semanas = [
+                { // Semana 1
+                    investido: 0, faturamentoTrafego: 0, roasTrafego: 0, alunos: 0,
+                    qualificados: 0, agendados: 0, taxaAgendamento: 0, callRealizada: 0,
+                    taxaComparecimento: 0, numeroVenda: 0, taxaConversao: 0, taxaAscensao: 0,
+                    vendaMonetizacao: 0, entradas: 0, faturamentoFunil: 0, lucroFunil: 0
+                },
+                { // Semana 2
+                    investido: 0, faturamentoTrafego: 0, roasTrafego: 0, alunos: 0,
+                    qualificados: 0, agendados: 0, taxaAgendamento: 0, callRealizada: 0,
+                    taxaComparecimento: 0, numeroVenda: 0, taxaConversao: 0, taxaAscensao: 0,
+                    vendaMonetizacao: 0, entradas: 0, faturamentoFunil: 0, lucroFunil: 0
+                },
+                { // Semana 3
+                    investido: 0, faturamentoTrafego: 0, roasTrafego: 0, alunos: 0,
+                    qualificados: 0, agendados: 0, taxaAgendamento: 0, callRealizada: 0,
+                    taxaComparecimento: 0, numeroVenda: 0, taxaConversao: 0, taxaAscensao: 0,
+                    vendaMonetizacao: 0, entradas: 0, faturamentoFunil: 0, lucroFunil: 0
+                },
+                { // Semana 4
+                    investido: 0, faturamentoTrafego: 0, roasTrafego: 0, alunos: 0,
+                    qualificados: 0, agendados: 0, taxaAgendamento: 0, callRealizada: 0,
+                    taxaComparecimento: 0, numeroVenda: 0, taxaConversao: 0, taxaAscensao: 0,
+                    vendaMonetizacao: 0, entradas: 0, faturamentoFunil: 0, lucroFunil: 0
+                }
+            ];
+
+            const tendencia = {
+                investido: 0, faturamentoTrafego: 0, roasTrafego: 0, alunos: 0,
+                qualificados: 0, agendados: 0, taxaAgendamento: 0, callRealizada: 0,
+                taxaComparecimento: 0, numeroVenda: 0, taxaConversao: 0, taxaAscensao: 0,
+                vendaMonetizacao: 0, entradas: 0, faturamentoFunil: 0, lucroFunil: 0
+            };
+
+            // Somar valores de todos os produtos individuais
+            produtosIndividuais.forEach(produtoNome => {
+                const produtoData = allData[produtoNome];
+                if (!produtoData || !produtoData.semanas) return;
+
+                // Somar cada semana
+                produtoData.semanas.forEach((semana, index) => {
+                    if (index < 4) {
+                        semanas[index].investido += semana.investido;
+                        semanas[index].faturamentoTrafego += semana.faturamentoTrafego;
+                        semanas[index].roasTrafego += semana.roasTrafego;
+                        semanas[index].alunos += semana.alunos;
+                        semanas[index].qualificados += semana.qualificados;
+                        semanas[index].agendados += semana.agendados;
+                        semanas[index].callRealizada += semana.callRealizada;
+                        semanas[index].numeroVenda += semana.numeroVenda;
+                        semanas[index].vendaMonetizacao += semana.vendaMonetizacao;
+                        semanas[index].entradas += semana.entradas;
+                        semanas[index].faturamentoFunil += semana.faturamentoFunil;
+                        semanas[index].lucroFunil += semana.lucroFunil;
+                    }
+                });
+
+                // Somar tendência
+                if (produtoData.tendencia) {
+                    tendencia.investido += produtoData.tendencia.investido;
+                    tendencia.faturamentoTrafego += produtoData.tendencia.faturamentoTrafego;
+                    tendencia.roasTrafego += produtoData.tendencia.roasTrafego;
+                    tendencia.alunos += produtoData.tendencia.alunos;
+                    tendencia.qualificados += produtoData.tendencia.qualificados;
+                    tendencia.agendados += produtoData.tendencia.agendados;
+                    tendencia.callRealizada += produtoData.tendencia.callRealizada;
+                    tendencia.numeroVenda += produtoData.tendencia.numeroVenda;
+                    tendencia.vendaMonetizacao += produtoData.tendencia.vendaMonetizacao;
+                    tendencia.entradas += produtoData.tendencia.entradas;
+                    tendencia.faturamentoFunil += produtoData.tendencia.faturamentoFunil;
+                    tendencia.lucroFunil += produtoData.tendencia.lucroFunil;
+                }
+            });
+
+            // Calcular taxas médias (não somáveis diretamente)
+            semanas.forEach(semana => {
+                if (semana.qualificados > 0) {
+                    semana.taxaAgendamento = (semana.agendados / semana.qualificados) * 100;
+                }
+                if (semana.agendados > 0) {
+                    semana.taxaComparecimento = (semana.callRealizada / semana.agendados) * 100;
+                }
+                if (semana.callRealizada > 0) {
+                    semana.taxaConversao = (semana.numeroVenda / semana.callRealizada) * 100;
+                }
+            });
+
+            if (tendencia.qualificados > 0) {
+                tendencia.taxaAgendamento = (tendencia.agendados / tendencia.qualificados) * 100;
+            }
+            if (tendencia.agendados > 0) {
+                tendencia.taxaComparecimento = (tendencia.callRealizada / tendencia.agendados) * 100;
+            }
+            if (tendencia.callRealizada > 0) {
+                tendencia.taxaConversao = (tendencia.numeroVenda / tendencia.callRealizada) * 100;
+            }
+
+            // Armazenar no allData
+            allData['Geral'] = {
+                semanas,
+                tendencia,
+                found: true,
+                calculado: true // Flag para indicar que foi calculado
+            };
+
+            console.log('✅ Geral calculado dinamicamente!', allData['Geral']);
         }
 
         // ===================================
@@ -1974,6 +1993,15 @@
             const totalRoasTrafego = semanas.reduce((sum, s) => sum + s.roasTrafego, 0);
             const totalVendaMonetizacao = semanas.reduce((sum, s) => sum + s.vendaMonetizacao, 0);
             const totalEntradas = semanas.reduce((sum, s) => sum + s.entradas, 0);
+
+            // ⭐ NOVOS CAMPOS ADICIONADOS
+            const totalAgendados = semanas.reduce((sum, s) => sum + s.agendados, 0);
+            const totalQualificados = semanas.reduce((sum, s) => sum + s.qualificados, 0);
+            const totalCallRealizada = semanas.reduce((sum, s) => sum + s.callRealizada, 0);
+            
+            const taxaAgendamentoMedia = totalQualificados > 0 ? (totalAgendados / totalQualificados * 100) : 0;
+            const taxaComparecimentoMedia = totalAgendados > 0 ? (totalCallRealizada / totalAgendados * 100) : 0;
+            const taxaAscensaoMedia = semanas.reduce((sum, s) => sum + s.taxaAscensao, 0) / semanas.length;
 
             const container = document.getElementById('statsPanel');
             
@@ -2040,6 +2068,45 @@
                         <div class="stat-item">
                             <span class="stat-item-label">📥 Entradas</span>
                             <span class="stat-item-value">R$ ${tendencia.entradas.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ⭐ NOVO BLOCO: TAXAS DE CONVERSÃO
+            html += `
+                <div class="stats-block taxas">
+                    <div class="stats-block-title">📊 TAXAS</div>
+                    <div class="stat-item">
+                        <span class="stat-item-label">📅 Taxa de Agendamento</span>
+                        <span class="stat-item-value">${taxaAgendamentoMedia.toFixed(2)}%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-item-label">✅ Taxa de Comparecimento</span>
+                        <span class="stat-item-value">${taxaComparecimentoMedia.toFixed(2)}%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-item-label">📈 Taxa de Ascensão</span>
+                        <span class="stat-item-value ${taxaAscensaoMedia >= 0 ? 'positive' : 'negative'}">${taxaAscensaoMedia >= 0 ? '+' : ''}${taxaAscensaoMedia.toFixed(2)}%</span>
+                    </div>
+                </div>
+            `;
+
+            if (tendencia) {
+                html += `
+                    <div class="stats-block tendencia taxas">
+                        <div class="stats-block-title">📈 TENDÊNCIA TAXAS</div>
+                        <div class="stat-item">
+                            <span class="stat-item-label">📅 Taxa de Agendamento</span>
+                            <span class="stat-item-value">${tendencia.taxaAgendamento.toFixed(2)}%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-item-label">✅ Taxa de Comparecimento</span>
+                            <span class="stat-item-value">${tendencia.taxaComparecimento.toFixed(2)}%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-item-label">📈 Taxa de Ascensão</span>
+                            <span class="stat-item-value ${tendencia.taxaAscensao >= 0 ? 'positive' : 'negative'}">${tendencia.taxaAscensao >= 0 ? '+' : ''}${tendencia.taxaAscensao.toFixed(2)}%</span>
                         </div>
                     </div>
                 `;
@@ -2206,7 +2273,7 @@
             const container = document.getElementById('rankingGrid');
             
             const produtosRanking = allProducts
-                .filter(product => product.id !== 'Geral')
+                .filter(product => product.id !== 'Geral' && !product.id.includes('Total'))
                 .map(product => {
                     const data = allData[product.id];
                     if (!data) return null;
@@ -2219,8 +2286,13 @@
                     const totalLucroTrafego = semanas.reduce((sum, s) => sum + s.roasTrafego, 0);
                     const totalVendas = semanas.reduce((sum, s) => sum + s.numeroVenda, 0);
                     
-                    const taxaAgendamentoMedia = semanas.reduce((sum, s) => sum + s.taxaAgendamento, 0) / semanas.length;
-                    const taxaConversaoMedia = semanas.reduce((sum, s) => sum + s.taxaConversao, 0) / semanas.length;
+                    const totalQualificados = semanas.reduce((sum, s) => sum + s.qualificados, 0);
+                    const totalAgendados = semanas.reduce((sum, s) => sum + s.agendados, 0);
+                    const totalCallRealizada = semanas.reduce((sum, s) => sum + s.callRealizada, 0);
+                    
+                    const taxaAgendamentoMedia = totalQualificados > 0 ? (totalAgendados / totalQualificados * 100) : 0;
+                    const taxaComparecimentoMedia = totalAgendados > 0 ? (totalCallRealizada / totalAgendados * 100) : 0;
+                    const taxaConversaoMedia = totalCallRealizada > 0 ? (totalVendas / totalCallRealizada * 100) : 0;
                     const taxaAscensaoMedia = semanas.reduce((sum, s) => sum + s.taxaAscensao, 0) / semanas.length;
 
                     return {
@@ -2232,6 +2304,7 @@
                         totalLucroTrafego,
                         totalVendas,
                         taxaAgendamentoMedia,
+                        taxaComparecimentoMedia,
                         taxaConversaoMedia,
                         taxaAscensaoMedia
                     };
@@ -2242,6 +2315,12 @@
                     title: '📅 Melhor Taxa de Agendamento', 
                     icon: '🎯', 
                     key: 'taxaAgendamentoMedia',
+                    format: (val) => `${val.toFixed(2)}%`
+                },
+                { 
+                    title: '✅ Melhor Taxa de Comparecimento', 
+                    icon: '🎯', 
+                    key: 'taxaComparecimentoMedia',
                     format: (val) => `${val.toFixed(2)}%`
                 },
                 { 
@@ -2311,7 +2390,7 @@
             renderMonthSelectorForModule('monthSelectorROI');
             const container = document.getElementById('roiGrid');
             
-            const produtos = allProducts.filter(p => p.id !== 'Geral');
+            const produtos = allProducts.filter(p => p.id !== 'Geral' && !p.id.includes('Total'));
             
             let html = '';
             produtos.forEach(product => {
@@ -2368,7 +2447,7 @@
             renderMonthSelectorForModule('monthSelectorCustos');
             const container = document.getElementById('custosGrid');
             
-            const produtos = allProducts.filter(p => p.id !== 'Geral');
+            const produtos = allProducts.filter(p => p.id !== 'Geral' && !p.id.includes('Total'));
             
             let html = '';
             produtos.forEach(product => {
@@ -2429,7 +2508,7 @@
             const container = document.getElementById('insightsContainer');
             
             const insights = [];
-            const produtos = allProducts.filter(p => p.id !== 'Geral');
+            const produtos = allProducts.filter(p => p.id !== 'Geral' && !p.id.includes('Total'));
             
             let melhorROI = { produto: '', valor: -Infinity };
             let piorROI = { produto: '', valor: Infinity };
@@ -2758,19 +2837,38 @@
             };
             const num = v => parseFloat((v || '').toString().replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.')) || 0;
             
-            for (let i = 1; i <= 4; i++) {
-                const row = data[i];
-                if (!row) continue;
+            // Produtos individuais (sem agregadores)
+            const produtosIndividuais = [
+                '50 Scripts', 'Couply', 'Social Selling CL',
+                'Teste', 'IA Julia', 'MPM', 'Autentiq', 
+                'Mentoria Julia', 'Social Selling JU'
+            ];
+
+            produtosIndividuais.forEach(nomeProduto => {
+                let startRow = -1;
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i][0] && data[i][0].toString().trim() === nomeProduto) {
+                        startRow = i;
+                        break;
+                    }
+                }
                 
-                geralData.investido += num(row[1]);
-                geralData.faturado += num(row[2]);
-                geralData.lucro += num(row[3]);
-                geralData.alunos += num(row[4]);
-                geralData.qualificados += num(row[5]);
-                geralData.agendados += num(row[6]);
-                geralData.callRealizada += num(row[9]);
-                geralData.vendas += num(row[11]);
-            }
+                if (startRow === -1) return;
+                
+                for (let i = 1; i <= 4; i++) {
+                    const row = data[startRow + i];
+                    if (!row) continue;
+                    
+                    geralData.investido += num(row[1]);
+                    geralData.faturado += num(row[2]);
+                    geralData.lucro += num(row[3]);
+                    geralData.alunos += num(row[4]);
+                    geralData.qualificados += num(row[5]);
+                    geralData.agendados += num(row[6]);
+                    geralData.callRealizada += num(row[8]);
+                    geralData.vendas += num(row[10]);
+                }
+            });
             
             return geralData;
         }
@@ -2997,7 +3095,7 @@
             
             if (!sessionStorage.getItem('welcomeShown')) {
                 setTimeout(() => {
-                    showToast('Dashboard carregado com sucesso! 🎉', 'success', 4000);
+                    showToast('Dashboard v6 carregado! ✨ Geral agora é calculado dinamicamente e todas as taxas estão visíveis!', 'success', 5000);
                     sessionStorage.setItem('welcomeShown', 'true');
                 }, 500);
             }
