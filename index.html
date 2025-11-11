@@ -1157,7 +1157,7 @@
                 <div class="product-select-wrapper">
                     <span class="product-select-label">🎯 Funil 1:</span>
                     <select id="funil1Select" onchange="updateFunilComparison()">
-                        <option value="Geral">📊 Geral</option>
+                        <option value="GERAL">📊 GERAL</option>
                         <option value="Total Cleiton">👨‍💼 Total Cleiton</option>
                         <option value="50 Scripts">📝 50 Scripts</option>
                         <option value="Couply">💑 Couply</option>
@@ -1175,7 +1175,7 @@
                 <div class="product-select-wrapper">
                     <span class="product-select-label">🎯 Funil 2:</span>
                     <select id="funil2Select" onchange="updateFunilComparison()">
-                        <option value="Geral">📊 Geral</option>
+                        <option value="GERAL">📊 GERAL</option>
                         <option value="Total Cleiton">👨‍💼 Total Cleiton</option>
                         <option value="50 Scripts">📝 50 Scripts</option>
                         <option value="Couply">💑 Couply</option>
@@ -1228,7 +1228,7 @@
             <div class="product-select-wrapper" style="justify-content: center; margin-bottom: 30px;">
                 <span class="product-select-label">🎯 Produto:</span>
                 <select id="produtoMesSelect" onchange="updateMonthComparison()">
-                    <option value="Geral">📊 Geral</option>
+                    <option value="GERAL">📊 GERAL</option>
                     <option value="Total Cleiton">👨‍💼 Total Cleiton</option>
                     <option value="50 Scripts">📝 50 Scripts</option>
                     <option value="Couply">💑 Couply</option>
@@ -1256,7 +1256,7 @@
         let allData = {};
         let currentMonth = 'nov';
         let currentTeam = 'geral';
-        let currentProduct = 'Geral';
+        let currentProduct = 'GERAL';
 
         const months = [
             { id: 'nov', name: 'Novembro' },
@@ -1267,7 +1267,7 @@
         ];
 
         const allProducts = [
-            { id: 'Geral', name: 'Geral', icon: '📊', team: 'geral' },
+            { id: 'GERAL', name: 'GERAL', icon: '📊', team: 'geral' },
             { id: 'Total Cleiton', name: 'Total Cleiton', icon: '👨‍💼', team: 'cleiton' },
             { id: '50 Scripts', name: '50 Scripts', icon: '📝', team: 'cleiton' },
             { id: 'Couply', name: 'Couply', icon: '💑', team: 'cleiton' },
@@ -1354,8 +1354,9 @@
             console.log(`🔍 Parseando dados da planilha (${rows.length} linhas)...`);
             const monthData = {};
             
-            // Buscar cada produto individualmente
+            // Buscar cada produto individualmente - INCLUINDO O GERAL
             const productsToSearch = [
+                'GERAL',
                 'Total Cleiton', '50 Scripts', 'Couply', 'Social Selling CL',
                 'Total Julia', 'Teste', 'IA Julia', 'MPM', 'Autentiq',
                 'Mentoria Julia', 'Social Selling JU'
@@ -1380,28 +1381,39 @@
                 };
                 
                 // Parse das 5 linhas (4 semanas + tendência)
-                for (let i = 0; i < 5; i++) {
+                // A estrutura é: Linha do nome + 4 linhas de semanas + 1 linha de tendência
+                for (let i = 1; i <= 5; i++) {
                     const row = rows[startRow + i];
                     if (!row) continue;
                     
-                    const weekKey = i === 4 ? 'tendencia' : `semana${i + 1}`;
+                    const weekKey = i === 5 ? 'tendencia' : `semana${i}`;
                     
                     monthData[productName][weekKey] = {
-                        investido: parseValue(row[1]),      // B
-                        faturamento: parseValue(row[2]),    // C
-                        lucro: parseValue(row[3]),          // D
-                        roi: parseValue(row[4]),            // E
-                        roas: parseValue(row[5]),           // F
-                        alunos: parseValue(row[6]),         // G
-                        taxaAgendamento: parseValue(row[7]), // H
-                        callRealizada: parseValue(row[8]),   // I
-                        taxaComparecimento: parseValue(row[9]), // J
-                        qualificados: parseValue(row[10]),  // K
-                        agendados: parseValue(row[11]),     // L
-                        taxaAscensao: parseValue(row[12]),  // M
-                        vendaMonetizacao: parseValue(row[13]), // N
-                        entradas: parseValue(row[14])       // O
+                        investido: parseValue(row[1]),           // B - Investido
+                        faturamentoTrafego: parseValue(row[2]),  // C - Faturamento tráfego
+                        lucro: parseValue(row[3]),               // D - Roas Tráfego (na verdade é LUCRO)
+                        alunos: parseValue(row[4]),              // E - Número de alunos
+                        qualificados: parseValue(row[5]),        // F - Qualificados
+                        agendados: parseValue(row[6]),           // G - Agendados
+                        taxaAgendamento: parseValue(row[7]),     // H - Taxa de agendamento
+                        callRealizada: parseValue(row[8]),       // I - Call realizada
+                        taxaComparecimento: parseValue(row[9]),  // J - Taxa de comparecimento
+                        numeroVenda: parseValue(row[10]),        // K - Número de venda
+                        taxaConversao: parseValue(row[11]),      // L - Taxa de conversão
+                        taxaAscensao: parseValue(row[12]),       // M - Taxa de ascensão
+                        vendaMonetizacao: parseValue(row[13]),   // N - Venda monetização
+                        entradaMonetizacao: parseValue(row[14]), // O - Entrada monetização
+                        faturamento: parseValue(row[15]),        // P - Faturamento do funil
+                        roas: parseValue(row[16])                // Q - Roas do funil
                     };
+                    
+                    // Calcular ROI baseado em lucro e investido
+                    if (monthData[productName][weekKey].investido > 0) {
+                        monthData[productName][weekKey].roi = 
+                            (monthData[productName][weekKey].lucro / monthData[productName][weekKey].investido) * 100;
+                    } else {
+                        monthData[productName][weekKey].roi = 0;
+                    }
                 }
                 
                 // Calcular totais do mês
@@ -1409,12 +1421,18 @@
                     investido: 0,
                     faturamento: 0,
                     lucro: 0,
+                    roi: 0,
+                    roas: 0,
                     alunos: 0,
                     callRealizada: 0,
                     qualificados: 0,
                     agendados: 0,
+                    taxaAgendamento: 0,
+                    taxaComparecimento: 0,
+                    taxaAscensao: 0,
+                    numeroVenda: 0,
                     vendaMonetizacao: 0,
-                    entradas: 0
+                    entradaMonetizacao: 0
                 };
                 
                 for (let i = 1; i <= 4; i++) {
@@ -1426,11 +1444,12 @@
                     monthData[productName].total.callRealizada += week.callRealizada;
                     monthData[productName].total.qualificados += week.qualificados;
                     monthData[productName].total.agendados += week.agendados;
+                    monthData[productName].total.numeroVenda += week.numeroVenda;
                     monthData[productName].total.vendaMonetizacao += week.vendaMonetizacao;
-                    monthData[productName].total.entradas += week.entradas;
+                    monthData[productName].total.entradaMonetizacao += week.entradaMonetizacao;
                 }
                 
-                // Calcular médias
+                // Calcular médias e taxas
                 const total = monthData[productName].total;
                 total.roi = total.investido > 0 ? (total.lucro / total.investido) * 100 : 0;
                 total.roas = total.investido > 0 ? total.faturamento / total.investido : 0;
@@ -1441,118 +1460,6 @@
                 console.log(`✅ ${productName} parseado com sucesso`);
             });
             
-            return monthData;
-        }
-
-        // ==================== CÁLCULO DO GERAL ====================
-        function calculateGeral(monthData) {
-            console.log('🧮 Calculando dados do Geral...');
-            
-            const produtosIndividuais = [
-                '50 Scripts', 'Couply', 'Social Selling CL',
-                'Teste', 'IA Julia', 'MPM', 'Autentiq',
-                'Mentoria Julia', 'Social Selling JU'
-            ];
-            
-            monthData['Geral'] = {
-                semana1: {},
-                semana2: {},
-                semana3: {},
-                semana4: {},
-                tendencia: {},
-                total: {}
-            };
-            
-            // Calcular cada semana
-            for (let i = 1; i <= 4; i++) {
-                const weekKey = `semana${i}`;
-                const geralWeek = {
-                    investido: 0,
-                    faturamento: 0,
-                    lucro: 0,
-                    alunos: 0,
-                    callRealizada: 0,
-                    qualificados: 0,
-                    agendados: 0,
-                    vendaMonetizacao: 0,
-                    entradas: 0
-                };
-                
-                produtosIndividuais.forEach(produto => {
-                    if (monthData[produto] && monthData[produto][weekKey]) {
-                        const week = monthData[produto][weekKey];
-                        geralWeek.investido += week.investido;
-                        geralWeek.faturamento += week.faturamento;
-                        geralWeek.lucro += week.lucro;
-                        geralWeek.alunos += week.alunos;
-                        geralWeek.callRealizada += week.callRealizada;
-                        geralWeek.qualificados += week.qualificados;
-                        geralWeek.agendados += week.agendados;
-                        geralWeek.vendaMonetizacao += week.vendaMonetizacao;
-                        geralWeek.entradas += week.entradas;
-                    }
-                });
-                
-                // Calcular taxas
-                geralWeek.roi = geralWeek.investido > 0 ? (geralWeek.lucro / geralWeek.investido) * 100 : 0;
-                geralWeek.roas = geralWeek.investido > 0 ? geralWeek.faturamento / geralWeek.investido : 0;
-                geralWeek.taxaAgendamento = geralWeek.qualificados > 0 ? (geralWeek.agendados / geralWeek.qualificados) * 100 : 0;
-                geralWeek.taxaComparecimento = geralWeek.agendados > 0 ? (geralWeek.callRealizada / geralWeek.agendados) * 100 : 0;
-                geralWeek.taxaAscensao = geralWeek.callRealizada > 0 ? (geralWeek.alunos / geralWeek.callRealizada) * 100 : 0;
-                
-                monthData['Geral'][weekKey] = geralWeek;
-            }
-            
-            // Calcular tendência (média das semanas)
-            const tendencia = {
-                investido: 0, faturamento: 0, lucro: 0, roi: 0, roas: 0,
-                alunos: 0, taxaAgendamento: 0, callRealizada: 0,
-                taxaComparecimento: 0, qualificados: 0, agendados: 0,
-                taxaAscensao: 0, vendaMonetizacao: 0, entradas: 0
-            };
-            
-            for (let i = 1; i <= 4; i++) {
-                const week = monthData['Geral'][`semana${i}`];
-                Object.keys(tendencia).forEach(key => {
-                    tendencia[key] += week[key];
-                });
-            }
-            
-            Object.keys(tendencia).forEach(key => {
-                tendencia[key] = tendencia[key] / 4;
-            });
-            
-            monthData['Geral'].tendencia = tendencia;
-            
-            // Calcular total
-            const total = {
-                investido: 0, faturamento: 0, lucro: 0,
-                alunos: 0, callRealizada: 0, qualificados: 0,
-                agendados: 0, vendaMonetizacao: 0, entradas: 0
-            };
-            
-            for (let i = 1; i <= 4; i++) {
-                const week = monthData['Geral'][`semana${i}`];
-                total.investido += week.investido;
-                total.faturamento += week.faturamento;
-                total.lucro += week.lucro;
-                total.alunos += week.alunos;
-                total.callRealizada += week.callRealizada;
-                total.qualificados += week.qualificados;
-                total.agendados += week.agendados;
-                total.vendaMonetizacao += week.vendaMonetizacao;
-                total.entradas += week.entradas;
-            }
-            
-            total.roi = total.investido > 0 ? (total.lucro / total.investido) * 100 : 0;
-            total.roas = total.investido > 0 ? total.faturamento / total.investido : 0;
-            total.taxaAgendamento = total.qualificados > 0 ? (total.agendados / total.qualificados) * 100 : 0;
-            total.taxaComparecimento = total.agendados > 0 ? (total.callRealizada / total.agendados) * 100 : 0;
-            total.taxaAscensao = total.callRealizada > 0 ? (total.alunos / total.callRealizada) * 100 : 0;
-            
-            monthData['Geral'].total = total;
-            
-            console.log(`✅ Geral calculado com sucesso`);
             return monthData;
         }
 
@@ -1584,9 +1491,6 @@
                 
                 // Parse dos dados para novembro (assumindo que é o primeiro mês na planilha)
                 allData['nov'] = parseSheetData(parsed.data);
-                
-                // Calcular o Geral
-                allData['nov'] = calculateGeral(allData['nov']);
                 
                 console.log('🎉 Dados carregados com sucesso!', allData);
                 
@@ -1677,7 +1581,7 @@
             event.target.classList.add('active');
             
             if (team === 'geral') {
-                currentProduct = 'Geral';
+                currentProduct = 'GERAL';
             } else if (team === 'cleiton') {
                 currentProduct = 'Total Cleiton';
             } else if (team === 'julia') {
@@ -1693,7 +1597,7 @@
             
             let products = [];
             if (currentTeam === 'geral') {
-                products = allProducts.filter(p => p.id === 'Geral');
+                products = allProducts.filter(p => p.id === 'GERAL');
             } else {
                 products = allProducts.filter(p => p.team === currentTeam);
             }
@@ -1870,8 +1774,12 @@
                         <span class="stat-value">${formatNumber(data.vendaMonetizacao)}</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Entradas</span>
-                        <span class="stat-value">${formatNumber(data.entradas)}</span>
+                        <span class="stat-label">Entrada Monetização</span>
+                        <span class="stat-value">${formatNumber(data.entradaMonetizacao)}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Número de Venda</span>
+                        <span class="stat-value">${formatNumber(data.numeroVenda)}</span>
                     </div>
                 </div>
             `;
