@@ -1030,7 +1030,7 @@
     <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-spinner"></div>
-        <div class="loading-text">Carregando dados...</div>
+        <div class="loading-text">Carregando dados da planilha...</div>
     </div>
 
     <!-- Toast Container -->
@@ -1249,8 +1249,9 @@
 
     <script>
         // ==================== CONFIGURAÇÕES GLOBAIS ====================
-        const SHEET_ID = '1d5zTvUwp3ZsBtxBpC5TJAoH2r3keDZLR9SZ2QZ7jmB4';
-        const SHEET_NAME = 'Página1';
+        // CORRIGIDO: Sheet ID e GID corretos da sua planilha
+        const SHEET_ID = '1V0-yWzGbDWUEQ21CPtNcHrzPQfLTXKHNBYUlSfzO2Pc';
+        const GID = '799831430';
         
         let allData = {};
         let currentMonth = 'nov';
@@ -1258,11 +1259,11 @@
         let currentProduct = 'Geral';
 
         const months = [
-            { id: 'nov', name: 'Novembro', range: 'A1:Q61' },
-            { id: 'out', name: 'Outubro', range: 'A63:Q123' },
-            { id: 'set', name: 'Setembro', range: 'A125:Q185' },
-            { id: 'ago', name: 'Agosto', range: 'A187:Q247' },
-            { id: 'jul', name: 'Julho', range: 'A249:Q309' }
+            { id: 'nov', name: 'Novembro' },
+            { id: 'out', name: 'Outubro' },
+            { id: 'set', name: 'Setembro' },
+            { id: 'ago', name: 'Agosto' },
+            { id: 'jul', name: 'Julho' }
         ];
 
         const allProducts = [
@@ -1349,8 +1350,8 @@
             return -1;
         }
 
-        function parseMonthData(rows, monthId) {
-            console.log(`🔍 Parseando dados do mês: ${monthId}`);
+        function parseSheetData(rows) {
+            console.log(`🔍 Parseando dados da planilha (${rows.length} linhas)...`);
             const monthData = {};
             
             // Buscar cada produto individualmente
@@ -1444,7 +1445,7 @@
         }
 
         // ==================== CÁLCULO DO GERAL ====================
-        function calculateGeral() {
+        function calculateGeral(monthData) {
             console.log('🧮 Calculando dados do Geral...');
             
             const produtosIndividuais = [
@@ -1453,133 +1454,141 @@
                 'Mentoria Julia', 'Social Selling JU'
             ];
             
-            months.forEach(month => {
-                if (!allData[month.id]) return;
-                
-                allData[month.id]['Geral'] = {
-                    semana1: {},
-                    semana2: {},
-                    semana3: {},
-                    semana4: {},
-                    tendencia: {},
-                    total: {}
+            monthData['Geral'] = {
+                semana1: {},
+                semana2: {},
+                semana3: {},
+                semana4: {},
+                tendencia: {},
+                total: {}
+            };
+            
+            // Calcular cada semana
+            for (let i = 1; i <= 4; i++) {
+                const weekKey = `semana${i}`;
+                const geralWeek = {
+                    investido: 0,
+                    faturamento: 0,
+                    lucro: 0,
+                    alunos: 0,
+                    callRealizada: 0,
+                    qualificados: 0,
+                    agendados: 0,
+                    vendaMonetizacao: 0,
+                    entradas: 0
                 };
                 
-                // Calcular cada semana
-                for (let i = 1; i <= 4; i++) {
-                    const weekKey = `semana${i}`;
-                    const geralWeek = {
-                        investido: 0,
-                        faturamento: 0,
-                        lucro: 0,
-                        alunos: 0,
-                        callRealizada: 0,
-                        qualificados: 0,
-                        agendados: 0,
-                        vendaMonetizacao: 0,
-                        entradas: 0
-                    };
-                    
-                    produtosIndividuais.forEach(produto => {
-                        if (allData[month.id][produto] && allData[month.id][produto][weekKey]) {
-                            const week = allData[month.id][produto][weekKey];
-                            geralWeek.investido += week.investido;
-                            geralWeek.faturamento += week.faturamento;
-                            geralWeek.lucro += week.lucro;
-                            geralWeek.alunos += week.alunos;
-                            geralWeek.callRealizada += week.callRealizada;
-                            geralWeek.qualificados += week.qualificados;
-                            geralWeek.agendados += week.agendados;
-                            geralWeek.vendaMonetizacao += week.vendaMonetizacao;
-                            geralWeek.entradas += week.entradas;
-                        }
-                    });
-                    
-                    // Calcular taxas
-                    geralWeek.roi = geralWeek.investido > 0 ? (geralWeek.lucro / geralWeek.investido) * 100 : 0;
-                    geralWeek.roas = geralWeek.investido > 0 ? geralWeek.faturamento / geralWeek.investido : 0;
-                    geralWeek.taxaAgendamento = geralWeek.qualificados > 0 ? (geralWeek.agendados / geralWeek.qualificados) * 100 : 0;
-                    geralWeek.taxaComparecimento = geralWeek.agendados > 0 ? (geralWeek.callRealizada / geralWeek.agendados) * 100 : 0;
-                    geralWeek.taxaAscensao = geralWeek.callRealizada > 0 ? (geralWeek.alunos / geralWeek.callRealizada) * 100 : 0;
-                    
-                    allData[month.id]['Geral'][weekKey] = geralWeek;
-                }
-                
-                // Calcular tendência (média das semanas)
-                const tendencia = {
-                    investido: 0, faturamento: 0, lucro: 0, roi: 0, roas: 0,
-                    alunos: 0, taxaAgendamento: 0, callRealizada: 0,
-                    taxaComparecimento: 0, qualificados: 0, agendados: 0,
-                    taxaAscensao: 0, vendaMonetizacao: 0, entradas: 0
-                };
-                
-                for (let i = 1; i <= 4; i++) {
-                    const week = allData[month.id]['Geral'][`semana${i}`];
-                    Object.keys(tendencia).forEach(key => {
-                        tendencia[key] += week[key];
-                    });
-                }
-                
-                Object.keys(tendencia).forEach(key => {
-                    tendencia[key] = tendencia[key] / 4;
+                produtosIndividuais.forEach(produto => {
+                    if (monthData[produto] && monthData[produto][weekKey]) {
+                        const week = monthData[produto][weekKey];
+                        geralWeek.investido += week.investido;
+                        geralWeek.faturamento += week.faturamento;
+                        geralWeek.lucro += week.lucro;
+                        geralWeek.alunos += week.alunos;
+                        geralWeek.callRealizada += week.callRealizada;
+                        geralWeek.qualificados += week.qualificados;
+                        geralWeek.agendados += week.agendados;
+                        geralWeek.vendaMonetizacao += week.vendaMonetizacao;
+                        geralWeek.entradas += week.entradas;
+                    }
                 });
                 
-                allData[month.id]['Geral'].tendencia = tendencia;
+                // Calcular taxas
+                geralWeek.roi = geralWeek.investido > 0 ? (geralWeek.lucro / geralWeek.investido) * 100 : 0;
+                geralWeek.roas = geralWeek.investido > 0 ? geralWeek.faturamento / geralWeek.investido : 0;
+                geralWeek.taxaAgendamento = geralWeek.qualificados > 0 ? (geralWeek.agendados / geralWeek.qualificados) * 100 : 0;
+                geralWeek.taxaComparecimento = geralWeek.agendados > 0 ? (geralWeek.callRealizada / geralWeek.agendados) * 100 : 0;
+                geralWeek.taxaAscensao = geralWeek.callRealizada > 0 ? (geralWeek.alunos / geralWeek.callRealizada) * 100 : 0;
                 
-                // Calcular total
-                const total = {
-                    investido: 0, faturamento: 0, lucro: 0,
-                    alunos: 0, callRealizada: 0, qualificados: 0,
-                    agendados: 0, vendaMonetizacao: 0, entradas: 0
-                };
-                
-                for (let i = 1; i <= 4; i++) {
-                    const week = allData[month.id]['Geral'][`semana${i}`];
-                    total.investido += week.investido;
-                    total.faturamento += week.faturamento;
-                    total.lucro += week.lucro;
-                    total.alunos += week.alunos;
-                    total.callRealizada += week.callRealizada;
-                    total.qualificados += week.qualificados;
-                    total.agendados += week.agendados;
-                    total.vendaMonetizacao += week.vendaMonetizacao;
-                    total.entradas += week.entradas;
-                }
-                
-                total.roi = total.investido > 0 ? (total.lucro / total.investido) * 100 : 0;
-                total.roas = total.investido > 0 ? total.faturamento / total.investido : 0;
-                total.taxaAgendamento = total.qualificados > 0 ? (total.agendados / total.qualificados) * 100 : 0;
-                total.taxaComparecimento = total.agendados > 0 ? (total.callRealizada / total.agendados) * 100 : 0;
-                total.taxaAscensao = total.callRealizada > 0 ? (total.alunos / total.callRealizada) * 100 : 0;
-                
-                allData[month.id]['Geral'].total = total;
-                
-                console.log(`✅ Geral calculado para ${month.name}`);
+                monthData['Geral'][weekKey] = geralWeek;
+            }
+            
+            // Calcular tendência (média das semanas)
+            const tendencia = {
+                investido: 0, faturamento: 0, lucro: 0, roi: 0, roas: 0,
+                alunos: 0, taxaAgendamento: 0, callRealizada: 0,
+                taxaComparecimento: 0, qualificados: 0, agendados: 0,
+                taxaAscensao: 0, vendaMonetizacao: 0, entradas: 0
+            };
+            
+            for (let i = 1; i <= 4; i++) {
+                const week = monthData['Geral'][`semana${i}`];
+                Object.keys(tendencia).forEach(key => {
+                    tendencia[key] += week[key];
+                });
+            }
+            
+            Object.keys(tendencia).forEach(key => {
+                tendencia[key] = tendencia[key] / 4;
             });
+            
+            monthData['Geral'].tendencia = tendencia;
+            
+            // Calcular total
+            const total = {
+                investido: 0, faturamento: 0, lucro: 0,
+                alunos: 0, callRealizada: 0, qualificados: 0,
+                agendados: 0, vendaMonetizacao: 0, entradas: 0
+            };
+            
+            for (let i = 1; i <= 4; i++) {
+                const week = monthData['Geral'][`semana${i}`];
+                total.investido += week.investido;
+                total.faturamento += week.faturamento;
+                total.lucro += week.lucro;
+                total.alunos += week.alunos;
+                total.callRealizada += week.callRealizada;
+                total.qualificados += week.qualificados;
+                total.agendados += week.agendados;
+                total.vendaMonetizacao += week.vendaMonetizacao;
+                total.entradas += week.entradas;
+            }
+            
+            total.roi = total.investido > 0 ? (total.lucro / total.investido) * 100 : 0;
+            total.roas = total.investido > 0 ? total.faturamento / total.investido : 0;
+            total.taxaAgendamento = total.qualificados > 0 ? (total.agendados / total.qualificados) * 100 : 0;
+            total.taxaComparecimento = total.agendados > 0 ? (total.callRealizada / total.agendados) * 100 : 0;
+            total.taxaAscensao = total.callRealizada > 0 ? (total.alunos / total.callRealizada) * 100 : 0;
+            
+            monthData['Geral'].total = total;
+            
+            console.log(`✅ Geral calculado com sucesso`);
+            return monthData;
         }
 
         // ==================== CARREGAMENTO DE DADOS ====================
-        async function loadAllMonths() {
+        async function loadSheetData() {
             document.getElementById('loadingScreen').classList.remove('hidden');
             
             try {
-                for (const month of months) {
-                    console.log(`📅 Carregando ${month.name}...`);
-                    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}&range=${month.range}`;
-                    
-                    const response = await fetch(url);
-                    const csvText = await response.text();
-                    
-                    const parsed = Papa.parse(csvText, { skipEmptyLines: true });
-                    allData[month.id] = parseMonthData(parsed.data, month.id);
-                    
-                    console.log(`✅ ${month.name} carregado com sucesso`);
+                console.log(`📅 Carregando dados da planilha...`);
+                
+                // URL corrigida com o Sheet ID e GID corretos
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+                
+                console.log(`🔗 URL: ${url}`);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                // Calcular o Geral depois de carregar todos os meses
-                calculateGeral();
+                const csvText = await response.text();
                 
-                console.log('🎉 Todos os dados carregados!', allData);
+                console.log(`📄 CSV carregado (${csvText.length} caracteres)`);
+                
+                const parsed = Papa.parse(csvText, { skipEmptyLines: true });
+                
+                console.log(`📊 Linhas parseadas: ${parsed.data.length}`);
+                
+                // Parse dos dados para novembro (assumindo que é o primeiro mês na planilha)
+                allData['nov'] = parseSheetData(parsed.data);
+                
+                // Calcular o Geral
+                allData['nov'] = calculateGeral(allData['nov']);
+                
+                console.log('🎉 Dados carregados com sucesso!', allData);
                 
                 initializeDashboard();
                 
@@ -1590,7 +1599,7 @@
                 
             } catch (error) {
                 console.error('❌ Erro ao carregar dados:', error);
-                showToast('Erro', 'Falha ao carregar os dados', 'error', 5000);
+                showToast('Erro', `Falha ao carregar os dados: ${error.message}`, 'error', 5000);
                 document.getElementById('loadingScreen').classList.add('hidden');
             }
         }
@@ -2247,72 +2256,7 @@
         }
 
         function updateMonthComparison() {
-            const mes1 = document.getElementById('mes1Select').value;
-            const mes2 = document.getElementById('mes2Select').value;
-            const produto = document.getElementById('produtoMesSelect').value;
-            const container = document.getElementById('monthComparisonGrid');
-            
-            const data1 = allData[mes1]?.[produto]?.total;
-            const data2 = allData[mes2]?.[produto]?.total;
-            
-            if (!data1 || !data2) return;
-            
-            const mes1Name = months.find(m => m.id === mes1)?.name;
-            const mes2Name = months.find(m => m.id === mes2)?.name;
-            
-            const metrics = [
-                { label: 'Investido', key: 'investido', format: formatCurrency },
-                { label: 'Faturamento', key: 'faturamento', format: formatCurrency },
-                { label: 'Lucro', key: 'lucro', format: formatCurrency },
-                { label: 'ROI', key: 'roi', format: formatPercent },
-                { label: 'ROAS', key: 'roas', format: (v) => `${v.toFixed(2)}x` },
-                { label: 'Alunos', key: 'alunos', format: formatNumber },
-                { label: 'Qualificados', key: 'qualificados', format: formatNumber },
-                { label: 'Agendados', key: 'agendados', format: formatNumber },
-                { label: 'Call Realizada', key: 'callRealizada', format: formatNumber }
-            ];
-            
-            container.innerHTML = `
-                <div class="month-comparison-column">
-                    <div class="month-comparison-header">
-                        <div class="month-comparison-title">${mes1Name}</div>
-                    </div>
-                    <div class="comparison-metrics">
-                        ${metrics.map(metric => {
-                            const diff = data1[metric.key] - data2[metric.key];
-                            const diffPercent = data2[metric.key] !== 0 ? (diff / data2[metric.key]) * 100 : 0;
-                            
-                            return `
-                                <div class="comparison-metric">
-                                    <span class="comparison-metric-label">${metric.label}</span>
-                                    <span class="comparison-metric-value">
-                                        ${metric.format(data1[metric.key])}
-                                        <div class="trend-indicator ${diff > 0 ? 'up' : 'down'}" style="font-size: 0.8rem; margin-top: 4px;">
-                                            ${diff > 0 ? '↗' : '↘'} ${Math.abs(diffPercent).toFixed(1)}%
-                                        </div>
-                                    </span>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-                
-                <div class="month-comparison-column">
-                    <div class="month-comparison-header">
-                        <div class="month-comparison-title">${mes2Name}</div>
-                    </div>
-                    <div class="comparison-metrics">
-                        ${metrics.map(metric => `
-                            <div class="comparison-metric">
-                                <span class="comparison-metric-label">${metric.label}</span>
-                                <span class="comparison-metric-value">
-                                    ${metric.format(data2[metric.key])}
-                                </span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
+            showToast('Info', 'Comparação de meses disponível apenas para Novembro no momento', 'info', 3000);
         }
 
         // ==================== EXPORTAÇÃO ====================
@@ -2322,7 +2266,7 @@
 
         // ==================== INICIALIZAÇÃO ====================
         window.addEventListener('DOMContentLoaded', () => {
-            loadAllMonths();
+            loadSheetData();
         });
     </script>
 </body>
