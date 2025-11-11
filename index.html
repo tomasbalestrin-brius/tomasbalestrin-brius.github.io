@@ -1157,7 +1157,7 @@
                 <div class="product-select-wrapper">
                     <span class="product-select-label">🎯 Funil 1:</span>
                     <select id="funil1Select" onchange="updateFunilComparison()">
-                        <option value="GERAL">📊 GERAL</option>
+                        <option value="Geral">📊 Geral</option>
                         <option value="Total Cleiton">👨‍💼 Total Cleiton</option>
                         <option value="50 Scripts">📝 50 Scripts</option>
                         <option value="Couply">💑 Couply</option>
@@ -1175,7 +1175,7 @@
                 <div class="product-select-wrapper">
                     <span class="product-select-label">🎯 Funil 2:</span>
                     <select id="funil2Select" onchange="updateFunilComparison()">
-                        <option value="GERAL">📊 GERAL</option>
+                        <option value="Geral">📊 Geral</option>
                         <option value="Total Cleiton">👨‍💼 Total Cleiton</option>
                         <option value="50 Scripts">📝 50 Scripts</option>
                         <option value="Couply">💑 Couply</option>
@@ -1228,7 +1228,7 @@
             <div class="product-select-wrapper" style="justify-content: center; margin-bottom: 30px;">
                 <span class="product-select-label">🎯 Produto:</span>
                 <select id="produtoMesSelect" onchange="updateMonthComparison()">
-                    <option value="GERAL">📊 GERAL</option>
+                    <option value="Geral">📊 Geral</option>
                     <option value="Total Cleiton">👨‍💼 Total Cleiton</option>
                     <option value="50 Scripts">📝 50 Scripts</option>
                     <option value="Couply">💑 Couply</option>
@@ -1256,7 +1256,7 @@
         let allData = {};
         let currentMonth = 'nov';
         let currentTeam = 'geral';
-        let currentProduct = 'GERAL';
+        let currentProduct = 'Geral';
 
         const months = [
             { id: 'nov', name: 'Novembro' },
@@ -1267,7 +1267,7 @@
         ];
 
         const allProducts = [
-            { id: 'GERAL', name: 'GERAL', icon: '📊', team: 'geral' },
+            { id: 'Geral', name: 'Geral', icon: '📊', team: 'geral' },
             { id: 'Total Cleiton', name: 'Total Cleiton', icon: '👨‍💼', team: 'cleiton' },
             { id: '50 Scripts', name: '50 Scripts', icon: '📝', team: 'cleiton' },
             { id: 'Couply', name: 'Couply', icon: '💑', team: 'cleiton' },
@@ -1340,35 +1340,44 @@
         }
 
         // ==================== BUSCA DINÂMICA DE LINHAS ====================
-        function findRowByName(rows, productName) {
-            for (let i = 0; i < rows.length; i++) {
-                if (rows[i][0] && rows[i][0].toString().trim() === productName) {
-                    return i;
+        function findProductRows(rows, productName) {
+            const productRows = [];
+            // Pular linha 1 (header) e começar da linha 2
+            for (let i = 1; i < rows.length; i++) {
+                const cellValue = rows[i][0];
+                if (cellValue && cellValue.toString().trim() === productName) {
+                    productRows.push(i);
+                    // Coletar 5 linhas consecutivas do mesmo produto
+                    if (productRows.length === 5) {
+                        break;
+                    }
                 }
             }
-            console.warn(`⚠️ Produto não encontrado: ${productName}`);
-            return -1;
+            return productRows;
         }
 
         function parseSheetData(rows) {
             console.log(`🔍 Parseando dados da planilha (${rows.length} linhas)...`);
             const monthData = {};
             
-            // Buscar cada produto individualmente - INCLUINDO O GERAL
+            // Buscar cada produto individualmente
+            // IMPORTANTE: Os nomes devem corresponder EXATAMENTE ao que está na coluna A da planilha
             const productsToSearch = [
-                'GERAL',
+                'Geral',  // Na planilha está "Geral", não "GERAL"
                 'Total Cleiton', '50 Scripts', 'Couply', 'Social Selling CL',
                 'Total Julia', 'Teste', 'IA Julia', 'MPM', 'Autentiq',
                 'Mentoria Julia', 'Social Selling JU'
             ];
             
             productsToSearch.forEach(productName => {
-                const startRow = findRowByName(rows, productName);
+                const productRows = findProductRows(rows, productName);
                 
-                if (startRow === -1) {
-                    console.warn(`⚠️ ${productName} não encontrado`);
+                if (productRows.length !== 5) {
+                    console.warn(`⚠️ ${productName} não encontrado ou incompleto (encontradas ${productRows.length} linhas)`);
                     return;
                 }
+                
+                console.log(`✅ ${productName} encontrado nas linhas:`, productRows);
                 
                 // Criar estrutura de dados para o produto
                 monthData[productName] = {
@@ -1381,30 +1390,53 @@
                 };
                 
                 // Parse das 5 linhas (4 semanas + tendência)
-                // A estrutura é: Linha do nome + 4 linhas de semanas + 1 linha de tendência
-                for (let i = 1; i <= 5; i++) {
-                    const row = rows[startRow + i];
+                for (let i = 0; i < 5; i++) {
+                    const row = rows[productRows[i]];
                     if (!row) continue;
                     
-                    const weekKey = i === 5 ? 'tendencia' : `semana${i}`;
+                    const periodo = row[1] ? row[1].toString().trim() : '';
+                    let weekKey;
                     
+                    // Determinar a chave baseado no período
+                    if (periodo.includes('Semana 1')) weekKey = 'semana1';
+                    else if (periodo.includes('Semana 2')) weekKey = 'semana2';
+                    else if (periodo.includes('Semana 3')) weekKey = 'semana3';
+                    else if (periodo.includes('Semana 4')) weekKey = 'semana4';
+                    else if (periodo.includes('Tendência') || periodo.includes('Tendencia')) weekKey = 'tendencia';
+                    else weekKey = `semana${i + 1}`;
+                    const periodo = row[1] ? row[1].toString().trim() : '';
+                    let weekKey;
+                    
+                    // Determinar a chave baseado no período
+                    if (periodo.includes('Semana 1')) weekKey = 'semana1';
+                    else if (periodo.includes('Semana 2')) weekKey = 'semana2';
+                    else if (periodo.includes('Semana 3')) weekKey = 'semana3';
+                    else if (periodo.includes('Semana 4')) weekKey = 'semana4';
+                    else if (periodo.includes('Tendência') || periodo.includes('Tendencia')) weekKey = 'tendencia';
+                    else weekKey = `semana${i + 1}`;
+                    
+                    console.log(`  📅 ${productName} - ${periodo} -> ${weekKey}`);
+                    
+                    // IMPORTANTE: Índices das colunas (começando do 0)
+                    // A=0 (Funil), B=1 (Período), C=2 (Investido), D=3 (Faturamento tráfego), etc.
                     monthData[productName][weekKey] = {
-                        investido: parseValue(row[1]),           // B - Investido
-                        faturamentoTrafego: parseValue(row[2]),  // C - Faturamento tráfego
-                        lucro: parseValue(row[3]),               // D - Roas Tráfego (na verdade é LUCRO)
-                        alunos: parseValue(row[4]),              // E - Número de alunos
-                        qualificados: parseValue(row[5]),        // F - Qualificados
-                        agendados: parseValue(row[6]),           // G - Agendados
-                        taxaAgendamento: parseValue(row[7]),     // H - Taxa de agendamento
-                        callRealizada: parseValue(row[8]),       // I - Call realizada
-                        taxaComparecimento: parseValue(row[9]),  // J - Taxa de comparecimento
-                        numeroVenda: parseValue(row[10]),        // K - Número de venda
-                        taxaConversao: parseValue(row[11]),      // L - Taxa de conversão
-                        taxaAscensao: parseValue(row[12]),       // M - Taxa de ascensão
-                        vendaMonetizacao: parseValue(row[13]),   // N - Venda monetização
-                        entradaMonetizacao: parseValue(row[14]), // O - Entrada monetização
-                        faturamento: parseValue(row[15]),        // P - Faturamento do funil
-                        roas: parseValue(row[16])                // Q - Roas do funil
+                        periodo: periodo,
+                        investido: parseValue(row[2]),           // C - Investido
+                        faturamentoTrafego: parseValue(row[3]),  // D - Faturamento tráfego
+                        lucro: parseValue(row[4]),               // E - Roas Tráfego (é o LUCRO)
+                        alunos: parseValue(row[5]),              // F - Número de alunos
+                        qualificados: parseValue(row[6]),        // G - Qualificados
+                        agendados: parseValue(row[7]),           // H - Agendados
+                        taxaAgendamento: parseValue(row[8]),     // I - Taxa de agendamento
+                        callRealizada: parseValue(row[9]),       // J - Call realizada
+                        taxaComparecimento: parseValue(row[10]), // K - Taxa de comparecimento
+                        numeroVenda: parseValue(row[11]),        // L - Número de venda
+                        taxaConversao: parseValue(row[12]),      // M - Taxa de conversão
+                        taxaAscensao: parseValue(row[13]),       // N - Taxa de ascensão
+                        vendaMonetizacao: parseValue(row[14]),   // O - Venda monetização
+                        entradaMonetizacao: parseValue(row[15]), // P - Entrada monetização
+                        faturamento: parseValue(row[16]),        // Q - Faturamento do funil
+                        roas: parseValue(row[17])                // R - Roas do funil
                     };
                     
                     // Calcular ROI baseado em lucro e investido
@@ -1430,6 +1462,7 @@
                     taxaAgendamento: 0,
                     taxaComparecimento: 0,
                     taxaAscensao: 0,
+                    taxaConversao: 0,
                     numeroVenda: 0,
                     vendaMonetizacao: 0,
                     entradaMonetizacao: 0
@@ -1456,8 +1489,9 @@
                 total.taxaAgendamento = total.qualificados > 0 ? (total.agendados / total.qualificados) * 100 : 0;
                 total.taxaComparecimento = total.agendados > 0 ? (total.callRealizada / total.agendados) * 100 : 0;
                 total.taxaAscensao = total.callRealizada > 0 ? (total.alunos / total.callRealizada) * 100 : 0;
+                total.taxaConversao = total.callRealizada > 0 ? (total.numeroVenda / total.callRealizada) * 100 : 0;
                 
-                console.log(`✅ ${productName} parseado com sucesso`);
+                console.log(`✅ ${productName} parseado com sucesso - Total Investido: ${formatCurrency(total.investido)}`);
             });
             
             return monthData;
@@ -1581,7 +1615,7 @@
             event.target.classList.add('active');
             
             if (team === 'geral') {
-                currentProduct = 'GERAL';
+                currentProduct = 'Geral';
             } else if (team === 'cleiton') {
                 currentProduct = 'Total Cleiton';
             } else if (team === 'julia') {
@@ -1597,7 +1631,7 @@
             
             let products = [];
             if (currentTeam === 'geral') {
-                products = allProducts.filter(p => p.id === 'GERAL');
+                products = allProducts.filter(p => p.id === 'Geral');
             } else {
                 products = allProducts.filter(p => p.team === currentTeam);
             }
