@@ -1404,16 +1404,6 @@
                     else if (periodo.includes('Semana 4')) weekKey = 'semana4';
                     else if (periodo.includes('Tendência') || periodo.includes('Tendencia')) weekKey = 'tendencia';
                     else weekKey = `semana${i + 1}`;
-                    const periodo = row[1] ? row[1].toString().trim() : '';
-                    let weekKey;
-                    
-                    // Determinar a chave baseado no período
-                    if (periodo.includes('Semana 1')) weekKey = 'semana1';
-                    else if (periodo.includes('Semana 2')) weekKey = 'semana2';
-                    else if (periodo.includes('Semana 3')) weekKey = 'semana3';
-                    else if (periodo.includes('Semana 4')) weekKey = 'semana4';
-                    else if (periodo.includes('Tendência') || periodo.includes('Tendencia')) weekKey = 'tendencia';
-                    else weekKey = `semana${i + 1}`;
                     
                     console.log(`  📅 ${productName} - ${periodo} -> ${weekKey}`);
                     
