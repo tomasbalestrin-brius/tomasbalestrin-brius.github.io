@@ -1249,8 +1249,8 @@
 
     <script>
         // ==================== CONFIGURAÇÕES GLOBAIS ====================
-        // CORRIGIDO: Sheet ID e GID corretos da sua planilha
-        const SHEET_ID = '1V0-yWzGbDWUEQ21CPtNcHrzPQfLTXKHNBYUlSfzO2Pc';
+        // Sheet ID atualizado para a nova planilha
+        const SHEET_ID = '1XsdWQNR7FUo4TrrhsMjSGESS3PtS9G7X8FoHHStxLtU';
         const GID = '799831430';
         
         let allData = {};
@@ -1342,32 +1342,49 @@
         // ==================== BUSCA DINÂMICA DE LINHAS ====================
         function findProductRows(rows, productName) {
             const productRows = [];
+            console.log(`🔍 Buscando produto: "${productName}"`);
+            
             // Pular linha 1 (header) e começar da linha 2
             for (let i = 1; i < rows.length; i++) {
                 const cellValue = rows[i][0];
-                if (cellValue && cellValue.toString().trim() === productName) {
+                const cellValueTrimmed = cellValue ? cellValue.toString().trim() : '';
+                
+                if (cellValueTrimmed === productName) {
                     productRows.push(i);
+                    console.log(`  ✅ Encontrado na linha ${i}: "${cellValueTrimmed}"`);
+                    
                     // Coletar 5 linhas consecutivas do mesmo produto
                     if (productRows.length === 5) {
+                        console.log(`  ✅ ${productName}: 5 linhas coletadas - linhas ${productRows.join(', ')}`);
                         break;
                     }
                 }
             }
+            
+            if (productRows.length !== 5) {
+                console.warn(`  ⚠️ ${productName}: Esperado 5 linhas, encontrado ${productRows.length}`);
+            }
+            
             return productRows;
         }
 
         function parseSheetData(rows) {
             console.log(`🔍 Parseando dados da planilha (${rows.length} linhas)...`);
+            console.log(`📋 Header (linha 0):`, rows[0]);
+            console.log(`📋 Primeira linha de dados (linha 1):`, rows[1]);
+            
             const monthData = {};
             
             // Buscar cada produto individualmente
             // IMPORTANTE: Os nomes devem corresponder EXATAMENTE ao que está na coluna A da planilha
             const productsToSearch = [
-                'Geral',  // Na planilha está "Geral", não "GERAL"
+                'Geral',  // Na planilha está "Geral"
                 'Total Cleiton', '50 Scripts', 'Couply', 'Social Selling CL',
                 'Total Julia', 'Teste', 'IA Julia', 'MPM', 'Autentiq',
                 'Mentoria Julia', 'Social Selling JU'
             ];
+            
+            console.log(`📋 Produtos a buscar:`, productsToSearch);
             
             productsToSearch.forEach(productName => {
                 const productRows = findProductRows(rows, productName);
@@ -1481,8 +1498,16 @@
                 total.taxaAscensao = total.callRealizada > 0 ? (total.alunos / total.callRealizada) * 100 : 0;
                 total.taxaConversao = total.callRealizada > 0 ? (total.numeroVenda / total.callRealizada) * 100 : 0;
                 
-                console.log(`✅ ${productName} parseado com sucesso - Total Investido: ${formatCurrency(total.investido)}`);
+                console.log(`✅ ${productName} parseado:`);
+                console.log(`   💰 Investido: ${formatCurrency(total.investido)}`);
+                console.log(`   📈 Faturamento: ${formatCurrency(total.faturamento)}`);
+                console.log(`   💵 Lucro: ${formatCurrency(total.lucro)}`);
+                console.log(`   📊 ROI: ${formatPercent(total.roi)}`);
+                console.log(`   🎯 Alunos: ${total.alunos}`);
             });
+            
+            console.log(`🎉 Parse concluído! Total de produtos parseados: ${Object.keys(monthData).length}`);
+            console.log(`📊 Produtos carregados:`, Object.keys(monthData));
             
             return monthData;
         }
@@ -1494,12 +1519,14 @@
             try {
                 console.log(`📅 Carregando dados da planilha...`);
                 
-                // URL corrigida com o Sheet ID e GID corretos
+                // URL corrigida com o novo Sheet ID e GID
                 const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
                 
-                console.log(`🔗 URL: ${url}`);
+                console.log(`🔗 URL de carregamento: ${url}`);
                 
                 const response = await fetch(url);
+                
+                console.log(`📡 Status da resposta: ${response.status} ${response.statusText}`);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -1507,13 +1534,16 @@
                 
                 const csvText = await response.text();
                 
-                console.log(`📄 CSV carregado (${csvText.length} caracteres)`);
+                console.log(`📄 CSV carregado - Tamanho: ${csvText.length} caracteres`);
+                console.log(`📄 Primeiras 500 caracteres do CSV:`, csvText.substring(0, 500));
                 
                 const parsed = Papa.parse(csvText, { skipEmptyLines: true });
                 
-                console.log(`📊 Linhas parseadas: ${parsed.data.length}`);
+                console.log(`📊 Total de linhas parseadas: ${parsed.data.length}`);
+                console.log(`📊 Primeira linha (headers):`, parsed.data[0]);
+                console.log(`📊 Segunda linha (primeiro dado):`, parsed.data[1]);
                 
-                // Parse dos dados para novembro (assumindo que é o primeiro mês na planilha)
+                // Parse dos dados para novembro
                 allData['nov'] = parseSheetData(parsed.data);
                 
                 console.log('🎉 Dados carregados com sucesso!', allData);
@@ -1527,6 +1557,7 @@
                 
             } catch (error) {
                 console.error('❌ Erro ao carregar dados:', error);
+                console.error('❌ Stack trace:', error.stack);
                 showToast('Erro', `Falha ao carregar os dados: ${error.message}`, 'error', 5000);
                 document.getElementById('loadingScreen').classList.add('hidden');
             }
