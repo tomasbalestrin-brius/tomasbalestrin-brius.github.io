@@ -12,124 +12,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         /* ===================================
-           PWA MANIFEST & SERVICE WORKER
-           =================================== */
-        /*
-{
-  "name": "Dashboard Funis - Análise Completa",
-  "short_name": "Dashboard Funis",
-  "description": "Acompanhamento Geral de Funis - Análise de Performance por Produto",
-  "start_url": "/",
-  "scope": "/",
-  "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#3b82f6",
-  "orientation": "portrait-primary",
-  "categories": ["business", "productivity", "finance"],
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "Ver dashboard principal",
-      "url": "/?module=dashboard",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Comparar Funis",
-      "short_name": "Comparar",
-      "description": "Comparar performance de funis",
-      "url": "/?module=comparar-funis",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
-    }
-  ]
-}
-        */
-
-        /*
-                 // Service Worker para Dashboard Funis PWA
-const CACHE_NAME = 'dashboard-funis-v1';
-const DATA_CACHE_NAME = 'dashboard-funis-data-v1';
-
-const FILES_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json'
-];
-
-// Install
-self.addEventListener('install', (event) => {
-  console.log('[SW] Installing...');
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Caching app shell');
-      return cache.addAll(FILES_TO_CACHE);
-    }).then(() => self.skipWaiting())
-  );
-});
-
-// Activate
-self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating...');
-  event.waitUntil(
-    caches.keys().then((keyList) => {
-      return Promise.all(keyList.map((key) => {
-        if (key !== CACHE_NAME && key !== DATA_CACHE_NAME) {
-          console.log('[SW] Removing old cache', key);
-          return caches.delete(key);
-        }
-      }));
-    }).then(() => self.clients.claim())
-  );
-});
-
-// Fetch
-self.addEventListener('fetch', (event) => {
-  if (event.request.url.includes('docs.google.com')) {
-    // Google Sheets: Network First
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const responseToCache = response.clone();
-          caches.open(DATA_CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-          return response;
-        })
-        .catch(() => caches.match(event.request))
-    );
-  } else {
-    // Static files: Cache First
-    event.respondWith(
-      caches.match(event.request).then((response) => {
-        return response || fetch(event.request).then((fetchResponse) => {
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, fetchResponse.clone());
-            return fetchResponse;
-          });
-        });
-      })
-    );
-  }
-});
-
-console.log('[SW] Service Worker loaded!');
-        */
-
-        /* ===================================
            VARIÁVEIS DE TEMA
            =================================== */
         :root {
@@ -600,11 +482,62 @@ console.log('[SW] Service Worker loaded!');
             margin-bottom: 10px;
         }
 
+        /* ===================================
+           NOVO: SELETOR DE PERÍODO COM DROPDOWN
+           =================================== */
+        .period-selector-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .past-months-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+        }
+
+        .past-months-selector label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .past-months-selector select {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+
+        .past-months-selector select:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .past-months-selector select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+
         .month-selector {
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin-bottom: 30px;
             flex-wrap: wrap;
         }
 
@@ -618,6 +551,16 @@ console.log('[SW] Service Worker loaded!');
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
+            position: relative;
+        }
+
+        .month-btn::before {
+            content: '📅';
+            position: absolute;
+            left: 10px;
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
         .month-btn:hover {
@@ -626,9 +569,55 @@ console.log('[SW] Service Worker loaded!');
         }
 
         .month-btn.active {
-            background: var(--accent-primary);
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
             border-color: var(--accent-primary);
             color: white;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+            padding-left: 45px;
+        }
+
+        .month-btn.active::before {
+            opacity: 1;
+        }
+
+        .month-btn.active::after {
+            content: '';
+        }
+
+        .month-btn.current-month::after {
+            content: 'Mês Atual';
+            position: absolute;
+            top: -10px;
+            right: -5px;
+            background: var(--success);
+            color: white;
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        }
+
+        .month-btn.historical::after {
+            content: 'Histórico';
+            position: absolute;
+            top: -10px;
+            right: -5px;
+            background: var(--warning);
+            color: white;
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        }
+
+        .month-btn.past {
+            opacity: 0.6;
         }
 
         .team-selector {
@@ -1314,6 +1303,207 @@ console.log('[SW] Service Worker loaded!');
             margin-bottom: 30px;
         }
 
+        /* ===================================
+           CARDS DE RESUMO
+           =================================== */
+        .resumo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .resumo-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 25px;
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .resumo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .resumo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.3);
+            border-color: var(--accent-primary);
+        }
+
+        .resumo-card:hover::before {
+            opacity: 1;
+        }
+
+        .resumo-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .resumo-card-icon {
+            font-size: 2.5rem;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .resumo-card-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .resumo-card-main-value {
+            margin-bottom: 25px;
+        }
+
+        .resumo-card-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .resumo-card-value-large {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .resumo-card-value-large.positive {
+            color: var(--success);
+        }
+
+        .resumo-card-value-large.negative {
+            color: var(--danger);
+        }
+
+        .resumo-card-value-large.neutral {
+            color: var(--text-primary);
+        }
+
+        .resumo-card-metrics {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .resumo-metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+        }
+
+        .resumo-metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .resumo-metric-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .resumo-metric-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .resumo-metric-value.positive {
+            color: var(--success);
+        }
+
+        .resumo-metric-value.negative {
+            color: var(--danger);
+        }
+
+        .resumo-metric-value.trend {
+            color: var(--accent-primary);
+        }
+
+        .resumo-card-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .resumo-card-footer-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .resumo-card-footer-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.8;
+        }
+
+        .resumo-card-footer-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Badge de tendência */
+        .trend-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+
+        .trend-badge.up {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .trend-badge.down {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .trend-badge.neutral {
+            background: rgba(148, 163, 184, 0.15);
+            color: var(--text-secondary);
+        }
+
+        /* Export Buttons */
+        .export-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
         .export-btn {
             background: var(--bg-secondary);
             padding: 30px;
@@ -1536,6 +1726,20 @@ console.log('[SW] Service Worker loaded!');
                 font-size: 0.9rem;
             }
 
+            .period-selector-wrapper {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .past-months-selector {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .past-months-selector select {
+                width: 100%;
+            }
+
             .month-selector {
                 flex-wrap: wrap;
                 gap: 8px;
@@ -1545,6 +1749,29 @@ console.log('[SW] Service Worker loaded!');
             .month-btn {
                 padding: 12px 20px;
                 font-size: 0.9rem;
+            }
+
+            .month-btn.active {
+                padding-left: 35px;
+            }
+
+            .month-btn.active::before {
+                left: 8px;
+                font-size: 1rem;
+            }
+
+            .month-btn.current-month::after {
+                font-size: 0.55rem;
+                padding: 2px 6px;
+                top: -8px;
+                right: -3px;
+            }
+
+            .month-btn.historical::after {
+                font-size: 0.55rem;
+                padding: 2px 6px;
+                top: -8px;
+                right: -3px;
             }
 
             .team-selector {
@@ -1671,6 +1898,47 @@ console.log('[SW] Service Worker loaded!');
                 padding: 20px;
             }
 
+            .resumo-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .resumo-card {
+                padding: 20px;
+            }
+
+            .resumo-card-icon {
+                font-size: 2rem;
+            }
+
+            .resumo-card-name {
+                font-size: 1rem;
+            }
+
+            .resumo-card-value-large {
+                font-size: 1.8rem;
+            }
+
+            .resumo-metric-label {
+                font-size: 0.85rem;
+            }
+
+            .resumo-metric-value {
+                font-size: 1.05rem;
+            }
+
+            .trend-badge {
+                font-size: 0.7rem;
+                padding: 3px 8px;
+                margin-left: 4px;
+            }
+
+            .resumo-card-footer {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
             .product-selector-comparison {
                 flex-direction: column;
                 padding: 20px;
@@ -1774,6 +2042,29 @@ console.log('[SW] Service Worker loaded!');
                 font-size: 0.85rem;
             }
 
+            .month-btn.active {
+                padding-left: 30px;
+            }
+
+            .month-btn.active::before {
+                left: 6px;
+                font-size: 0.9rem;
+            }
+
+            .month-btn.current-month::after {
+                font-size: 0.5rem;
+                padding: 2px 5px;
+                top: -7px;
+                right: -2px;
+            }
+
+            .month-btn.historical::after {
+                font-size: 0.5rem;
+                padding: 2px 5px;
+                top: -7px;
+                right: -2px;
+            }
+
             .team-btn {
                 padding: 15px;
                 font-size: 1rem;
@@ -1802,6 +2093,22 @@ console.log('[SW] Service Worker loaded!');
 
             .stat-item-value {
                 font-size: 1.1rem;
+            }
+
+            .resumo-card-value-large {
+                font-size: 1.6rem;
+            }
+
+            .resumo-metric-label {
+                font-size: 0.8rem;
+            }
+
+            .resumo-metric-value {
+                font-size: 0.95rem;
+            }
+
+            .resumo-card-footer-value {
+                font-size: 0.85rem;
             }
 
             .bottom-nav {
@@ -1864,6 +2171,10 @@ console.log('[SW] Service Worker loaded!');
             <span>🏠</span>
             <span class="tooltip">Dashboard Principal</span>
         </button>
+        <button class="sidebar-btn" onclick="showModule('resumo')" data-module="resumo">
+            <span>📋</span>
+            <span class="tooltip">Resumo Geral</span>
+        </button>
         <button class="sidebar-btn" onclick="showModule('comparar-funis')" data-module="comparar-funis">
             <span>⚔️</span>
             <span class="tooltip">Comparar Funis</span>
@@ -1899,7 +2210,16 @@ console.log('[SW] Service Worker loaded!');
                     <p>Análise Completa de Performance por Produto</p>
                 </div>
 
-                <div class="month-selector" id="monthSelector"></div>
+                <!-- NOVO: Seletor de Período com Dropdown -->
+                <div class="period-selector-wrapper">
+                    <div class="past-months-selector">
+                        <label for="pastMonthsSelect">📅 Selecionar Mês:</label>
+                        <select id="pastMonthsSelect" onchange="selectPastMonth()">
+                            <option value="">-- Selecione um mês --</option>
+                        </select>
+                    </div>
+                    <div class="month-selector" id="monthSelector"></div>
+                </div>
 
                 <div class="team-selector">
                     <button class="team-btn geral-btn active" onclick="selectTeam('geral')">
@@ -1944,13 +2264,41 @@ console.log('[SW] Service Worker loaded!');
                 </div>
             </div>
 
+            <!-- MÓDULO: Resumo Geral -->
+            <div class="module-view" id="module-resumo">
+                <div class="header">
+                    <h1>📋 RESUMO GERAL</h1>
+                    <p>Visão Consolidada de Todos os Funis</p>
+                </div>
+
+                <div class="period-selector-wrapper">
+                    <div class="past-months-selector">
+                        <label for="pastMonthsSelectResumo">📅 Selecionar Mês:</label>
+                        <select id="pastMonthsSelectResumo" onchange="selectPastMonth()">
+                            <option value="">-- Selecione um mês --</option>
+                        </select>
+                    </div>
+                    <div class="month-selector" id="monthSelectorResumo"></div>
+                </div>
+
+                <div class="resumo-grid" id="resumoGrid"></div>
+            </div>
+
             <!-- MÓDULO: ROI/ROAS -->
             <div class="module-view" id="module-roi">
                 <div class="header">
                     <h1>💰 ANÁLISE DE LUCRO E ROAS</h1>
                     <p>Lucro Absoluto e Retorno sobre Investimento</p>
                 </div>
-                <div class="month-selector" id="monthSelectorROI"></div>
+                <div class="period-selector-wrapper">
+                    <div class="past-months-selector">
+                        <label for="pastMonthsSelectROI">📅 Selecionar Mês:</label>
+                        <select id="pastMonthsSelectROI" onchange="selectPastMonth()">
+                            <option value="">-- Selecione um mês --</option>
+                        </select>
+                    </div>
+                    <div class="month-selector" id="monthSelectorROI"></div>
+                </div>
                 <div class="roi-grid" id="roiGrid"></div>
             </div>
 
@@ -1960,7 +2308,15 @@ console.log('[SW] Service Worker loaded!');
                     <h1>📊 CUSTO POR LEAD/VENDA</h1>
                     <p>Análise de CAC e Eficiência</p>
                 </div>
-                <div class="month-selector" id="monthSelectorCustos"></div>
+                <div class="period-selector-wrapper">
+                    <div class="past-months-selector">
+                        <label for="pastMonthsSelectCustos">📅 Selecionar Mês:</label>
+                        <select id="pastMonthsSelectCustos" onchange="selectPastMonth()">
+                            <option value="">-- Selecione um mês --</option>
+                        </select>
+                    </div>
+                    <div class="month-selector" id="monthSelectorCustos"></div>
+                </div>
                 <div class="roi-grid" id="custosGrid"></div>
             </div>
 
@@ -1970,7 +2326,15 @@ console.log('[SW] Service Worker loaded!');
                     <h1>🤖 INSIGHTS AUTOMÁTICOS</h1>
                     <p>Análise Inteligente dos Dados</p>
                 </div>
-                <div class="month-selector" id="monthSelectorInsights"></div>
+                <div class="period-selector-wrapper">
+                    <div class="past-months-selector">
+                        <label for="pastMonthsSelectInsights">📅 Selecionar Mês:</label>
+                        <select id="pastMonthsSelectInsights" onchange="selectPastMonth()">
+                            <option value="">-- Selecione um mês --</option>
+                        </select>
+                    </div>
+                    <div class="month-selector" id="monthSelectorInsights"></div>
+                </div>
                 <div class="insights-container" id="insightsContainer"></div>
             </div>
 
@@ -1981,17 +2345,29 @@ console.log('[SW] Service Worker loaded!');
                     <p>Compare a Performance de Dois Produtos Lado a Lado</p>
                 </div>
                 
-                <div class="month-selector" id="monthSelectorComparacaoFunis"></div>
+                <div class="period-selector-wrapper">
+                    <div class="past-months-selector">
+                        <label for="pastMonthsSelectComparacaoFunis">📅 Selecionar Mês:</label>
+                        <select id="pastMonthsSelectComparacaoFunis" onchange="selectPastMonth()">
+                            <option value="">-- Selecione um mês --</option>
+                        </select>
+                    </div>
+                    <div class="month-selector" id="monthSelectorComparacaoFunis"></div>
+                </div>
                 
                 <div class="product-selector-comparison">
                     <div class="product-select-wrapper">
                         <span class="product-select-label">🎯 Funil 1:</span>
                         <select id="funil1Select" onchange="updateFunilComparison()">
                             <option value="50 Scripts">🔥 50 Scripts</option>
+                            <option value="Couply">💑 Couply</option>
+                            <option value="Social Selling CL">📱 Social Selling CL</option>
                             <option value="Teste">🧪 Teste</option>
                             <option value="IA Julia">🤖 IA Julia</option>
-                            <option value="MPM">📱 MPM</option>
-                            <option value="Couply">💑 Couply</option>
+                            <option value="MPM">📈 MPM</option>
+                            <option value="Autentiq">🔐 Autentiq</option>
+                            <option value="Mentoria Julia">👩‍🏫 Mentoria Julia</option>
+                            <option value="Social Selling JU">💼 Social Selling JU</option>
                         </select>
                     </div>
                     <div class="comparison-vs">VS</div>
@@ -1999,10 +2375,14 @@ console.log('[SW] Service Worker loaded!');
                         <span class="product-select-label">🎯 Funil 2:</span>
                         <select id="funil2Select" onchange="updateFunilComparison()">
                             <option value="50 Scripts">🔥 50 Scripts</option>
+                            <option value="Couply">💑 Couply</option>
+                            <option value="Social Selling CL">📱 Social Selling CL</option>
                             <option value="Teste" selected>🧪 Teste</option>
                             <option value="IA Julia">🤖 IA Julia</option>
-                            <option value="MPM">📱 MPM</option>
-                            <option value="Couply">💑 Couply</option>
+                            <option value="MPM">📈 MPM</option>
+                            <option value="Autentiq">🔐 Autentiq</option>
+                            <option value="Mentoria Julia">👩‍🏫 Mentoria Julia</option>
+                            <option value="Social Selling JU">💼 Social Selling JU</option>
                         </select>
                     </div>
                 </div>
@@ -2021,22 +2401,14 @@ console.log('[SW] Service Worker loaded!');
                     <div class="product-select-wrapper">
                         <span class="product-select-label">📅 Mês 1:</span>
                         <select id="month1Select" onchange="updateMonthComparison()">
-                            <option value="out">Outubro</option>
-                            <option value="nov" selected>Novembro</option>
-                            <option value="dez">Dezembro</option>
-                            <option value="jan">Janeiro</option>
-                            <option value="fev">Fevereiro</option>
+                            <!-- Será preenchido dinamicamente -->
                         </select>
                     </div>
                     <div class="comparison-vs">VS</div>
                     <div class="product-select-wrapper">
                         <span class="product-select-label">📅 Mês 2:</span>
                         <select id="month2Select" onchange="updateMonthComparison()">
-                            <option value="out" selected>Outubro</option>
-                            <option value="nov">Novembro</option>
-                            <option value="dez">Dezembro</option>
-                            <option value="jan">Janeiro</option>
-                            <option value="fev">Fevereiro</option>
+                            <!-- Será preenchido dinamicamente -->
                         </select>
                     </div>
                 </div>
@@ -2090,6 +2462,10 @@ console.log('[SW] Service Worker loaded!');
             <span class="nav-icon">🏠</span>
             <span>Home</span>
         </button>
+        <button class="bottom-nav-btn" onclick="showModuleMobile('resumo')" data-nav="resumo">
+            <span class="nav-icon">📋</span>
+            <span>Resumo</span>
+        </button>
         <button class="bottom-nav-btn" onclick="showModuleMobile('comparar-funis')" data-nav="comparar-funis">
             <span class="nav-icon">⚔️</span>
             <span>Comparar</span>
@@ -2097,10 +2473,6 @@ console.log('[SW] Service Worker loaded!');
         <button class="bottom-nav-btn" onclick="showModuleMobile('roi')" data-nav="roi">
             <span class="nav-icon">💰</span>
             <span>Lucro</span>
-        </button>
-        <button class="bottom-nav-btn" onclick="showModuleMobile('insights')" data-nav="insights">
-            <span class="nav-icon">🤖</span>
-            <span>Insights</span>
         </button>
         <button class="bottom-nav-btn" onclick="openMobileMenu()">
             <span class="nav-icon">☰</span>
@@ -2164,29 +2536,64 @@ console.log('[SW] Service Worker loaded!');
         // ===================================
         const SHEET_ID = '1V0-yWzGbDWUEQ21CPtNcHrzPQfLTXKHNBYUlSfzO2Pc';
         
+        // NOVO: Array de meses com datas de vigência
         const MONTHS = [
-            { id: 'out', name: 'Outubro', gid: '0' },
-            { id: 'nov', name: 'Novembro', gid: '799831430' },
-            { id: 'dez', name: 'Dezembro', gid: '1796217875' },
-            { id: 'jan', name: 'Janeiro', gid: '1107738440' },
-            { id: 'fev', name: 'Fevereiro', gid: '668056747' }
+            { id: 'out', name: 'Outubro', gid: '0', startDate: '2024-10-01', endDate: '2024-10-31' },
+            { id: 'nov', name: 'Novembro', gid: '799831430', startDate: '2024-11-01', endDate: '2024-11-30' },
+            { id: 'dez', name: 'Dezembro', gid: '1796217875', startDate: '2024-12-01', endDate: '2024-12-31' },
+            { id: 'jan', name: 'Janeiro', gid: '1107738440', startDate: '2025-01-01', endDate: '2025-01-31' },
+            { id: 'fev', name: 'Fevereiro', gid: '668056747', startDate: '2025-02-01', endDate: '2025-02-28' }
         ];
 
         const allProducts = [
             { id: 'Geral', name: 'Geral', icon: '📊', team: 'geral' },
             { id: '50 Scripts', name: '50 Scripts', icon: '📝', team: 'cleiton' },
             { id: 'Couply', name: 'Couply', icon: '💑', team: 'cleiton' },
+            { id: 'Social Selling CL', name: 'Social Selling CL', icon: '📱', team: 'cleiton' },
             { id: 'Teste', name: 'Teste', icon: '🧪', team: 'julia' },
             { id: 'IA Julia', name: 'IA Julia', icon: '🤖', team: 'julia' },
-            { id: 'MPM', name: 'MPM', icon: '📊', team: 'julia' }
+            { id: 'MPM', name: 'MPM', icon: '📈', team: 'julia' },
+            { id: 'Autentiq', name: 'Autentiq', icon: '🔐', team: 'julia' },
+            { id: 'Mentoria Julia', name: 'Mentoria Julia', icon: '👩‍🏫', team: 'julia' },
+            { id: 'Social Selling JU', name: 'Social Selling JU', icon: '💼', team: 'julia' }
         ];
 
-        let currentMonth = 'nov';
+        let currentMonth = '';
         let currentTeam = 'geral';
         let currentProduct = 'Geral';
         let currentWeek = 'total';
         let allData = {};
         let monthComparisonData = {};
+
+        // NOVO: Função para determinar o mês atual e listar todos para o dropdown
+        function categorizeMonths() {
+            const currentMonthId = getCurrentMonth();
+            const currentMonthObj = MONTHS.find(m => m.id === currentMonthId);
+            
+            // Retorna apenas o mês atual para a barra principal e todos para o dropdown
+            return { 
+                currentMonths: currentMonthObj ? [currentMonthObj] : [], 
+                pastMonths: MONTHS // Todos os meses no dropdown
+            };
+        }
+
+        // NOVO: Função para obter o mês atual baseado na data
+        function getCurrentMonth() {
+            const today = new Date();
+            
+            // Encontra o mês que contém a data atual
+            for (let month of MONTHS) {
+                const startDate = new Date(month.startDate);
+                const endDate = new Date(month.endDate);
+                
+                if (today >= startDate && today <= endDate) {
+                    return month.id;
+                }
+            }
+            
+            // Se não encontrar (data posterior aos meses configurados), retorna o último mês
+            return MONTHS[MONTHS.length - 1].id;
+        }
 
         // ===================================
         // FUNÇÕES MOBILE
@@ -2241,6 +2648,7 @@ console.log('[SW] Service Worker loaded!');
         function updateMobileTitle(moduleName = null) {
             const titles = {
                 'dashboard': 'Dashboard',
+                'resumo': 'Resumo Geral',
                 'comparar-funis': 'Comparar Funis',
                 'comparacao': 'Comparar Meses',
                 'roi': 'Lucro e ROAS',
@@ -2374,6 +2782,9 @@ console.log('[SW] Service Worker loaded!');
             updateMobileTitle(moduleName);
             
             switch(moduleName) {
+                case 'resumo':
+                    renderResumo();
+                    break;
                 case 'roi':
                     renderROI();
                     break;
@@ -2384,13 +2795,122 @@ console.log('[SW] Service Worker loaded!');
                     renderInsights();
                     break;
                 case 'comparar-funis':
-                    renderMonthSelectorForModule('monthSelectorComparacaoFunis');
+                    renderMonthSelectorForModule('monthSelectorComparacaoFunis', 'pastMonthsSelectComparacaoFunis');
                     updateFunilComparison();
                     break;
                 case 'comparacao':
+                    populateMonthComparisonSelects();
                     updateMonthComparison();
                     break;
             }
+        }
+
+        // ===================================
+        // MÓDULO RESUMO
+        // ===================================
+        function renderResumo() {
+            renderMonthSelectorForModule('monthSelectorResumo', 'pastMonthsSelectResumo');
+            const container = document.getElementById('resumoGrid');
+            if (!container) return;
+            
+            const produtos = allProducts.filter(p => p.id !== 'Geral');
+            
+            let html = '';
+            produtos.forEach(product => {
+                const data = allData[product.id];
+                if (!data) return;
+                
+                const { semanas, tendencia } = data;
+                
+                // Cálculos
+                const faturamentoFunil = semanas.reduce((sum, s) => sum + s.faturamentoFunil, 0);
+                const lucroFunil = semanas.reduce((sum, s) => sum + s.lucroFunil, 0);
+                const tendenciaFaturamento = tendencia ? tendencia.faturamentoFunil : 0;
+                const tendenciaLucro = tendencia ? tendencia.lucroFunil : 0;
+                
+                const roasTrafego = semanas.reduce((sum, s) => sum + s.roasTrafego, 0);
+                const totalInvestido = semanas.reduce((sum, s) => sum + s.investido, 0);
+                const totalRetorno = semanas.reduce((sum, s) => sum + s.faturamentoTrafego, 0);
+                
+                // Determinar classe de cor para lucro
+                const lucroClass = lucroFunil > 0 ? 'positive' : lucroFunil < 0 ? 'negative' : 'neutral';
+                
+                // Calcular variação de tendência
+                const variacaoFaturamento = faturamentoFunil > 0 
+                    ? ((tendenciaFaturamento - faturamentoFunil) / faturamentoFunil * 100) 
+                    : 0;
+                const variacaoLucro = lucroFunil !== 0
+                    ? ((tendenciaLucro - lucroFunil) / Math.abs(lucroFunil) * 100)
+                    : 0;
+                
+                const trendFaturamento = variacaoFaturamento > 5 ? 'up' : variacaoFaturamento < -5 ? 'down' : 'neutral';
+                const trendLucro = variacaoLucro > 5 ? 'up' : variacaoLucro < -5 ? 'down' : 'neutral';
+                
+                html += `
+                    <div class="resumo-card">
+                        <div class="resumo-card-header">
+                            <div class="resumo-card-icon">${product.icon}</div>
+                            <div class="resumo-card-name">${product.name}</div>
+                        </div>
+                        
+                        <div class="resumo-card-main-value">
+                            <div class="resumo-card-label">💰 Lucro / Prejuízo</div>
+                            <div class="resumo-card-value-large ${lucroClass}">
+                                ${lucroFunil >= 0 ? '+' : ''}R$ ${Math.abs(lucroFunil).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                            </div>
+                        </div>
+                        
+                        <div class="resumo-card-metrics">
+                            <div class="resumo-metric-row">
+                                <span class="resumo-metric-label">💵 Faturamento do Funil</span>
+                                <span class="resumo-metric-value">R$ ${faturamentoFunil.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                            </div>
+                            
+                            <div class="resumo-metric-row">
+                                <span class="resumo-metric-label">📈 Tendência Faturamento</span>
+                                <span class="resumo-metric-value trend">
+                                    R$ ${tendenciaFaturamento.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                                    <span class="trend-badge ${trendFaturamento}">
+                                        ${trendFaturamento === 'up' ? '↗' : trendFaturamento === 'down' ? '↘' : '→'} 
+                                        ${Math.abs(variacaoFaturamento).toFixed(1)}%
+                                    </span>
+                                </span>
+                            </div>
+                            
+                            <div class="resumo-metric-row">
+                                <span class="resumo-metric-label">📊 Lucro do Funil</span>
+                                <span class="resumo-metric-value ${lucroFunil >= 0 ? 'positive' : 'negative'}">
+                                    ${lucroFunil >= 0 ? '+' : ''}R$ ${Math.abs(lucroFunil).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                                </span>
+                            </div>
+                            
+                            <div class="resumo-metric-row">
+                                <span class="resumo-metric-label">📈 Tendência Lucro</span>
+                                <span class="resumo-metric-value ${tendenciaLucro >= 0 ? 'positive' : 'negative'}">
+                                    ${tendenciaLucro >= 0 ? '+' : ''}R$ ${Math.abs(tendenciaLucro).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                                    <span class="trend-badge ${trendLucro}">
+                                        ${trendLucro === 'up' ? '↗' : trendLucro === 'down' ? '↘' : '→'} 
+                                        ${Math.abs(variacaoLucro).toFixed(1)}%
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="resumo-card-footer">
+                            <div class="resumo-card-footer-item">
+                                <span class="resumo-card-footer-label">Investido</span>
+                                <span class="resumo-card-footer-value">R$ ${totalInvestido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                            </div>
+                            <div class="resumo-card-footer-item">
+                                <span class="resumo-card-footer-label">Retorno</span>
+                                <span class="resumo-card-footer-value">R$ ${totalRetorno.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
         }
 
         // ===================================
@@ -2425,7 +2945,11 @@ console.log('[SW] Service Worker loaded!');
                 'Teste': { start: 15, end: 18, tendencia: 19 },
                 'IA Julia': { start: 22, end: 25, tendencia: 26 },
                 'MPM': { start: 29, end: 32, tendencia: 33 },
-                'Couply': { start: 36, end: 39, tendencia: 40 }
+                'Couply': { start: 36, end: 39, tendencia: 40 },
+                'Autentiq': { start: 43, end: 46, tendencia: 47 },
+                'Mentoria Julia': { start: 50, end: 53, tendencia: 54 },
+                'Social Selling CL': { start: 57, end: 60, tendencia: 61 },
+                'Social Selling JU': { start: 64, end: 67, tendencia: 68 }
             };
 
             allData = {};
@@ -2487,15 +3011,133 @@ console.log('[SW] Service Worker loaded!');
             renderRanking();
         }
 
+        // NOVO: Função para renderizar botões de meses com dropdown
         function renderMonthButtons() {
+            const { currentMonths, pastMonths } = categorizeMonths();
+            const actualCurrentMonth = getCurrentMonth(); // Mês atual baseado na data
+            
+            // Renderizar o botão do mês (atual ou selecionado)
             const container = document.getElementById('monthSelector');
             if (!container) return;
-            container.innerHTML = MONTHS.map(month => `
-                <button class="month-btn ${month.id === currentMonth ? 'active' : ''}" 
-                        onclick="selectMonth('${month.id}')">
-                    ${month.name}
-                </button>
-            `).join('');
+            
+            // Se estiver visualizando o mês atual
+            if (currentMonth === actualCurrentMonth && currentMonths.length > 0) {
+                container.innerHTML = currentMonths.map(month => {
+                    return `
+                        <button class="month-btn active current-month" 
+                                onclick="selectMonth('${month.id}')">
+                            ${month.name}
+                        </button>
+                    `;
+                }).join('');
+            } else {
+                // Se estiver visualizando um mês diferente
+                const selectedMonth = MONTHS.find(m => m.id === currentMonth);
+                if (selectedMonth) {
+                    container.innerHTML = `
+                        <button class="month-btn active historical" 
+                                onclick="selectMonth('${selectedMonth.id}')">
+                            ${selectedMonth.name}
+                        </button>
+                    `;
+                }
+            }
+            
+            // Preencher dropdown com TODOS os meses
+            const pastMonthsSelect = document.getElementById('pastMonthsSelect');
+            if (pastMonthsSelect) {
+                pastMonthsSelect.innerHTML = '<option value="">-- Selecione um mês --</option>' +
+                    pastMonths.map(month => `
+                        <option value="${month.id}">${month.name}</option>
+                    `).join('');
+            }
+        }
+
+        // NOVO: Função para renderizar seletores de período em outros módulos
+        function renderMonthSelectorForModule(containerId, dropdownId) {
+            const { currentMonths, pastMonths } = categorizeMonths();
+            const actualCurrentMonth = getCurrentMonth(); // Mês atual baseado na data
+            
+            // Renderizar o botão do mês (atual ou selecionado)
+            const container = document.getElementById(containerId);
+            if (container) {
+                // Se estiver visualizando o mês atual
+                if (currentMonth === actualCurrentMonth && currentMonths.length > 0) {
+                    container.innerHTML = currentMonths.map(month => {
+                        return `
+                            <button class="month-btn active current-month" 
+                                    onclick="selectMonth('${month.id}')">
+                                ${month.name}
+                            </button>
+                        `;
+                    }).join('');
+                } else {
+                    // Se estiver visualizando um mês diferente
+                    const selectedMonth = MONTHS.find(m => m.id === currentMonth);
+                    if (selectedMonth) {
+                        container.innerHTML = `
+                            <button class="month-btn active historical" 
+                                    onclick="selectMonth('${selectedMonth.id}')">
+                                ${selectedMonth.name}
+                            </button>
+                        `;
+                    }
+                }
+            }
+            
+            // Preencher dropdown com TODOS os meses
+            const pastMonthsSelect = document.getElementById(dropdownId);
+            if (pastMonthsSelect) {
+                pastMonthsSelect.innerHTML = '<option value="">-- Selecione um mês --</option>' +
+                    pastMonths.map(month => `
+                        <option value="${month.id}">${month.name}</option>
+                    `).join('');
+            }
+        }
+
+        // NOVO: Função para popular os selects de comparação de meses
+        function populateMonthComparisonSelects() {
+            const month1Select = document.getElementById('month1Select');
+            const month2Select = document.getElementById('month2Select');
+            
+            if (month1Select && month2Select) {
+                const monthOptions = MONTHS.map(month => 
+                    `<option value="${month.id}">${month.name}</option>`
+                ).join('');
+                
+                month1Select.innerHTML = monthOptions;
+                month2Select.innerHTML = monthOptions;
+                
+                // Definir valores padrão
+                if (MONTHS.length >= 2) {
+                    month1Select.value = MONTHS[MONTHS.length - 1].id;
+                    month2Select.value = MONTHS[MONTHS.length - 2].id;
+                }
+            }
+        }
+
+        // NOVO: Função para selecionar mês passado do dropdown
+        function selectPastMonth() {
+            // Verifica qual dropdown foi alterado
+            const dropdowns = [
+                'pastMonthsSelect',
+                'pastMonthsSelectROI',
+                'pastMonthsSelectCustos',
+                'pastMonthsSelectInsights',
+                'pastMonthsSelectComparacaoFunis'
+            ];
+            
+            for (let dropdownId of dropdowns) {
+                const select = document.getElementById(dropdownId);
+                if (select && select.value) {
+                    selectMonth(select.value);
+                    // Resetar o dropdown após selecionar
+                    setTimeout(() => {
+                        select.value = '';
+                    }, 100);
+                    break;
+                }
+            }
         }
 
         function renderProductButtons() {
@@ -2874,7 +3516,22 @@ console.log('[SW] Service Worker loaded!');
         function selectMonth(monthId) {
             currentMonth = monthId;
             const monthName = MONTHS.find(m => m.id === monthId)?.name || monthId;
-            showToast(`Carregando dados de ${monthName}...`, 'info', 2000);
+            const actualCurrentMonth = getCurrentMonth();
+            const isActualCurrent = monthId === actualCurrentMonth;
+            
+            showToast(`${isActualCurrent ? '📅 Mês Atual: ' : '📂 Visualizando: '}${monthName}`, 'info', 2000);
+            
+            // Atualizar todos os botões de mês em todos os módulos
+            document.querySelectorAll('.month-btn').forEach(btn => {
+                btn.textContent = monthName;
+                btn.classList.remove('current-month', 'historical');
+                if (isActualCurrent) {
+                    btn.classList.add('current-month');
+                } else {
+                    btn.classList.add('historical');
+                }
+            });
+            
             loadData();
         }
 
@@ -2917,7 +3574,7 @@ console.log('[SW] Service Worker loaded!');
         // MÓDULO ROI
         // ===================================
         function renderROI() {
-            renderMonthSelectorForModule('monthSelectorROI');
+            renderMonthSelectorForModule('monthSelectorROI', 'pastMonthsSelectROI');
             const container = document.getElementById('roiGrid');
             if (!container) return;
             
@@ -2978,7 +3635,7 @@ console.log('[SW] Service Worker loaded!');
         // MÓDULO CUSTOS
         // ===================================
         function renderCustos() {
-            renderMonthSelectorForModule('monthSelectorCustos');
+            renderMonthSelectorForModule('monthSelectorCustos', 'pastMonthsSelectCustos');
             const container = document.getElementById('custosGrid');
             if (!container) return;
             
@@ -3042,7 +3699,7 @@ console.log('[SW] Service Worker loaded!');
         // MÓDULO INSIGHTS
         // ===================================
         function renderInsights() {
-            renderMonthSelectorForModule('monthSelectorInsights');
+            renderMonthSelectorForModule('monthSelectorInsights', 'pastMonthsSelectInsights');
             const container = document.getElementById('insightsContainer');
             if (!container) return;
             
@@ -3346,7 +4003,11 @@ console.log('[SW] Service Worker loaded!');
                             'Teste': { start: 15, end: 18, tendencia: 19 },
                             'IA Julia': { start: 22, end: 25, tendencia: 26 },
                             'MPM': { start: 29, end: 32, tendencia: 33 },
-                            'Couply': { start: 36, end: 39, tendencia: 40 }
+                            'Couply': { start: 36, end: 39, tendencia: 40 },
+                            'Autentiq': { start: 43, end: 46, tendencia: 47 },
+                            'Mentoria Julia': { start: 50, end: 53, tendencia: 54 },
+                            'Social Selling CL': { start: 57, end: 60, tendencia: 61 },
+                            'Social Selling JU': { start: 64, end: 67, tendencia: 68 }
                         };
 
                         for (const [productName, range] of Object.entries(productRanges)) {
@@ -3371,18 +4032,6 @@ console.log('[SW] Service Worker loaded!');
         // ===================================
         // FUNÇÕES AUXILIARES
         // ===================================
-        function renderMonthSelectorForModule(containerId) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            
-            container.innerHTML = MONTHS.map(month => `
-                <button class="month-btn ${month.id === currentMonth ? 'active' : ''}" 
-                        onclick="selectMonth('${month.id}')">
-                    ${month.name}
-                </button>
-            `).join('');
-        }
-
         function exportPDF() {
             showToast('📄 Exportação para PDF em desenvolvimento!', 'info', 3000);
         }
@@ -3448,12 +4097,19 @@ console.log('[SW] Service Worker loaded!');
             // Atualizar título mobile inicial
             updateMobileTitle();
             
+            // Definir mês atual baseado na data
+            currentMonth = getCurrentMonth();
+            
+            // Popular selects de comparação de meses
+            populateMonthComparisonSelects();
+            
             // Carregar dados iniciais
             loadData().then(() => {
                 // Mostrar toast de boas-vindas
                 if (!sessionStorage.getItem('welcomeShown')) {
                     setTimeout(() => {
-                        showToast('Dashboard carregado com sucesso! 🎉', 'success', 4000);
+                        const monthName = MONTHS.find(m => m.id === currentMonth)?.name || '';
+                        showToast(`Dashboard de ${monthName} carregado com sucesso! 🎉`, 'success', 4000);
                         sessionStorage.setItem('welcomeShown', 'true');
                     }, 500);
                 }
