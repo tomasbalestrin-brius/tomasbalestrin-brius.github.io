@@ -2914,7 +2914,7 @@
         }
 
         // ===================================
-        // FUNÇÕES DE CARREGAMENTO DE DADOS
+        // FUNÇÕES DE CARREGAMENTO DE DADOS - CORRIGIDO
         // ===================================
         async function loadData() {
             const month = MONTHS.find(m => m.id === currentMonth);
@@ -2938,15 +2938,50 @@
             }
         }
 
+        // FUNÇÃO PARSEROW CORRIGIDA
+        function parseRow(row) {
+            const parseValue = (val) => {
+                if (!val || val === '#N/A' || val === '#DIV/0!' || val === '' || val === '#NUM!') return 0;
+                let cleanVal = val.toString().replace(/[^\d,.-]/g, '');
+                // Remove pontos de milhar
+                cleanVal = cleanVal.replace(/\./g, '');
+                // Substitui vírgula decimal por ponto
+                cleanVal = cleanVal.replace(',', '.');
+                return parseFloat(cleanVal) || 0;
+            };
+
+            // Mapeamento correto das colunas conforme a planilha
+            return {
+                investido: parseValue(row[1]),                  // Coluna B
+                faturamentoTrafego: parseValue(row[2]),         // Coluna C
+                roasTrafego: parseValue(row[3]),                // Coluna D
+                alunos: parseValue(row[4]),                     // Coluna E
+                qualificados: parseValue(row[5]),               // Coluna F
+                agendados: parseValue(row[6]),                  // Coluna G
+                taxaAgendamento: parseValue(row[7]),            // Coluna H
+                callRealizada: parseValue(row[8]),              // Coluna I
+                taxaComparecimento: parseValue(row[9]),         // Coluna J
+                numeroVenda: parseValue(row[10]),               // Coluna K
+                taxaConversao: parseValue(row[11]),             // Coluna L
+                taxaAscensao: parseValue(row[12]),              // Coluna M
+                vendaMonetizacao: parseValue(row[13]),          // Coluna N
+                entradas: parseValue(row[14]),                  // Coluna O
+                faturamentoFunil: parseValue(row[15]),          // Coluna P
+                lucroFunil: parseValue(row[16])                 // Coluna Q - calculado como faturamentoFunil - investido se não existir
+            };
+        }
+
+        // FUNÇÃO PARSESHEETDATA CORRIGIDA
         function parseSheetData(data) {
+            // Ranges corrigidos baseados na análise da planilha
             const productRanges = {
                 'Geral': { start: 1, end: 4, tendencia: 5 },
-                '50 Scripts': { start: 8, end: 11, tendencia: 12 },
-                'Teste': { start: 15, end: 18, tendencia: 19 },
-                'IA Julia': { start: 22, end: 25, tendencia: 26 },
-                'MPM': { start: 29, end: 32, tendencia: 33 },
-                'Couply': { start: 36, end: 39, tendencia: 40 },
-                'Autentiq': { start: 43, end: 46, tendencia: 47 },
+                '50 Scripts': { start: 22, end: 25, tendencia: 26 },
+                'Teste': { start: 29, end: 32, tendencia: 33 },
+                'IA Julia': { start: 36, end: 39, tendencia: 40 },
+                'MPM': { start: 43, end: 45, tendencia: 46 },  // MPM tem apenas 3 semanas
+                'Couply': { start: 8, end: 11, tendencia: 12 },  // Ajustado conforme estrutura
+                'Autentiq': { start: 15, end: 18, tendencia: 19 },  // Ajustado conforme estrutura
                 'Mentoria Julia': { start: 50, end: 53, tendencia: 54 },
                 'Social Selling CL': { start: 57, end: 60, tendencia: 61 },
                 'Social Selling JU': { start: 64, end: 67, tendencia: 68 }
@@ -2960,43 +2995,28 @@
                 for (let i = range.start; i <= range.end; i++) {
                     const row = data[i];
                     if (!row) continue;
-                    semanas.push(parseRow(row));
+                    const rowData = parseRow(row);
+                    
+                    // Se lucroFunil não está na planilha (0), calcular
+                    if (rowData.lucroFunil === 0 && rowData.faturamentoFunil > 0) {
+                        rowData.lucroFunil = rowData.faturamentoFunil - rowData.investido;
+                    }
+                    
+                    semanas.push(rowData);
                 }
 
                 const tendenciaRow = data[range.tendencia];
-                const tendencia = tendenciaRow ? parseRow(tendenciaRow) : null;
+                let tendencia = null;
+                if (tendenciaRow) {
+                    tendencia = parseRow(tendenciaRow);
+                    // Calcular lucroFunil da tendência se não existir
+                    if (tendencia.lucroFunil === 0 && tendencia.faturamentoFunil > 0) {
+                        tendencia.lucroFunil = tendencia.faturamentoFunil - tendencia.investido;
+                    }
+                }
 
                 allData[productName] = { semanas, tendencia };
             }
-        }
-
-        function parseRow(row) {
-            const parseValue = (val) => {
-                if (!val || val === '#N/A' || val === '#DIV/0!') return 0;
-                let cleanVal = val.toString().replace(/[^\d,.-]/g, '');
-                cleanVal = cleanVal.replace(/\./g, '');
-                cleanVal = cleanVal.replace(',', '.');
-                return parseFloat(cleanVal) || 0;
-            };
-
-            return {
-                investido: parseValue(row[1]),
-                faturamentoTrafego: parseValue(row[2]),
-                roasTrafego: parseValue(row[3]),
-                alunos: parseValue(row[4]),
-                qualificados: parseValue(row[5]),
-                agendados: parseValue(row[6]),
-                taxaAgendamento: parseValue(row[7]),
-                callRealizada: parseValue(row[8]),
-                taxaComparecimento: parseValue(row[9]),
-                numeroVenda: parseValue(row[10]),
-                taxaConversao: parseValue(row[11]),
-                taxaAscensao: parseValue(row[12]),
-                vendaMonetizacao: parseValue(row[13]),
-                entradas: parseValue(row[14]),
-                faturamentoFunil: parseValue(row[15]),
-                lucroFunil: parseValue(row[16])
-            };
         }
 
         // ===================================
@@ -3791,9 +3811,7 @@
                     </div>
                 `;
             });
-            
-            container.innerHTML = html;
-        }
+            }
 
         // ===================================
         // COMPARAÇÃO DE FUNIS
@@ -3874,7 +3892,7 @@
             return {
                 investido: semanas.reduce((sum, s) => sum + s.investido, 0),
                 faturado: semanas.reduce((sum, s) => sum + s.faturamentoTrafego, 0),
-                lucro: semanas.reduce((sum, s) => sum + s.roasTrafego, 0),
+                lucro: semanas.reduce((sum, s) => sum + s.lucroFunil, 0),
                 alunos: semanas.reduce((sum, s) => sum + s.alunos, 0),
                 qualificados: semanas.reduce((sum, s) => sum + s.qualificados, 0),
                 agendados: semanas.reduce((sum, s) => sum + s.agendados, 0),
@@ -3999,12 +4017,12 @@
                         const tempData = {};
                         const productRanges = {
                             'Geral': { start: 1, end: 4, tendencia: 5 },
-                            '50 Scripts': { start: 8, end: 11, tendencia: 12 },
-                            'Teste': { start: 15, end: 18, tendencia: 19 },
-                            'IA Julia': { start: 22, end: 25, tendencia: 26 },
-                            'MPM': { start: 29, end: 32, tendencia: 33 },
-                            'Couply': { start: 36, end: 39, tendencia: 40 },
-                            'Autentiq': { start: 43, end: 46, tendencia: 47 },
+                            '50 Scripts': { start: 22, end: 25, tendencia: 26 },
+                            'Teste': { start: 29, end: 32, tendencia: 33 },
+                            'IA Julia': { start: 36, end: 39, tendencia: 40 },
+                            'MPM': { start: 43, end: 45, tendencia: 46 },
+                            'Couply': { start: 8, end: 11, tendencia: 12 },
+                            'Autentiq': { start: 15, end: 18, tendencia: 19 },
                             'Mentoria Julia': { start: 50, end: 53, tendencia: 54 },
                             'Social Selling CL': { start: 57, end: 60, tendencia: 61 },
                             'Social Selling JU': { start: 64, end: 67, tendencia: 68 }
@@ -4015,10 +4033,25 @@
                             for (let i = range.start; i <= range.end; i++) {
                                 const row = results.data[i];
                                 if (!row) continue;
-                                semanas.push(parseRow(row));
+                                const rowData = parseRow(row);
+                                
+                                // Calcular lucroFunil se necessário
+                                if (rowData.lucroFunil === 0 && rowData.faturamentoFunil > 0) {
+                                    rowData.lucroFunil = rowData.faturamentoFunil - rowData.investido;
+                                }
+                                
+                                semanas.push(rowData);
                             }
+                            
                             const tendenciaRow = results.data[range.tendencia];
-                            const tendencia = tendenciaRow ? parseRow(tendenciaRow) : null;
+                            let tendencia = null;
+                            if (tendenciaRow) {
+                                tendencia = parseRow(tendenciaRow);
+                                if (tendencia.lucroFunil === 0 && tendencia.faturamentoFunil > 0) {
+                                    tendencia.lucroFunil = tendencia.faturamentoFunil - tendencia.investido;
+                                }
+                            }
+                            
                             tempData[productName] = { semanas, tendencia };
                         }
                         
@@ -4118,3 +4151,5 @@
     </script>
 </body>
 </html>
+            
+            container.innerHTML = html;
