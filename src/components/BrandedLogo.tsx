@@ -35,7 +35,7 @@ export const BrandedLogo = ({
     return (
       <div
         className={cn(
-          "flex items-center justify-center rounded-lg bg-gradient-to-br from-purple-600 to-pink-600",
+          "flex items-center justify-center rounded-lg bg-gradient-to-br from-[#ff6d17] to-[#020051]",
           size === 'sm' && 'w-8 h-8',
           size === 'md' && 'w-10 h-10',
           size === 'lg' && 'w-12 h-12',
@@ -55,7 +55,7 @@ export const BrandedLogo = ({
       <div className={cn("flex flex-col", className)}>
         <span
           className={cn(
-            "font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent",
+            "font-bold bg-gradient-to-r from-[#ff6d17] to-[#ff8c42] bg-clip-text text-transparent",
             size === 'sm' && 'text-lg',
             size === 'md' && 'text-2xl',
             size === 'lg' && 'text-3xl'
@@ -96,7 +96,7 @@ export const BrandedLogo = ({
       {/* Fallback: Ícone com iniciais */}
       <div
         className={cn(
-          "hidden items-center justify-center rounded-lg bg-gradient-to-br from-purple-600 to-pink-600",
+          "hidden items-center justify-center rounded-lg bg-gradient-to-br from-[#ff6d17] to-[#020051]",
           size === 'sm' && 'w-8 h-8',
           size === 'md' && 'w-10 h-10',
           size === 'lg' && 'w-12 h-12'
@@ -110,7 +110,7 @@ export const BrandedLogo = ({
       {settings.showCompanyName && variant === 'full' && (
         <span
           className={cn(
-            "font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent",
+            "font-bold bg-gradient-to-r from-[#ff6d17] to-[#ff8c42] bg-clip-text text-transparent",
             size === 'sm' && 'text-base',
             size === 'md' && 'text-xl',
             size === 'lg' && 'text-2xl',

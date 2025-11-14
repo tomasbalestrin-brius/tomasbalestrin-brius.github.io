@@ -16,27 +16,27 @@ export const BRANDING_CONFIG = {
 
   // 🎨 CORES DA MARCA
   colors: {
-    // Cores principais (MUDAR PARA CORES DA BETHEL)
-    primary: '#8b5cf6',     // Roxo - Cor primária principal
-    secondary: '#ec4899',   // Rosa - Cor secundária
-    accent: '#f43f5e',      // Rose - Cor de destaque
+    // Cores principais Bethel Educação
+    primary: '#ff6d17',     // Laranja vibrante Bethel - Cor primária
+    secondary: '#020051',   // Azul marinho Bethel - Cor secundária
+    accent: '#ff8c42',      // Laranja claro - Cor de destaque
 
-    // Cores funcionais (pode manter ou ajustar)
+    // Cores funcionais
     success: '#10b981',     // Verde - Sucesso
     warning: '#f59e0b',     // Amarelo - Avisos
     danger: '#ef4444',      // Vermelho - Erros
-    info: '#3b82f6',        // Azul - Informações
+    info: '#020051',        // Azul Bethel - Informações
 
     // Cores de fundo (tema escuro)
     background: {
       primary: '#0f172a',   // Fundo principal
-      secondary: '#1e293b', // Fundo secundário
+      secondary: '#1d1d1d', // Fundo secundário (cor Bethel)
       tertiary: '#334155',  // Fundo terciário
     },
 
     // Cores de texto
     text: {
-      primary: '#e2e8f0',   // Texto principal
+      primary: '#efefef',   // Texto principal (cor Bethel)
       secondary: '#94a3b8', // Texto secundário
       muted: '#64748b',     // Texto esmaecido
     },
@@ -65,8 +65,8 @@ export const BRANDING_CONFIG = {
     name: 'Bethel Dashboard',
     shortName: 'Bethel',
     description: 'Dashboard de Análise de Funis - Bethel Educação',
-    themeColor: '#8b5cf6', // Cor do tema (usar primary)
-    backgroundColor: '#0f172a', // Cor de fundo
+    themeColor: '#ff6d17', // Laranja Bethel
+    backgroundColor: '#1d1d1d', // Preto Bethel
     display: 'standalone',
     startUrl: '/',
     icons: {
