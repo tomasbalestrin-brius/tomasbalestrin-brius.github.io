@@ -1,6 +1,10 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { applyBrandingColors } from "@/lib/branding-config";
+
+// Apply branding colors on app initialization
+applyBrandingColors();
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
@@ -9,7 +13,7 @@ if ('serviceWorker' in navigator) {
       .register('/sw.js')
       .then((registration) => {
         console.log('✅ SW registered:', registration);
-        
+
         // Check for updates
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
@@ -17,7 +21,7 @@ if ('serviceWorker' in navigator) {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New version available
               console.log('🔄 New version available!');
-              
+
               // You can show a toast or notification here
               if (confirm('Nova versão disponível! Atualizar agora?')) {
                 window.location.reload();

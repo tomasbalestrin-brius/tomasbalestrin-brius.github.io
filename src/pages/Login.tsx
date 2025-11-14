@@ -7,6 +7,7 @@ import { LoadingButton } from '@/components/auth/LoadingButton';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
+import { BrandedLogo } from '@/components/BrandedLogo';
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -48,11 +49,10 @@ export default function Login() {
         <div className="backdrop-blur-xl bg-slate-800/50 border border-slate-700/50 rounded-2xl shadow-2xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="text-6xl mb-4">📊</div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text text-transparent mb-2">
-              Dashboard Analytics
-            </h1>
-            <p className="text-slate-400">Sistema de Análise de Funis</p>
+            <div className="flex justify-center mb-6">
+              <BrandedLogo variant="text" size="lg" />
+            </div>
+            <p className="text-slate-400">Faça login para acessar o dashboard</p>
           </div>
 
           {/* Form */}

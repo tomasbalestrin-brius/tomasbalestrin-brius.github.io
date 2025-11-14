@@ -1,7 +1,7 @@
 {
-  "name": "Dashboard Analytics - Bethel Educação",
-  "short_name": "Dashboard",
-  "description": "Dashboard de análise de performance de funis",
+  "name": "Bethel Dashboard",
+  "short_name": "Bethel",
+  "description": "Dashboard de Análise de Funis - Bethel Educação",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#020617",

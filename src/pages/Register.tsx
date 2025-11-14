@@ -8,6 +8,7 @@ import { PasswordStrength } from '@/components/auth/PasswordStrength';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, type RegisterFormData } from '@/lib/validations/auth';
+import { BrandedLogo } from '@/components/BrandedLogo';
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
@@ -53,10 +54,10 @@ export default function Register() {
         <div className="backdrop-blur-xl bg-slate-800/50 border border-slate-700/50 rounded-2xl shadow-2xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="text-6xl mb-4">🚀</div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text text-transparent mb-2">
-              Criar sua conta
-            </h1>
+            <div className="flex justify-center mb-6">
+              <BrandedLogo variant="text" size="lg" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Criar sua conta</h2>
             <p className="text-slate-400">Comece a analisar seus funis</p>
           </div>
 

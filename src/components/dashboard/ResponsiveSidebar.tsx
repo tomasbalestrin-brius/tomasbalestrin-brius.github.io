@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { ModuleName } from '@/types/dashboard';
 import { useAuth } from '@/contexts/AuthContext';
 import { LayoutDashboard, FileText, TrendingUp, DollarSign, Lightbulb, GitCompare, Calendar, Download } from 'lucide-react';
+import { BrandedLogo } from '@/components/BrandedLogo';
 
 interface ResponsiveSidebarProps {
   currentModule: ModuleName;
@@ -110,15 +111,11 @@ export function ResponsiveSidebar({ currentModule, onModuleChange, onMinimizeCha
         <div className={`border-b border-slate-800/50 transition-all ${isDesktopMinimized ? 'lg:p-4' : 'p-6'}`}>
           <div className="flex items-center justify-between">
             {/* Logo e Título */}
-            <div className={`flex items-center gap-3 ${isDesktopMinimized ? 'lg:justify-center lg:w-full' : ''}`}>
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-purple-500/50">
-                <span className="text-2xl">📊</span>
-              </div>
-              {!isDesktopMinimized && (
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-white truncate">Dashboard</h3>
-                  <p className="text-xs text-slate-400 truncate">Analytics</p>
-                </div>
+            <div className={`flex items-center ${isDesktopMinimized ? 'lg:justify-center lg:w-full' : 'flex-1 min-w-0'}`}>
+              {isDesktopMinimized ? (
+                <BrandedLogo variant="icon" size="sm" />
+              ) : (
+                <BrandedLogo variant="text" size="sm" />
               )}
             </div>
 
