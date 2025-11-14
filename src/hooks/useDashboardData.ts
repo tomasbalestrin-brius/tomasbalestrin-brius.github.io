@@ -232,5 +232,6 @@ export function useDashboardData() {
     showToast,
     removeToast,
     setMobileMenuOpen,
+    refreshData: loadData, // Expor método de refresh
   };
 }

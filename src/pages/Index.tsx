@@ -1,10 +1,12 @@
 import React from 'react';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useBranding } from '@/hooks/useBranding';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { ThemeSelector } from '@/components/dashboard/ThemeSelector';
 import { ResponsiveSidebar } from '@/components/dashboard/ResponsiveSidebar';
 import { BottomNav } from '@/components/dashboard/BottomNav';
 import { ToastContainer } from '@/components/dashboard/Toast';
+import { RefreshIndicator } from '@/components/dashboard/RefreshIndicator';
 import { DashboardModule } from '@/components/dashboard/modules/Dashboard';
 import { ResumoModule } from '@/components/dashboard/modules/Resumo';
 import { ROIModule } from '@/components/dashboard/modules/ROI';
@@ -20,7 +22,7 @@ import { OrganizationSwitcher } from '@/components/dashboard/OrganizationSwitche
 
 const Index = () => {
   useBranding(); // Aplicar branding da organização
-  
+
   const {
     allData,
     currentMonth,
@@ -38,15 +40,44 @@ const Index = () => {
     selectModule,
     changeTheme,
     removeToast,
+    refreshData,
   } = useDashboardData();
 
   const [sidebarMinimized, setSidebarMinimized] = React.useState(false);
 
+  // Auto-refresh: atualiza dados a cada 5 minutos
+  const {
+    refresh,
+    isRefreshing,
+    formatLastRefresh,
+    formatTimeUntilRefresh,
+  } = useAutoRefresh({
+    onRefresh: refreshData,
+    intervalMinutes: 5,
+    enabled: !loading, // Só ativa auto-refresh após carregamento inicial
+  });
+
   return (
     <div className="min-h-screen bg-secondary">
-      {/* User Menu */}
-      <div className="fixed top-4 right-4 z-[1001] max-md:hidden">
+      {/* Top Bar - User Menu + Refresh Indicator */}
+      <div className="fixed top-4 right-4 z-[1001] flex items-center gap-3 max-md:hidden">
+        <RefreshIndicator
+          onRefresh={refresh}
+          isRefreshing={isRefreshing}
+          formatLastRefresh={formatLastRefresh}
+          formatTimeUntilRefresh={formatTimeUntilRefresh}
+        />
         <UserMenu />
+      </div>
+
+      {/* Mobile Top Bar - Only Refresh Indicator */}
+      <div className="md:hidden fixed top-4 left-4 z-[1001]">
+        <RefreshIndicator
+          onRefresh={refresh}
+          isRefreshing={isRefreshing}
+          formatLastRefresh={formatLastRefresh}
+          formatTimeUntilRefresh={formatTimeUntilRefresh}
+        />
       </div>
 
       <ThemeSelector currentTheme={theme} onThemeChange={changeTheme} />
