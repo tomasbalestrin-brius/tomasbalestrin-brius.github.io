@@ -16,29 +16,29 @@ export const BRANDING_CONFIG = {
 
   // 🎨 CORES DA MARCA
   colors: {
-    // Cores principais Bethel Educação
-    primary: '#ff6d17',     // Laranja vibrante Bethel - Cor primária
-    secondary: '#020051',   // Azul marinho Bethel - Cor secundária
-    accent: '#ff8c42',      // Laranja claro - Cor de destaque
+    // Cores principais Bethel Educação - Foco no Azul
+    primary: '#020051',     // Azul marinho Bethel - Cor primária PRINCIPAL
+    secondary: '#1e3a8a',   // Azul médio - Cor secundária
+    accent: '#ff6d17',      // Laranja - Apenas detalhes pontuais
 
     // Cores funcionais
     success: '#10b981',     // Verde - Sucesso
     warning: '#f59e0b',     // Amarelo - Avisos
     danger: '#ef4444',      // Vermelho - Erros
-    info: '#020051',        // Azul Bethel - Informações
+    info: '#3b82f6',        // Azul claro - Informações
 
     // Cores de fundo (tema escuro)
     background: {
       primary: '#0f172a',   // Fundo principal
       secondary: '#1d1d1d', // Fundo secundário (cor Bethel)
-      tertiary: '#334155',  // Fundo terciário
+      tertiary: '#1e293b',  // Fundo terciário - azulado
     },
 
     // Cores de texto
     text: {
-      primary: '#efefef',   // Texto principal (cor Bethel)
-      secondary: '#94a3b8', // Texto secundário
-      muted: '#64748b',     // Texto esmaecido
+      primary: '#ffffff',   // Branco puro - Texto principal
+      secondary: '#e2e8f0', // Cinza muito claro - Texto secundário
+      muted: '#94a3b8',     // Cinza azulado - Texto esmaecido
     },
   },
 
@@ -65,7 +65,7 @@ export const BRANDING_CONFIG = {
     name: 'Bethel Dashboard',
     shortName: 'Bethel',
     description: 'Dashboard de Análise de Funis - Bethel Educação',
-    themeColor: '#ff6d17', // Laranja Bethel
+    themeColor: '#020051', // Azul marinho Bethel
     backgroundColor: '#1d1d1d', // Preto Bethel
     display: 'standalone',
     startUrl: '/',

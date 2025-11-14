@@ -35,7 +35,7 @@ export const BrandedLogo = ({
     return (
       <div
         className={cn(
-          "flex items-center justify-center rounded-lg bg-gradient-to-br from-[#ff6d17] to-[#020051]",
+          "flex items-center justify-center rounded-lg bg-gradient-to-br from-[#020051] to-[#1e3a8a]",
           size === 'sm' && 'w-8 h-8',
           size === 'md' && 'w-10 h-10',
           size === 'lg' && 'w-12 h-12',
@@ -55,7 +55,7 @@ export const BrandedLogo = ({
       <div className={cn("flex flex-col", className)}>
         <span
           className={cn(
-            "font-bold bg-gradient-to-r from-[#ff6d17] to-[#ff8c42] bg-clip-text text-transparent",
+            "font-bold bg-gradient-to-r from-[#3b82f6] to-[#020051] bg-clip-text text-transparent",
             size === 'sm' && 'text-lg',
             size === 'md' && 'text-2xl',
             size === 'lg' && 'text-3xl'
@@ -64,7 +64,7 @@ export const BrandedLogo = ({
           {company.name}
         </span>
         {size !== 'sm' && (
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-slate-300">
             {company.tagline}
           </span>
         )}
@@ -96,7 +96,7 @@ export const BrandedLogo = ({
       {/* Fallback: Ícone com iniciais */}
       <div
         className={cn(
-          "hidden items-center justify-center rounded-lg bg-gradient-to-br from-[#ff6d17] to-[#020051]",
+          "hidden items-center justify-center rounded-lg bg-gradient-to-br from-[#020051] to-[#1e3a8a]",
           size === 'sm' && 'w-8 h-8',
           size === 'md' && 'w-10 h-10',
           size === 'lg' && 'w-12 h-12'
@@ -110,7 +110,7 @@ export const BrandedLogo = ({
       {settings.showCompanyName && variant === 'full' && (
         <span
           className={cn(
-            "font-bold bg-gradient-to-r from-[#ff6d17] to-[#ff8c42] bg-clip-text text-transparent",
+            "font-bold bg-gradient-to-r from-[#3b82f6] to-[#020051] bg-clip-text text-transparent",
             size === 'sm' && 'text-base',
             size === 'md' && 'text-xl',
             size === 'lg' && 'text-2xl',
