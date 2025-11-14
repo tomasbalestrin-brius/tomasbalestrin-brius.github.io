@@ -1,7 +1,7 @@
 // src/lib/sheets-api.ts
 // Fetch DIRETO da Google Sheets API (SEM Edge Functions!)
 
-const SPREADSHEET_ID = '1XsdWQNR7FUo4TrrhsMjSGESS3PtS9G7X8FoHHStxLtU';
+const SPREADSHEET_ID = import.meta.env.VITE_GOOGLE_SPREADSHEET_ID || '1XsdWQNR7FUo4TrrhsMjSGESS3PtS9G7X8FoHHStxLtU';
 const API_KEY = import.meta.env.VITE_GOOGLE_SHEETS_API_KEY;
 
 const SHEET_NAMES: Record<string, string> = {
@@ -133,9 +133,13 @@ function parseSheetData(rows: any[][]): ProductData[] {
 export async function fetchSheetData(month: string): Promise<ProductData[]> {
   console.log('🔄 Buscando dados DIRETAMENTE da Google Sheets API');
   console.log('📅 Mês:', month);
-  
+
   if (!API_KEY) {
-    throw new Error('VITE_GOOGLE_SHEETS_API_KEY não configurada!');
+    throw new Error('❌ VITE_GOOGLE_SHEETS_API_KEY não configurada no arquivo .env!');
+  }
+
+  if (!SPREADSHEET_ID) {
+    throw new Error('❌ VITE_GOOGLE_SPREADSHEET_ID não configurado no arquivo .env!');
   }
   
   const sheetName = SHEET_NAMES[month];
