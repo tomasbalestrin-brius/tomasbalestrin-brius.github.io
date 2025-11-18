@@ -6,7 +6,9 @@ import { applyBrandingColors } from "@/lib/branding-config";
 // Apply branding colors on app initialization
 applyBrandingColors();
 
-// Register Service Worker
+// Register Service Worker - DESABILITADO TEMPORARIAMENTE
+// Service Worker estava bloqueando requisições do Supabase
+/*
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
@@ -35,5 +37,6 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+*/
 
 createRoot(document.getElementById("root")!).render(<App />);
