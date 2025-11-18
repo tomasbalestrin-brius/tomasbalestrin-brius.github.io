@@ -39,11 +39,11 @@ self.addEventListener('activate', (event) => {
 
 // Fetch - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
-  // Skip Google Sheets API calls - always go to network
-  if (event.request.url.includes('sheets.googleapis.com') || 
-      event.request.url.includes('supabase.co')) {
-    event.respondWith(fetch(event.request));
-    return;
+  // Skip external API calls - always go to network (não interceptar)
+  if (event.request.url.includes('sheets.googleapis.com') ||
+      event.request.url.includes('supabase.co') ||
+      event.request.url.includes('googleapis.com')) {
+    return; // Não interceptar, deixar passar direto
   }
 
   event.respondWith(
