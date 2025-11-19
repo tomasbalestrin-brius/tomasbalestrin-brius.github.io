@@ -55,7 +55,7 @@ const COLUMN_MAPPING = {
   vendaMonetizacao: 16,  // Q - Venda Monetização (moveu de O para Q)
   entradas: 17,          // R - Entrada Monetização (moveu de P para R)
   faturamentoFunil: 18,  // S - Faturamento do Funil (moveu de Q para S)
-  lucroFunil: 19,        // T - Lucro do Funil (moveu de R para T)
+  roasFunil: 19,         // T - ROAS do Funil (moveu de R para T)
 
   // ═══════════════════════════════════════════════════════════════════════
   // ADICIONE NOVAS COLUNAS AQUI:
@@ -88,7 +88,6 @@ export interface WeekData {
   vendaMonetizacao: number;
   entradas: number;
   faturamentoFunil: number;
-  lucroFunil: number;
   roasFunil: number;
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -130,12 +129,8 @@ function parseValue(val: any): number {
 function parseRow(row: any[]): WeekData {
   const col = COLUMN_MAPPING;
 
-  const investido = parseValue(row[col.investido]);
-  const faturamentoFunil = parseValue(row[col.faturamentoFunil]);
-  const roasFunil = investido > 0 ? (faturamentoFunil / investido) : 0;
-
   return {
-    investido,
+    investido: parseValue(row[col.investido]),
     faturamentoTrafego: parseValue(row[col.faturamentoTrafego]),
     roasTrafego: parseValue(row[col.roasTrafego]),
     alunos: parseValue(row[col.alunos]),
@@ -151,9 +146,8 @@ function parseRow(row: any[]): WeekData {
     taxaAscensao: parseValue(row[col.taxaAscensao]),
     vendaMonetizacao: parseValue(row[col.vendaMonetizacao]),
     entradas: parseValue(row[col.entradas]),
-    faturamentoFunil,
-    lucroFunil: parseValue(row[col.lucroFunil]),
-    roasFunil,
+    faturamentoFunil: parseValue(row[col.faturamentoFunil]),
+    roasFunil: parseValue(row[col.roasFunil]),  // Coluna T
 
     // ═══════════════════════════════════════════════════════════════════════
     // ADICIONE NOVOS CAMPOS AQUI:
