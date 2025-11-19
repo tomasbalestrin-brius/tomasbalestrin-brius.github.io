@@ -41,30 +41,28 @@ const COLUMN_MAPPING = {
   faturamentoTrafego: 3, // D - Faturamento Tráfego
   roasTrafego: 4,        // E - ROAS Tráfego
   alunos: 5,             // F - Número de Alunos
-  numeroFormularios: 6,  // G - Número de Formulários
-  taxaPreenchimento: 7,  // H - Taxa de Preenchimento ⭐ NOVA COLUNA
-  qualificados: 8,       // I - Qualificados (antes H)
-  agendados: 9,          // J - Agendados (antes I)
-  taxaAgendamento: 10,   // K - Taxa de Agendamento (antes J)
-  callRealizada: 11,     // L - Call Realizada (antes K)
-  taxaComparecimento: 12,// M - Taxa de Comparecimento (antes L)
-  numeroVenda: 13,       // N - Número de Venda (antes M)
-  taxaConversao: 14,     // O - Taxa de Conversão (antes N)
-  taxaAscensao: 15,      // P - Taxa de Ascensão (antes O)
-  vendaMonetizacao: 16,  // Q - Venda Monetização (antes P)
-  entradas: 17,          // R - Entrada Monetização (antes Q)
-  faturamentoFunil: 18,  // S - Faturamento do Funil (antes R)
-  lucroFunil: 19,        // T - Lucro do Funil (antes S)
+  qualificados: 6,       // G - Qualificados
+  agendados: 7,          // H - Agendados
+  taxaAgendamento: 8,    // I - Taxa de Agendamento
+  callRealizada: 9,      // J - Call Realizada
+  taxaComparecimento: 10,// K - Taxa de Comparecimento
+  numeroVenda: 11,       // L - Número de Venda
+  taxaConversao: 12,     // M - Taxa de Conversão
+  taxaAscensao: 13,      // N - Taxa de Ascensão
+  vendaMonetizacao: 14,  // O - Venda Monetização
+  entradas: 15,          // P - Entrada Monetização
+  faturamentoFunil: 16,  // Q - Faturamento do Funil
+  lucroFunil: 17,        // R - Lucro do Funil
 
   // ═══════════════════════════════════════════════════════════════════════
-  // ADICIONE NOVAS COLUNAS AQUI:
-  // novaMetrica: 20,    // U - Nova Métrica
-  // outraMetrica: 21,   // V - Outra Métrica
+  // ADICIONE NOVAS COLUNAS AQUI (quando adicionar na planilha primeiro!):
+  // numeroFormularios: 6,  // G - Número de Formulários
+  // taxaPreenchimento: 7,  // H - Taxa de Preenchimento
   // ═══════════════════════════════════════════════════════════════════════
 };
 
 // Última coluna de dados (atualizar quando adicionar novas colunas)
-const LAST_COLUMN = 'T'; // Atualizado para T após adicionar "Taxa de Preenchimento"
+const LAST_COLUMN = 'R';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // INTERFACES
@@ -75,8 +73,6 @@ export interface WeekData {
   faturamentoTrafego: number;
   roasTrafego: number;
   alunos: number;
-  numeroFormularios: number;
-  taxaPreenchimento: number; // ⭐ NOVA COLUNA
   qualificados: number;
   agendados: number;
   taxaAgendamento: number;
@@ -92,9 +88,9 @@ export interface WeekData {
   roasFunil: number;
 
   // ═══════════════════════════════════════════════════════════════════════
-  // ADICIONE NOVOS CAMPOS AQUI:
-  // novaMetrica?: number;
-  // outraMetrica?: number;
+  // ADICIONE NOVOS CAMPOS AQUI (quando adicionar na planilha primeiro!):
+  // numeroFormularios?: number;
+  // taxaPreenchimento?: number;
   // ═══════════════════════════════════════════════════════════════════════
 }
 
@@ -140,8 +136,6 @@ function parseRow(row: any[]): WeekData {
     faturamentoTrafego: parseValue(row[col.faturamentoTrafego]),
     roasTrafego: parseValue(row[col.roasTrafego]),
     alunos: parseValue(row[col.alunos]),
-    numeroFormularios: parseValue(row[col.numeroFormularios]),
-    taxaPreenchimento: parseValue(row[col.taxaPreenchimento]), // ⭐ NOVA COLUNA
     qualificados: parseValue(row[col.qualificados]),
     agendados: parseValue(row[col.agendados]),
     taxaAgendamento: parseValue(row[col.taxaAgendamento]),
@@ -157,9 +151,9 @@ function parseRow(row: any[]): WeekData {
     roasFunil,
 
     // ═══════════════════════════════════════════════════════════════════════
-    // ADICIONE NOVOS CAMPOS AQUI:
-    // novaMetrica: parseValue(row[col.novaMetrica]),
-    // outraMetrica: parseValue(row[col.outraMetrica]),
+    // ADICIONE NOVOS CAMPOS AQUI (quando adicionar na planilha primeiro!):
+    // numeroFormularios: parseValue(row[col.numeroFormularios]),
+    // taxaPreenchimento: parseValue(row[col.taxaPreenchimento]),
     // ═══════════════════════════════════════════════════════════════════════
   };
 }
