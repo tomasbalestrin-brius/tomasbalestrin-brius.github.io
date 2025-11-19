@@ -129,8 +129,13 @@ function parseValue(val: any): number {
 function parseRow(row: any[]): WeekData {
   const col = COLUMN_MAPPING;
 
+  // Calcular ROAS do Funil (mantendo função anterior)
+  const investido = parseValue(row[col.investido]);
+  const faturamentoFunil = parseValue(row[col.faturamentoFunil]);
+  const roasFunil = investido > 0 ? (faturamentoFunil / investido) : 0;
+
   return {
-    investido: parseValue(row[col.investido]),
+    investido,
     faturamentoTrafego: parseValue(row[col.faturamentoTrafego]),
     roasTrafego: parseValue(row[col.roasTrafego]),
     alunos: parseValue(row[col.alunos]),
@@ -146,8 +151,8 @@ function parseRow(row: any[]): WeekData {
     taxaAscensao: parseValue(row[col.taxaAscensao]),
     vendaMonetizacao: parseValue(row[col.vendaMonetizacao]),
     entradas: parseValue(row[col.entradas]),
-    faturamentoFunil: parseValue(row[col.faturamentoFunil]),
-    roasFunil: parseValue(row[col.roasFunil]),  // Coluna T
+    faturamentoFunil,
+    roasFunil,  // Calculado (não lido da coluna T)
 
     // ═══════════════════════════════════════════════════════════════════════
     // ADICIONE NOVOS CAMPOS AQUI:
