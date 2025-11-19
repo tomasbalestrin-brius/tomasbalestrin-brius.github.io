@@ -41,28 +41,29 @@ const COLUMN_MAPPING = {
   faturamentoTrafego: 3, // D - Faturamento Tráfego
   roasTrafego: 4,        // E - ROAS Tráfego
   alunos: 5,             // F - Número de Alunos
-  qualificados: 6,       // G - Qualificados
-  agendados: 7,          // H - Agendados
-  taxaAgendamento: 8,    // I - Taxa de Agendamento
-  callRealizada: 9,      // J - Call Realizada
-  taxaComparecimento: 10,// K - Taxa de Comparecimento
-  numeroVenda: 11,       // L - Número de Venda
-  taxaConversao: 12,     // M - Taxa de Conversão
-  taxaAscensao: 13,      // N - Taxa de Ascensão
-  vendaMonetizacao: 14,  // O - Venda Monetização
-  entradas: 15,          // P - Entrada Monetização
-  faturamentoFunil: 16,  // Q - Faturamento do Funil
-  lucroFunil: 17,        // R - Lucro do Funil
+  numeroFormularios: 6,  // G - Número de Formulários ⭐
+  taxaPreenchimento: 7,  // H - Taxa de Preenchimento ⭐
+  qualificados: 8,       // I - Qualificados (moveu de G)
+  agendados: 9,          // J - Agendados (moveu de H)
+  taxaAgendamento: 10,   // K - Taxa de Agendamento (moveu de I)
+  callRealizada: 11,     // L - Call Realizada (moveu de J)
+  taxaComparecimento: 12,// M - Taxa de Comparecimento (moveu de K)
+  numeroVenda: 13,       // N - Número de Venda (moveu de L)
+  taxaConversao: 14,     // O - Taxa de Conversão (moveu de M)
+  taxaAscensao: 15,      // P - Taxa de Ascensão (moveu de N)
+  vendaMonetizacao: 16,  // Q - Venda Monetização (moveu de O)
+  entradas: 17,          // R - Entrada Monetização (moveu de P)
+  faturamentoFunil: 18,  // S - Faturamento do Funil (moveu de Q)
+  lucroFunil: 19,        // T - Lucro do Funil (moveu de R)
 
   // ═══════════════════════════════════════════════════════════════════════
-  // ADICIONE NOVAS COLUNAS AQUI (quando adicionar na planilha primeiro!):
-  // numeroFormularios: 6,  // G - Número de Formulários
-  // taxaPreenchimento: 7,  // H - Taxa de Preenchimento
+  // ADICIONE NOVAS COLUNAS AQUI:
+  // novaMetrica: 20,    // U - Nova Métrica
   // ═══════════════════════════════════════════════════════════════════════
 };
 
 // Última coluna de dados (atualizar quando adicionar novas colunas)
-const LAST_COLUMN = 'R';
+const LAST_COLUMN = 'T';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // INTERFACES
@@ -73,6 +74,8 @@ export interface WeekData {
   faturamentoTrafego: number;
   roasTrafego: number;
   alunos: number;
+  numeroFormularios: number;
+  taxaPreenchimento: number;
   qualificados: number;
   agendados: number;
   taxaAgendamento: number;
@@ -88,9 +91,8 @@ export interface WeekData {
   roasFunil: number;
 
   // ═══════════════════════════════════════════════════════════════════════
-  // ADICIONE NOVOS CAMPOS AQUI (quando adicionar na planilha primeiro!):
-  // numeroFormularios?: number;
-  // taxaPreenchimento?: number;
+  // ADICIONE NOVOS CAMPOS AQUI:
+  // novaMetrica?: number;
   // ═══════════════════════════════════════════════════════════════════════
 }
 
@@ -136,6 +138,8 @@ function parseRow(row: any[]): WeekData {
     faturamentoTrafego: parseValue(row[col.faturamentoTrafego]),
     roasTrafego: parseValue(row[col.roasTrafego]),
     alunos: parseValue(row[col.alunos]),
+    numeroFormularios: parseValue(row[col.numeroFormularios]),
+    taxaPreenchimento: parseValue(row[col.taxaPreenchimento]),
     qualificados: parseValue(row[col.qualificados]),
     agendados: parseValue(row[col.agendados]),
     taxaAgendamento: parseValue(row[col.taxaAgendamento]),
@@ -151,9 +155,8 @@ function parseRow(row: any[]): WeekData {
     roasFunil,
 
     // ═══════════════════════════════════════════════════════════════════════
-    // ADICIONE NOVOS CAMPOS AQUI (quando adicionar na planilha primeiro!):
-    // numeroFormularios: parseValue(row[col.numeroFormularios]),
-    // taxaPreenchimento: parseValue(row[col.taxaPreenchimento]),
+    // ADICIONE NOVOS CAMPOS AQUI:
+    // novaMetrica: parseValue(row[col.novaMetrica]),
     // ═══════════════════════════════════════════════════════════════════════
   };
 }
