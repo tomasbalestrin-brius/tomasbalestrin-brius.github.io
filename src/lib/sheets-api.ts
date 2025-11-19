@@ -36,34 +36,34 @@ const COLUMN_MAPPING = {
   funil: 0,              // A - Nome do funil
   periodo: 1,            // B - Período (Semana 1-4, Tendência)
 
-  // Colunas de dados (métricas)
+  // Colunas de dados (métricas) - ORDEM CORRETA DO FUNIL:
+  // Alunos -> Formulários -> Qualificados -> Agendados -> Realizados -> Vendas
   investido: 2,          // C - Investido
   faturamentoTrafego: 3, // D - Faturamento Tráfego
   roasTrafego: 4,        // E - ROAS Tráfego
   alunos: 5,             // F - Número de Alunos
-  numeroFormularios: 6,  // G - Número de Formulários ⭐
-  taxaPreenchimento: 7,  // H - Taxa de Preenchimento ⭐
-  qualificados: 8,       // I - Qualificados (moveu de G)
-  agendados: 9,          // J - Agendados (moveu de H)
-  taxaAgendamento: 10,   // K - Taxa de Agendamento (moveu de I)
-  callRealizada: 11,     // L - Call Realizada (moveu de J)
-  taxaComparecimento: 12,// M - Taxa de Comparecimento (moveu de K)
-  numeroVenda: 13,       // N - Número de Venda (moveu de L)
-  taxaConversao: 14,     // O - Taxa de Conversão (moveu de M)
-  taxaAscensao: 15,      // P - Taxa de Ascensão (moveu de N)
-  vendaMonetizacao: 16,  // Q - Venda Monetização (moveu de O)
-  entradas: 17,          // R - Entrada Monetização (moveu de P)
-  faturamentoFunil: 18,  // S - Faturamento do Funil (moveu de Q)
-  lucroFunil: 19,        // T - Lucro do Funil (moveu de R)
+  numeroFormularios: 6,  // G - Número de Formulários ⭐ NOVA
+  qualificados: 7,       // H - Qualificados (moveu de G para H)
+  agendados: 8,          // I - Agendados (moveu de H para I)
+  taxaAgendamento: 9,    // J - Taxa de Agendamento (moveu de I para J)
+  callRealizada: 10,     // K - Call Realizada (moveu de J para K)
+  taxaComparecimento: 11,// L - Taxa de Comparecimento (moveu de K para L)
+  numeroVenda: 12,       // M - Número de Venda (moveu de L para M)
+  taxaConversao: 13,     // N - Taxa de Conversão (moveu de M para N)
+  taxaAscensao: 14,      // O - Taxa de Ascensão (moveu de N para O)
+  vendaMonetizacao: 15,  // P - Venda Monetização (moveu de O para P)
+  entradas: 16,          // Q - Entrada Monetização (moveu de P para Q)
+  faturamentoFunil: 17,  // R - Faturamento do Funil (moveu de Q para R)
+  lucroFunil: 18,        // S - Lucro do Funil (moveu de R para S)
 
   // ═══════════════════════════════════════════════════════════════════════
   // ADICIONE NOVAS COLUNAS AQUI:
-  // novaMetrica: 20,    // U - Nova Métrica
+  // taxaPreenchimento: 7,  // Outra métrica se necessário
   // ═══════════════════════════════════════════════════════════════════════
 };
 
 // Última coluna de dados (atualizar quando adicionar novas colunas)
-const LAST_COLUMN = 'T';
+const LAST_COLUMN = 'S';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // INTERFACES
@@ -74,8 +74,7 @@ export interface WeekData {
   faturamentoTrafego: number;
   roasTrafego: number;
   alunos: number;
-  numeroFormularios: number;
-  taxaPreenchimento: number;
+  numeroFormularios: number;  // Nova coluna G
   qualificados: number;
   agendados: number;
   taxaAgendamento: number;
@@ -92,7 +91,7 @@ export interface WeekData {
 
   // ═══════════════════════════════════════════════════════════════════════
   // ADICIONE NOVOS CAMPOS AQUI:
-  // novaMetrica?: number;
+  // taxaPreenchimento?: number;
   // ═══════════════════════════════════════════════════════════════════════
 }
 
@@ -138,8 +137,7 @@ function parseRow(row: any[]): WeekData {
     faturamentoTrafego: parseValue(row[col.faturamentoTrafego]),
     roasTrafego: parseValue(row[col.roasTrafego]),
     alunos: parseValue(row[col.alunos]),
-    numeroFormularios: parseValue(row[col.numeroFormularios]),
-    taxaPreenchimento: parseValue(row[col.taxaPreenchimento]),
+    numeroFormularios: parseValue(row[col.numeroFormularios]),  // Nova coluna G
     qualificados: parseValue(row[col.qualificados]),
     agendados: parseValue(row[col.agendados]),
     taxaAgendamento: parseValue(row[col.taxaAgendamento]),
@@ -156,7 +154,7 @@ function parseRow(row: any[]): WeekData {
 
     // ═══════════════════════════════════════════════════════════════════════
     // ADICIONE NOVOS CAMPOS AQUI:
-    // novaMetrica: parseValue(row[col.novaMetrica]),
+    // taxaPreenchimento: parseValue(row[col.taxaPreenchimento]),
     // ═══════════════════════════════════════════════════════════════════════
   };
 }
