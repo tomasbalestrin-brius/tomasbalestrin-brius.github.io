@@ -59,8 +59,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-secondary">
-      {/* Top Bar - User Menu + Refresh Indicator */}
+      {/* Top Bar - Organization Switcher + Refresh Indicator + User Menu */}
       <div className="fixed top-4 right-4 z-[1001] flex items-center gap-3 max-md:hidden">
+        <OrganizationSwitcher />
         <RefreshIndicator
           onRefresh={refresh}
           isRefreshing={isRefreshing}
