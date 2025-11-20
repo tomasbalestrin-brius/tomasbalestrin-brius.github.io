@@ -88,7 +88,7 @@ const Index = () => {
               {currentModule === 'insights' && <InsightsModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
               {currentModule === 'comparar-funis' && <CompararFunisModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
               {currentModule === 'comparacao' && <ComparacaoModule />}
-              {currentModule === 'exportar' && <ExportarModule />}
+              {currentModule === 'exportar' && <ExportarModule allData={allData} currentMonth={currentMonth} currentProduct={currentProduct} currentWeek={currentWeek} />}
             </>
           )}
         </div>
