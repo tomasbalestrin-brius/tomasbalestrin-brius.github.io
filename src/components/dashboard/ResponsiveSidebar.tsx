@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { ModuleName } from '@/types/dashboard';
 import { useAuth } from '@/contexts/AuthContext';
-import { LayoutDashboard, FileText, TrendingUp, DollarSign, Lightbulb, GitCompare, Calendar, Download, Target, ClipboardList, Activity } from 'lucide-react';
+import { LayoutDashboard, FileText, TrendingUp, DollarSign, Lightbulb, GitCompare, Calendar, Download, Target, ClipboardList, Activity, AlertTriangle } from 'lucide-react';
 
 interface ResponsiveSidebarProps {
   currentModule: ModuleName;
@@ -57,6 +57,7 @@ export function ResponsiveSidebar({ currentModule, onModuleChange, onMinimizeCha
     { id: 'roas' as ModuleName, icon: Target, label: 'Dashboard ROAS' },
     { id: 'formularios' as ModuleName, icon: ClipboardList, label: 'Análise Formulários' },
     { id: 'evolucao' as ModuleName, icon: Activity, label: 'Evolução Métricas' },
+    { id: 'alertas' as ModuleName, icon: AlertTriangle, label: 'Sistema de Alertas' },
     { id: 'custos' as ModuleName, icon: DollarSign, label: 'Custo por Lead' },
     { id: 'insights' as ModuleName, icon: Lightbulb, label: 'Insights' },
     { id: 'comparar-funis' as ModuleName, icon: GitCompare, label: 'Comparar Funis' },

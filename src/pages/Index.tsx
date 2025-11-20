@@ -11,6 +11,7 @@ import { ROIModule } from '@/components/dashboard/modules/ROI';
 import { ROASDashboard } from '@/components/dashboard/ROASDashboard';
 import { FormulariosAnalytics } from '@/components/dashboard/FormulariosAnalytics';
 import { EvolutionCharts } from '@/components/dashboard/EvolutionCharts';
+import { AlertsSystem } from '@/components/dashboard/AlertsSystem';
 import { CustosModule } from '@/components/dashboard/modules/Custos';
 import { InsightsModule } from '@/components/dashboard/modules/Insights';
 import { CompararFunisModule } from '@/components/dashboard/modules/CompararFunis';
@@ -90,6 +91,7 @@ const Index = () => {
               {currentModule === 'roas' && <ROASDashboard allData={allData} currentMonth={currentMonth} currentProduct={currentProduct} />}
               {currentModule === 'formularios' && <FormulariosAnalytics allData={allData} currentMonth={currentMonth} currentProduct={currentProduct} />}
               {currentModule === 'evolucao' && <EvolutionCharts allData={allData} currentMonth={currentMonth} currentProduct={currentProduct} />}
+              {currentModule === 'alertas' && <AlertsSystem allData={allData} currentMonth={currentMonth} currentProduct={currentProduct} />}
               {currentModule === 'custos' && <CustosModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
               {currentModule === 'insights' && <InsightsModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
               {currentModule === 'comparar-funis' && <CompararFunisModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}

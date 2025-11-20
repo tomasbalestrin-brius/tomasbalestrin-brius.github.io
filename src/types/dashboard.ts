@@ -64,6 +64,7 @@ export type ModuleName =
   | 'roas'
   | 'formularios'
   | 'evolucao'
+  | 'alertas'
   | 'custos'
   | 'insights'
   | 'exportar';
