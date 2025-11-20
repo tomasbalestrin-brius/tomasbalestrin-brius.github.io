@@ -62,6 +62,7 @@ export type ModuleName =
   | 'comparacao'
   | 'roi'
   | 'roas'
+  | 'formularios'
   | 'custos'
   | 'insights'
   | 'exportar';

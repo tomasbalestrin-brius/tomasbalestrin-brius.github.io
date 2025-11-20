@@ -9,8 +9,8 @@ export function BottomNav({ currentModule, onModuleChange }: BottomNavProps) {
   const modules: Array<{ id: ModuleName; icon: string; label: string }> = [
     { id: 'dashboard', icon: '🏠', label: 'Home' },
     { id: 'resumo', icon: '📋', label: 'Resumo' },
-    { id: 'roi', icon: '💰', label: 'ROI' },
     { id: 'roas', icon: '🎯', label: 'ROAS' },
+    { id: 'formularios', icon: '📝', label: 'Forms' },
     { id: 'exportar', icon: '📥', label: 'Export' },
   ];
 
