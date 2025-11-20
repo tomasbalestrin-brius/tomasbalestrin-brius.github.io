@@ -10,7 +10,7 @@ export function BottomNav({ currentModule, onModuleChange }: BottomNavProps) {
     { id: 'dashboard', icon: '🏠', label: 'Home' },
     { id: 'resumo', icon: '📋', label: 'Resumo' },
     { id: 'roi', icon: '💰', label: 'ROI' },
-    { id: 'insights', icon: '🤖', label: 'Insights' },
+    { id: 'roas', icon: '🎯', label: 'ROAS' },
     { id: 'exportar', icon: '📥', label: 'Export' },
   ];
 
