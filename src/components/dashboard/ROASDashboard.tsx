@@ -256,7 +256,7 @@ export function ROASDashboard({ allData, currentMonth, currentProduct }: ROASDas
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-red-500"></div>
-            <span>< 1.0x: Atenção</span>
+            <span>&lt; 1.0x: Atenção</span>
           </div>
         </div>
       </div>
