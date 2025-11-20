@@ -1,8 +1,23 @@
 import { useState } from 'react';
+import { exportToPDF, exportToExcel, exportToCSV, shareLink } from '@/lib/export-utils';
+import type { AllData } from '@/types/dashboard';
 
-export function ExportarModule() {
+interface ExportarModuleProps {
+  allData: AllData;
+  currentMonth: string;
+  currentProduct: string;
+  currentWeek: string;
+}
+
+export function ExportarModule({
+  allData,
+  currentMonth,
+  currentProduct,
+  currentWeek
+}: ExportarModuleProps) {
   const [exporting, setExporting] = useState(false);
   const [progress, setProgress] = useState(0);
+  const productData = allData[currentProduct];
   const exportOptions = [
     {
       icon: '📄',
@@ -34,22 +49,101 @@ export function ExportarModule() {
     setExporting(true);
     setProgress(0);
     try {
-      // Simulate export progress
-      for (let i = 0; i <= 100; i += 10) {
-        setProgress(i);
-        await new Promise(resolve => setTimeout(resolve, 200));
+      // Simulate progress
+      const interval = setInterval(() => {
+        setProgress(prev => Math.min(prev + 10, 90));
+      }, 100);
+
+      const result = await exportToPDF('root', `${currentProduct}_${currentMonth}.pdf`);
+
+      clearInterval(interval);
+      setProgress(100);
+
+      if (result.success) {
+        alert('✅ ' + result.message);
+      } else {
+        alert('❌ ' + result.message);
       }
-      alert('Funcionalidade de Exportar PDF em desenvolvimento!');
     } catch (error) {
       console.error('Erro ao exportar:', error);
+      alert('❌ Erro ao exportar PDF');
     } finally {
-      setExporting(false);
-      setProgress(0);
+      setTimeout(() => {
+        setExporting(false);
+        setProgress(0);
+      }, 500);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    if (!productData) {
+      alert('❌ Nenhum dado disponível para exportar');
+      return;
+    }
+
+    try {
+      const result = exportToExcel(
+        { productName: currentProduct, productData },
+        `${currentProduct}_${currentMonth}.xlsx`
+      );
+
+      if (result.success) {
+        alert('✅ ' + result.message);
+      } else {
+        alert('❌ ' + result.message);
+      }
+    } catch (error) {
+      console.error('Erro ao exportar Excel:', error);
+      alert('❌ Erro ao exportar Excel');
+    }
+  };
+
+  const handleExportCSV = async () => {
+    if (!productData) {
+      alert('❌ Nenhum dado disponível para exportar');
+      return;
+    }
+
+    try {
+      const result = exportToCSV(
+        { productName: currentProduct, productData },
+        `${currentProduct}_${currentMonth}.csv`
+      );
+
+      if (result.success) {
+        alert('✅ ' + result.message);
+      } else {
+        alert('❌ ' + result.message);
+      }
+    } catch (error) {
+      console.error('Erro ao exportar CSV:', error);
+      alert('❌ Erro ao exportar CSV');
+    }
+  };
+
+  const handleShareLink = () => {
+    const result = shareLink(currentMonth, currentProduct, currentWeek);
+    if (result.success) {
+      alert('✅ ' + result.message + '\n\n' + result.url);
+    } else {
+      alert('❌ ' + result.message);
     }
   };
 
   const handleExport = (type: string) => {
-    alert(`Funcionalidade de ${type} em desenvolvimento!`);
+    switch (type) {
+      case 'Exportar Excel':
+        handleExportExcel();
+        break;
+      case 'Exportar CSV':
+        handleExportCSV();
+        break;
+      case 'Compartilhar Link':
+        handleShareLink();
+        break;
+      default:
+        alert(`Funcionalidade de ${type} em desenvolvimento!`);
+    }
   };
 
   return (

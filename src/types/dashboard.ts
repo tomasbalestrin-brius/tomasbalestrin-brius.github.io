@@ -61,6 +61,10 @@ export type ModuleName =
   | 'comparar-funis'
   | 'comparacao'
   | 'roi'
+  | 'roas'
+  | 'formularios'
+  | 'evolucao'
+  | 'alertas'
   | 'custos'
   | 'insights'
   | 'exportar';
