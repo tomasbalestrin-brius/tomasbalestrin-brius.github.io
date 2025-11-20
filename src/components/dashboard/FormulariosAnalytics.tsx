@@ -275,7 +275,7 @@ export function FormulariosAnalytics({ allData, currentMonth, currentProduct }: 
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-red-500"></div>
-            <span>< 50%: Atenção</span>
+            <span>&lt; 50%: Atenção</span>
           </div>
         </div>
       </div>
