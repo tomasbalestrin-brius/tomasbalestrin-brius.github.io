@@ -14,21 +14,27 @@ export interface Product {
 }
 
 export interface WeekData {
+  funil?: string;                // Coluna A - Funil (opcional)
+  periodo?: string;              // Coluna B - Período (opcional)
+  investido: number;
+  faturamentoTrafego: number;
+  roasTrafego: number;
   alunos: number;
+  formularios: number;           // Coluna G - Número de formulários
+  taxaPreenchimento: number;     // Coluna H - Taxa de preenchimento
   qualificados: number;
   agendados: number;
   taxaAgendamento: number;
   callRealizada: number;
+  taxaComparecimento: number;
   numeroVenda: number;
-  investido: number;
-  faturamentoTrafego: number;
-  faturamentoFunil: number;
-  roasTrafego: number;
-  roasFunil: number;
+  taxaConversao: number;
+  taxaAscensao: number;
   vendaMonetizacao: number;
   entradas: number;
+  faturamentoFunil: number;
+  roasFunil: number;             // Coluna T - ROAS do Funil
   lucroFunil: number;
-  taxaConversao: number;
 }
 
 export interface ProductData {
@@ -42,6 +48,7 @@ export interface AllData {
 
 export interface FunnelData {
   alunos: number;
+  formularios: number;
   qualificados: number;
   agendados: number;
   callRealizada: number;

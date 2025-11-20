@@ -12,10 +12,14 @@ const SHEET_NAMES: Record<string, string> = {
 };
 
 export interface WeekData {
+  funil?: string;                // Coluna A - Funil (opcional)
+  periodo?: string;              // Coluna B - Período (opcional)
   investido: number;
   faturamentoTrafego: number;
   roasTrafego: number;
   alunos: number;
+  formularios: number;           // Coluna G - Número de formulários
+  taxaPreenchimento: number;     // Coluna H - Taxa de preenchimento
   qualificados: number;
   agendados: number;
   taxaAgendamento: number;
@@ -27,8 +31,8 @@ export interface WeekData {
   vendaMonetizacao: number;
   entradas: number;
   faturamentoFunil: number;
+  roasFunil: number;             // Coluna T - ROAS do Funil
   lucroFunil: number;
-  roasFunil: number;
 }
 
 export interface ProductData {
@@ -50,28 +54,36 @@ function parseValue(val: any): number {
 }
 
 function parseRow(row: any[]): WeekData {
-  const investido = parseValue(row[2]);
-  const faturamentoFunil = parseValue(row[16]);
-  const roasFunil = investido > 0 ? (faturamentoFunil / investido) : 0;
-  
+  // Mapeamento correto das colunas conforme a planilha
+  // Coluna A - Funil (row[0])
+  // Coluna B - Período (row[1])
+  const investido = parseValue(row[2]);                  // Coluna C - Investimento
+  const faturamentoTrafego = parseValue(row[3]);         // Coluna D - Faturamento Tráfego
+  const faturamentoFunil = parseValue(row[18]);          // Coluna S - Faturamento Funil
+  const lucroFunil = faturamentoFunil - investido;       // Calculado
+
   return {
-    investido,                               // Coluna C
-    faturamentoTrafego: parseValue(row[3]),  // Coluna D
-    roasTrafego: parseValue(row[4]),         // Coluna E
-    alunos: parseValue(row[5]),              // Coluna F
-    qualificados: parseValue(row[6]),        // Coluna G
-    agendados: parseValue(row[7]),           // Coluna H
-    taxaAgendamento: parseValue(row[8]),     // Coluna I
-    callRealizada: parseValue(row[9]),       // Coluna J
-    taxaComparecimento: parseValue(row[10]), // Coluna K
-    numeroVenda: parseValue(row[11]),        // Coluna L
-    taxaConversao: parseValue(row[12]),      // Coluna M
-    taxaAscensao: parseValue(row[13]),       // Coluna N
-    vendaMonetizacao: parseValue(row[14]),   // Coluna O
-    entradas: parseValue(row[15]),           // Coluna P
-    faturamentoFunil,                        // Coluna Q
-    lucroFunil: parseValue(row[17]),         // Coluna R
-    roasFunil                                // Calculado
+    funil: row[0] || '',                                 // Coluna A - Funil
+    periodo: row[1] || '',                               // Coluna B - Período
+    investido,                                           // Coluna C
+    faturamentoTrafego,                                  // Coluna D
+    roasTrafego: parseValue(row[4]),                     // Coluna E - Roas Tráfego
+    alunos: parseValue(row[5]),                          // Coluna F - Número de alunos
+    formularios: parseValue(row[6]),                     // Coluna G - Número de formulários
+    taxaPreenchimento: parseValue(row[7]),               // Coluna H - Taxa de preenchimento
+    qualificados: parseValue(row[8]),                    // Coluna I - Qualificados
+    agendados: parseValue(row[9]),                       // Coluna J - Agendados
+    taxaAgendamento: parseValue(row[10]),                // Coluna K - Taxa de agendamento
+    callRealizada: parseValue(row[11]),                  // Coluna L - Call realizada
+    taxaComparecimento: parseValue(row[12]),             // Coluna M - Taxa de comparecimento
+    numeroVenda: parseValue(row[13]),                    // Coluna N - Número de vendas
+    taxaConversao: parseValue(row[14]),                  // Coluna O - Taxa de conversão
+    taxaAscensao: parseValue(row[15]),                   // Coluna P - Taxa de ascensão
+    vendaMonetizacao: parseValue(row[16]),               // Coluna Q - Venda Monetização
+    entradas: parseValue(row[17]),                       // Coluna R - Entradas Monetização
+    faturamentoFunil,                                    // Coluna S - Faturamento Funil
+    roasFunil: parseValue(row[19]),                      // Coluna T - Roas do Funil
+    lucroFunil                                           // Calculado
   };
 }
 
@@ -143,7 +155,7 @@ export async function fetchSheetData(month: string): Promise<ProductData[]> {
     throw new Error(`Mês inválido: ${month}. Use: ${Object.keys(SHEET_NAMES).join(', ')}`);
   }
   
-  const range = `${sheetName}!A1:R200`;
+  const range = `${sheetName}!A1:T200`;
   const encodedRange = encodeURIComponent(range);
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodedRange}?key=${API_KEY}`;
   
