@@ -1,14 +1,21 @@
 import { MONTHS, getCurrentMonth } from '@/hooks/useDashboardData';
+import type { Month } from '@/types/dashboard';
 
 interface MonthSelectorProps {
-  currentMonth: string;
-  onMonthSelect: (monthId: string) => void;
+  currentMonth: Month;
+  onMonthSelect: (month: Month) => void;
 }
 
 export function MonthSelector({ currentMonth, onMonthSelect }: MonthSelectorProps) {
   const actualCurrentMonth = getCurrentMonth();
-  const selectedMonth = MONTHS.find(m => m.id === currentMonth);
-  const isActualCurrent = currentMonth === actualCurrentMonth;
+  const isActualCurrent = currentMonth?.id === actualCurrentMonth;
+
+  const handleChange = (monthId: string) => {
+    const month = MONTHS.find(m => m.id === monthId);
+    if (month) {
+      onMonthSelect(month);
+    }
+  };
 
   return (
     <div className="flex justify-center items-center gap-[15px] mb-[30px] flex-wrap">
@@ -17,8 +24,8 @@ export function MonthSelector({ currentMonth, onMonthSelect }: MonthSelectorProp
           📅 Selecionar Mês:
         </label>
         <select
-          value=""
-          onChange={(e) => e.target.value && onMonthSelect(e.target.value)}
+          value={currentMonth?.id || ''}
+          onChange={(e) => e.target.value && handleChange(e.target.value)}
           className="py-2.5 px-5 rounded-lg border-2 border-[hsl(var(--border-color))] bg-[hsl(var(--bg-primary))] text-[hsl(var(--text-primary))] text-base font-semibold cursor-pointer transition-all duration-300 min-w-[180px] hover:border-[hsl(var(--accent-primary))] focus:outline-none focus:border-[hsl(var(--accent-primary))] focus:shadow-[0_0_0_4px_rgba(59,130,246,0.2)] max-md:w-full"
         >
           <option value="">-- Selecione um mês --</option>
@@ -31,7 +38,7 @@ export function MonthSelector({ currentMonth, onMonthSelect }: MonthSelectorProp
       </div>
 
       <div className="flex justify-center gap-[15px] flex-wrap">
-        {selectedMonth && (
+        {currentMonth && (
           <button
             className={`
               py-4 px-[35px] border-2 border-[hsl(var(--border-color))] rounded-[10px] bg-[hsl(var(--bg-secondary))] text-[hsl(var(--text-primary))] text-[1.15rem] font-bold cursor-pointer transition-all duration-300 relative
@@ -45,9 +52,9 @@ export function MonthSelector({ currentMonth, onMonthSelect }: MonthSelectorProp
               ${isActualCurrent ? 'after:content-["Mês_Atual"] after:absolute after:-top-2.5 after:-right-1 after:bg-[hsl(var(--success))] after:text-white after:text-[0.65rem] after:py-[3px] after:px-2 after:rounded-[10px] after:font-bold after:uppercase after:tracking-wider after:shadow-[0_2px_8px_rgba(16,185,129,0.4)] max-md:after:text-[0.55rem] max-md:after:py-0.5 after:px-1.5 max-md:after:-top-2 max-md:after:-right-[3px] max-[480px]:after:text-[0.5rem] max-[480px]:after:py-0.5 max-[480px]:after:px-1 max-[480px]:after:-top-[7px] max-[480px]:after:-right-0.5' : ''}
               ${!isActualCurrent ? 'after:content-["Histórico"] after:absolute after:-top-2.5 after:-right-1 after:bg-[hsl(var(--warning))] after:text-white after:text-[0.65rem] after:py-[3px] after:px-2 after:rounded-[10px] after:font-bold after:uppercase after:tracking-wider after:shadow-[0_2px_8px_rgba(245,158,11,0.4)] max-md:after:text-[0.55rem] max-md:after:py-0.5 max-md:after:px-1.5 max-md:after:-top-2 max-md:after:-right-[3px] max-[480px]:after:text-[0.5rem] max-[480px]:after:py-0.5 max-[480px]:after:px-1 max-[480px]:after:-top-[7px] max-[480px]:after:-right-0.5' : ''}
             `}
-            onClick={() => onMonthSelect(selectedMonth.id)}
+            onClick={() => onMonthSelect(currentMonth)}
           >
-            {selectedMonth.name}
+            {currentMonth.name}
           </button>
         )}
       </div>
