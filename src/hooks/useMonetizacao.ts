@@ -2,27 +2,68 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Closer, Funil, Venda } from '@/types/dashboard';
 
+// LocalStorage keys
+const STORAGE_KEYS = {
+  closers: 'monetizacao_closers',
+  funis: 'monetizacao_funis',
+  vendas: 'monetizacao_vendas',
+};
+
+// Helper functions for localStorage
+function getFromStorage<T>(key: string): T[] {
+  try {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveToStorage<T>(key: string, data: T[]): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (err) {
+    console.error('Erro ao salvar no localStorage:', err);
+  }
+}
+
+function generateId(): string {
+  return `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
 // Hook para Closers
 export function useClosers() {
   const [closers, setClosers] = useState<Closer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [useLocal, setUseLocal] = useState(false);
 
   const fetchClosers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
+      // Try Supabase first
       const { data, error: fetchError } = await supabase
         .from('closers')
         .select('*')
         .order('valor_total_vendas', { ascending: false });
 
-      if (fetchError) throw fetchError;
-      setClosers((data as Closer[]) || []);
+      if (fetchError) {
+        // Fallback to localStorage
+        console.log('Supabase closers não disponível, usando localStorage');
+        setUseLocal(true);
+        const localData = getFromStorage<Closer>(STORAGE_KEYS.closers);
+        setClosers(localData.sort((a, b) => b.valor_total_vendas - a.valor_total_vendas));
+      } else {
+        setClosers((data as Closer[]) || []);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar closers');
-      console.error('Erro ao buscar closers:', err);
+      // Fallback to localStorage on any error
+      console.log('Erro no Supabase, usando localStorage para closers');
+      setUseLocal(true);
+      const localData = getFromStorage<Closer>(STORAGE_KEYS.closers);
+      setClosers(localData.sort((a, b) => b.valor_total_vendas - a.valor_total_vendas));
     } finally {
       setLoading(false);
     }
@@ -30,6 +71,21 @@ export function useClosers() {
 
   const createCloser = async (closer: Omit<Closer, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      if (useLocal) {
+        // Create locally
+        const newCloser: Closer = {
+          ...closer,
+          id: generateId(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        } as Closer;
+
+        const updated = [...closers, newCloser];
+        setClosers(updated.sort((a, b) => b.valor_total_vendas - a.valor_total_vendas));
+        saveToStorage(STORAGE_KEYS.closers, updated);
+        return { success: true, data: newCloser };
+      }
+
       const { data, error } = await supabase
         .from('closers')
         .insert([closer])
@@ -40,6 +96,11 @@ export function useClosers() {
       setClosers(prev => [...prev, data as Closer]);
       return { success: true, data };
     } catch (err) {
+      // If Supabase fails, switch to local and retry
+      if (!useLocal) {
+        setUseLocal(true);
+        return createCloser(closer);
+      }
       console.error('Erro ao criar closer:', err);
       return { success: false, error: err instanceof Error ? err.message : 'Erro ao criar closer' };
     }
@@ -47,6 +108,15 @@ export function useClosers() {
 
   const updateCloser = async (id: string, updates: Partial<Closer>) => {
     try {
+      if (useLocal) {
+        const updated = closers.map(c =>
+          c.id === id ? { ...c, ...updates, updated_at: new Date().toISOString() } : c
+        );
+        setClosers(updated.sort((a, b) => b.valor_total_vendas - a.valor_total_vendas));
+        saveToStorage(STORAGE_KEYS.closers, updated);
+        return { success: true, data: updated.find(c => c.id === id) };
+      }
+
       const { data, error } = await supabase
         .from('closers')
         .update(updates)
@@ -58,6 +128,10 @@ export function useClosers() {
       setClosers(prev => prev.map(c => c.id === id ? (data as Closer) : c));
       return { success: true, data };
     } catch (err) {
+      if (!useLocal) {
+        setUseLocal(true);
+        return updateCloser(id, updates);
+      }
       console.error('Erro ao atualizar closer:', err);
       return { success: false, error: err instanceof Error ? err.message : 'Erro ao atualizar closer' };
     }
@@ -65,6 +139,13 @@ export function useClosers() {
 
   const deleteCloser = async (id: string) => {
     try {
+      if (useLocal) {
+        const updated = closers.filter(c => c.id !== id);
+        setClosers(updated);
+        saveToStorage(STORAGE_KEYS.closers, updated);
+        return { success: true };
+      }
+
       const { error } = await supabase
         .from('closers')
         .delete()
@@ -74,6 +155,10 @@ export function useClosers() {
       setClosers(prev => prev.filter(c => c.id !== id));
       return { success: true };
     } catch (err) {
+      if (!useLocal) {
+        setUseLocal(true);
+        return deleteCloser(id);
+      }
       console.error('Erro ao deletar closer:', err);
       return { success: false, error: err instanceof Error ? err.message : 'Erro ao deletar closer' };
     }
@@ -99,6 +184,7 @@ export function useFunis() {
   const [funis, setFunis] = useState<Funil[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [useLocal, setUseLocal] = useState(false);
 
   const fetchFunis = useCallback(async () => {
     try {
@@ -110,11 +196,19 @@ export function useFunis() {
         .select('*')
         .order('total_vendas', { ascending: false });
 
-      if (fetchError) throw fetchError;
-      setFunis((data as Funil[]) || []);
+      if (fetchError) {
+        console.log('Supabase funis não disponível, usando localStorage');
+        setUseLocal(true);
+        const localData = getFromStorage<Funil>(STORAGE_KEYS.funis);
+        setFunis(localData.sort((a, b) => b.total_vendas - a.total_vendas));
+      } else {
+        setFunis((data as Funil[]) || []);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar funis');
-      console.error('Erro ao buscar funis:', err);
+      console.log('Erro no Supabase, usando localStorage para funis');
+      setUseLocal(true);
+      const localData = getFromStorage<Funil>(STORAGE_KEYS.funis);
+      setFunis(localData.sort((a, b) => b.total_vendas - a.total_vendas));
     } finally {
       setLoading(false);
     }
@@ -122,6 +216,20 @@ export function useFunis() {
 
   const createFunil = async (funil: Omit<Funil, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      if (useLocal) {
+        const newFunil: Funil = {
+          ...funil,
+          id: generateId(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        } as Funil;
+
+        const updated = [...funis, newFunil];
+        setFunis(updated.sort((a, b) => b.total_vendas - a.total_vendas));
+        saveToStorage(STORAGE_KEYS.funis, updated);
+        return { success: true, data: newFunil };
+      }
+
       const { data, error } = await supabase
         .from('funis')
         .insert([funil])
@@ -132,6 +240,10 @@ export function useFunis() {
       setFunis(prev => [...prev, data as Funil]);
       return { success: true, data };
     } catch (err) {
+      if (!useLocal) {
+        setUseLocal(true);
+        return createFunil(funil);
+      }
       console.error('Erro ao criar funil:', err);
       return { success: false, error: err instanceof Error ? err.message : 'Erro ao criar funil' };
     }
@@ -139,6 +251,15 @@ export function useFunis() {
 
   const updateFunil = async (id: string, updates: Partial<Funil>) => {
     try {
+      if (useLocal) {
+        const updated = funis.map(f =>
+          f.id === id ? { ...f, ...updates, updated_at: new Date().toISOString() } : f
+        );
+        setFunis(updated.sort((a, b) => b.total_vendas - a.total_vendas));
+        saveToStorage(STORAGE_KEYS.funis, updated);
+        return { success: true, data: updated.find(f => f.id === id) };
+      }
+
       const { data, error } = await supabase
         .from('funis')
         .update(updates)
@@ -150,6 +271,10 @@ export function useFunis() {
       setFunis(prev => prev.map(f => f.id === id ? (data as Funil) : f));
       return { success: true, data };
     } catch (err) {
+      if (!useLocal) {
+        setUseLocal(true);
+        return updateFunil(id, updates);
+      }
       console.error('Erro ao atualizar funil:', err);
       return { success: false, error: err instanceof Error ? err.message : 'Erro ao atualizar funil' };
     }
@@ -157,6 +282,13 @@ export function useFunis() {
 
   const deleteFunil = async (id: string) => {
     try {
+      if (useLocal) {
+        const updated = funis.filter(f => f.id !== id);
+        setFunis(updated);
+        saveToStorage(STORAGE_KEYS.funis, updated);
+        return { success: true };
+      }
+
       const { error } = await supabase
         .from('funis')
         .delete()
@@ -166,6 +298,10 @@ export function useFunis() {
       setFunis(prev => prev.filter(f => f.id !== id));
       return { success: true };
     } catch (err) {
+      if (!useLocal) {
+        setUseLocal(true);
+        return deleteFunil(id);
+      }
       console.error('Erro ao deletar funil:', err);
       return { success: false, error: err instanceof Error ? err.message : 'Erro ao deletar funil' };
     }
@@ -191,6 +327,11 @@ export function useVendas() {
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [useLocal, setUseLocal] = useState(false);
+
+  // Get closers and funis for joining
+  const closersData = getFromStorage<Closer>(STORAGE_KEYS.closers);
+  const funisData = getFromStorage<Funil>(STORAGE_KEYS.funis);
 
   const fetchVendas = useCallback(async () => {
     try {
@@ -206,18 +347,89 @@ export function useVendas() {
         `)
         .order('data_venda', { ascending: false });
 
-      if (fetchError) throw fetchError;
-      setVendas((data as Venda[]) || []);
+      if (fetchError) {
+        console.log('Supabase vendas não disponível, usando localStorage');
+        setUseLocal(true);
+        const localData = getFromStorage<Venda>(STORAGE_KEYS.vendas);
+        // Join with closers and funis from localStorage
+        const joinedData = localData.map(v => ({
+          ...v,
+          closer: closersData.find(c => c.id === v.closer_id),
+          funil: funisData.find(f => f.id === v.funil_id),
+        }));
+        setVendas(joinedData.sort((a, b) =>
+          new Date(b.data_venda).getTime() - new Date(a.data_venda).getTime()
+        ));
+      } else {
+        setVendas((data as Venda[]) || []);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar vendas');
-      console.error('Erro ao buscar vendas:', err);
+      console.log('Erro no Supabase, usando localStorage para vendas');
+      setUseLocal(true);
+      const localData = getFromStorage<Venda>(STORAGE_KEYS.vendas);
+      const joinedData = localData.map(v => ({
+        ...v,
+        closer: closersData.find(c => c.id === v.closer_id),
+        funil: funisData.find(f => f.id === v.funil_id),
+      }));
+      setVendas(joinedData.sort((a, b) =>
+        new Date(b.data_venda).getTime() - new Date(a.data_venda).getTime()
+      ));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [closersData, funisData]);
 
   const createVenda = async (venda: Omit<Venda, 'id' | 'created_at' | 'closer' | 'funil'>) => {
     try {
+      if (useLocal) {
+        // Get fresh data from localStorage
+        const currentClosers = getFromStorage<Closer>(STORAGE_KEYS.closers);
+        const currentFunis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+
+        const newVenda: Venda = {
+          ...venda,
+          id: generateId(),
+          created_at: new Date().toISOString(),
+          closer: currentClosers.find(c => c.id === venda.closer_id),
+          funil: currentFunis.find(f => f.id === venda.funil_id),
+        } as Venda;
+
+        const currentVendas = getFromStorage<Venda>(STORAGE_KEYS.vendas);
+        const updated = [newVenda, ...currentVendas];
+        saveToStorage(STORAGE_KEYS.vendas, updated);
+
+        // Update closer stats
+        if (venda.closer_id) {
+          const closerIndex = currentClosers.findIndex(c => c.id === venda.closer_id);
+          if (closerIndex !== -1) {
+            currentClosers[closerIndex] = {
+              ...currentClosers[closerIndex],
+              numero_vendas: (currentClosers[closerIndex].numero_vendas || 0) + 1,
+              valor_total_vendas: (currentClosers[closerIndex].valor_total_vendas || 0) + (venda.valor_venda || 0),
+              valor_total_entradas: (currentClosers[closerIndex].valor_total_entradas || 0) + (venda.valor_entrada || 0),
+            };
+            saveToStorage(STORAGE_KEYS.closers, currentClosers);
+          }
+        }
+
+        // Update funil stats
+        if (venda.funil_id) {
+          const funilIndex = currentFunis.findIndex(f => f.id === venda.funil_id);
+          if (funilIndex !== -1) {
+            currentFunis[funilIndex] = {
+              ...currentFunis[funilIndex],
+              total_vendas: (currentFunis[funilIndex].total_vendas || 0) + 1,
+              valor_total_gerado: (currentFunis[funilIndex].valor_total_gerado || 0) + (venda.valor_venda || 0),
+            };
+            saveToStorage(STORAGE_KEYS.funis, currentFunis);
+          }
+        }
+
+        setVendas(prev => [newVenda, ...prev]);
+        return { success: true, data: newVenda };
+      }
+
       const { data, error } = await supabase
         .from('vendas')
         .insert([venda])
@@ -232,6 +444,10 @@ export function useVendas() {
       setVendas(prev => [data as Venda, ...prev]);
       return { success: true, data };
     } catch (err) {
+      if (!useLocal) {
+        setUseLocal(true);
+        return createVenda(venda);
+      }
       console.error('Erro ao criar venda:', err);
       return { success: false, error: err instanceof Error ? err.message : 'Erro ao criar venda' };
     }
@@ -239,6 +455,26 @@ export function useVendas() {
 
   const updateVenda = async (id: string, updates: Partial<Venda>) => {
     try {
+      if (useLocal) {
+        const currentVendas = getFromStorage<Venda>(STORAGE_KEYS.vendas);
+        const currentClosers = getFromStorage<Closer>(STORAGE_KEYS.closers);
+        const currentFunis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+
+        const updated = currentVendas.map(v =>
+          v.id === id ? {
+            ...v,
+            ...updates,
+            closer: currentClosers.find(c => c.id === (updates.closer_id || v.closer_id)),
+            funil: currentFunis.find(f => f.id === (updates.funil_id || v.funil_id)),
+          } : v
+        );
+        saveToStorage(STORAGE_KEYS.vendas, updated);
+        setVendas(updated.sort((a, b) =>
+          new Date(b.data_venda).getTime() - new Date(a.data_venda).getTime()
+        ));
+        return { success: true, data: updated.find(v => v.id === id) };
+      }
+
       const { data, error } = await supabase
         .from('vendas')
         .update(updates)
@@ -254,6 +490,10 @@ export function useVendas() {
       setVendas(prev => prev.map(v => v.id === id ? (data as Venda) : v));
       return { success: true, data };
     } catch (err) {
+      if (!useLocal) {
+        setUseLocal(true);
+        return updateVenda(id, updates);
+      }
       console.error('Erro ao atualizar venda:', err);
       return { success: false, error: err instanceof Error ? err.message : 'Erro ao atualizar venda' };
     }
@@ -261,6 +501,14 @@ export function useVendas() {
 
   const deleteVenda = async (id: string) => {
     try {
+      if (useLocal) {
+        const currentVendas = getFromStorage<Venda>(STORAGE_KEYS.vendas);
+        const updated = currentVendas.filter(v => v.id !== id);
+        saveToStorage(STORAGE_KEYS.vendas, updated);
+        setVendas(prev => prev.filter(v => v.id !== id));
+        return { success: true };
+      }
+
       const { error } = await supabase
         .from('vendas')
         .delete()
@@ -270,6 +518,10 @@ export function useVendas() {
       setVendas(prev => prev.filter(v => v.id !== id));
       return { success: true };
     } catch (err) {
+      if (!useLocal) {
+        setUseLocal(true);
+        return deleteVenda(id);
+      }
       console.error('Erro ao deletar venda:', err);
       return { success: false, error: err instanceof Error ? err.message : 'Erro ao deletar venda' };
     }
@@ -277,7 +529,7 @@ export function useVendas() {
 
   useEffect(() => {
     fetchVendas();
-  }, [fetchVendas]);
+  }, []);
 
   return {
     vendas,
