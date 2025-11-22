@@ -59,8 +59,40 @@ export function useAquisicao(month: string) {
     }
   }, []);
 
-  // Sync from Google Sheets
+  // Fetch directly from Google Sheets (sem salvar no Supabase)
+  const fetchFromSheets = useCallback(async (selectedMonth: string) => {
+    if (!selectedMonth) {
+      console.log('❌ Mês não selecionado');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log('🎯 Iniciando busca de dados para:', selectedMonth);
+
+      const sheetData = await fetchSheetData(selectedMonth);
+      setRawData(sheetData);
+      setLastSync(new Date().toLocaleString('pt-BR'));
+
+      console.log('✅ Dados recebidos com sucesso!', sheetData.length, 'produtos');
+
+    } catch (err) {
+      console.error('❌ Erro ao carregar dados:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Sync from Google Sheets (com tentativa de salvar no Supabase)
   const syncFromSheets = useCallback(async () => {
+    if (!month) {
+      setError('Selecione um mês primeiro');
+      return;
+    }
+
     try {
       setSyncing(true);
       setError(null);
@@ -154,18 +186,62 @@ export function useAquisicao(month: string) {
     }
   }, [month, fetchFromSupabase]);
 
-  // Calculate metrics
-  const metrics = {
-    totalInvestido: funis.reduce((sum, f) => sum + (f.investido || 0), 0),
-    totalFaturamento: funis.reduce((sum, f) => sum + (f.faturamento_trafego || 0), 0),
-    roasMedio: funis.length > 0
-      ? funis.reduce((sum, f) => sum + (f.roas_trafego || 0), 0) / funis.length
-      : 0,
-    totalAlunos: funis.reduce((sum, f) => sum + (f.numero_alunos || 0), 0),
-    totalFunis: funis.length,
-  };
+  // Calculate metrics from rawData (Google Sheets) when funis (Supabase) is empty
+  const metrics = (() => {
+    // Se tem dados do Supabase, usa eles
+    if (funis.length > 0) {
+      return {
+        totalInvestido: funis.reduce((sum, f) => sum + (f.investido || 0), 0),
+        totalFaturamento: funis.reduce((sum, f) => sum + (f.faturamento_trafego || 0), 0),
+        roasMedio: funis.reduce((sum, f) => sum + (f.roas_trafego || 0), 0) / funis.length,
+        totalAlunos: funis.reduce((sum, f) => sum + (f.numero_alunos || 0), 0),
+        totalFunis: funis.length,
+      };
+    }
 
-  // Initial fetch
+    // Se não tem Supabase, calcula a partir do rawData (Google Sheets)
+    if (rawData.length > 0) {
+      let totalInvestido = 0;
+      let totalFaturamento = 0;
+      let totalAlunos = 0;
+
+      rawData.forEach(product => {
+        product.weeks.forEach(week => {
+          totalInvestido += week.investido || 0;
+          totalFaturamento += week.faturamentoTrafego || 0;
+          totalAlunos += week.alunos || 0;
+        });
+      });
+
+      const roasMedio = totalInvestido > 0 ? totalFaturamento / totalInvestido : 0;
+
+      return {
+        totalInvestido,
+        totalFaturamento,
+        roasMedio,
+        totalAlunos,
+        totalFunis: rawData.length,
+      };
+    }
+
+    // Sem dados
+    return {
+      totalInvestido: 0,
+      totalFaturamento: 0,
+      roasMedio: 0,
+      totalAlunos: 0,
+      totalFunis: 0,
+    };
+  })();
+
+  // Auto-fetch from Google Sheets when month changes
+  useEffect(() => {
+    if (month) {
+      fetchFromSheets(month);
+    }
+  }, [month, fetchFromSheets]);
+
+  // Initial fetch from Supabase (apenas para verificar se tem dados salvos)
   useEffect(() => {
     fetchFromSupabase();
   }, [fetchFromSupabase]);
