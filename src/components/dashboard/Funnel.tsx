@@ -7,7 +7,7 @@ interface FunnelProps {
 }
 
 export function Funnel({ data, productName, period }: FunnelProps) {
-  const { alunos, qualificados, agendados, callRealizada, vendas } = data;
+  const { alunos, formularios, qualificados, agendados, callRealizada, vendas } = data;
 
   if (alunos === 0 && qualificados === 0 && agendados === 0) {
     return (
@@ -34,23 +34,35 @@ export function Funnel({ data, productName, period }: FunnelProps) {
           <span className="text-xs opacity-85 italic font-medium max-md:text-[0.7rem]">(base)</span>
         </div>
       </div>
-      
+
       <div className="text-xl text-[hsl(var(--text-secondary))] -my-0.5">▼</div>
-      
+
+      {/* Formulários */}
+      <div className="w-[90%] text-center p-2 rounded-lg relative transition-all duration-300 cursor-pointer bg-gradient-to-br from-[#0284c7] to-[#38bdf8] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.3)] max-md:p-2.5">
+        <div className="text-sm opacity-95 mb-0.5 font-bold max-md:text-sm">📝 Formulários</div>
+        <div className="text-2xl font-extrabold mb-0.5 max-md:text-xl">{formularios}</div>
+        <div className="text-sm opacity-95 flex items-center justify-center gap-1 font-semibold max-md:text-xs max-md:flex-col max-md:gap-0">
+          <span>{alunos > 0 ? ((formularios / alunos) * 100).toFixed(1) : 0}%</span>
+          <span className="text-xs opacity-85 italic font-medium max-md:text-[0.7rem]">(do total de alunos)</span>
+        </div>
+      </div>
+
+      <div className="text-xl text-[hsl(var(--text-secondary))] -my-0.5">▼</div>
+
       {/* Qualificados */}
-      <div className="w-[85%] text-center p-2 rounded-lg relative transition-all duration-300 cursor-pointer bg-gradient-to-br from-[#0891b2] to-[#06b6d4] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.3)] max-md:p-2.5">
+      <div className="w-[75%] text-center p-2 rounded-lg relative transition-all duration-300 cursor-pointer bg-gradient-to-br from-[#0891b2] to-[#06b6d4] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.3)] max-md:p-2.5">
         <div className="text-sm opacity-95 mb-0.5 font-bold max-md:text-sm">✅ Qualificados</div>
         <div className="text-2xl font-extrabold mb-0.5 max-md:text-xl">{qualificados}</div>
         <div className="text-sm opacity-95 flex items-center justify-center gap-1 font-semibold max-md:text-xs max-md:flex-col max-md:gap-0">
-          <span>{alunos > 0 ? ((qualificados / alunos) * 100).toFixed(1) : 0}%</span>
-          <span className="text-xs opacity-85 italic font-medium max-md:text-[0.7rem]">(do total de alunos)</span>
+          <span>{formularios > 0 ? ((qualificados / formularios) * 100).toFixed(1) : 0}%</span>
+          <span className="text-xs opacity-85 italic font-medium max-md:text-[0.7rem]">(dos formulários)</span>
         </div>
       </div>
       
       <div className="text-xl text-[hsl(var(--text-secondary))] -my-0.5">▼</div>
       
       {/* Call Agendadas */}
-      <div className="w-[70%] text-center p-2 rounded-lg relative transition-all duration-300 cursor-pointer bg-gradient-to-br from-[#2563eb] to-[#3b82f6] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.3)] max-md:p-2.5">
+      <div className="w-[60%] text-center p-2 rounded-lg relative transition-all duration-300 cursor-pointer bg-gradient-to-br from-[#2563eb] to-[#3b82f6] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.3)] max-md:p-2.5">
         <div className="text-sm opacity-95 mb-0.5 font-bold max-md:text-sm">📅 Call Agendadas</div>
         <div className="text-2xl font-extrabold mb-0.5 max-md:text-xl">{agendados}</div>
         <div className="text-sm opacity-95 flex items-center justify-center gap-1 font-semibold max-md:text-xs max-md:flex-col max-md:gap-0">
@@ -58,11 +70,11 @@ export function Funnel({ data, productName, period }: FunnelProps) {
           <span className="text-xs opacity-85 italic font-medium max-md:text-[0.7rem]">(dos qualificados)</span>
         </div>
       </div>
-      
+
       <div className="text-xl text-[hsl(var(--text-secondary))] -my-0.5">▼</div>
-      
+
       {/* Call Realizadas */}
-      <div className="w-[55%] text-center p-2 rounded-lg relative transition-all duration-300 cursor-pointer bg-gradient-to-br from-[#7c3aed] to-[#8b5cf6] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.3)] max-md:p-2.5">
+      <div className="w-[45%] text-center p-2 rounded-lg relative transition-all duration-300 cursor-pointer bg-gradient-to-br from-[#7c3aed] to-[#8b5cf6] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.3)] max-md:p-2.5">
         <div className="text-sm opacity-95 mb-0.5 font-bold max-md:text-sm">📞 Call Realizadas</div>
         <div className="text-2xl font-extrabold mb-0.5 max-md:text-xl">{callRealizada}</div>
         <div className="text-sm opacity-95 flex items-center justify-center gap-1 font-semibold max-md:text-xs max-md:flex-col max-md:gap-0">
@@ -70,11 +82,11 @@ export function Funnel({ data, productName, period }: FunnelProps) {
           <span className="text-xs opacity-85 italic font-medium max-md:text-[0.7rem]">(dos agendados)</span>
         </div>
       </div>
-      
+
       <div className="text-xl text-[hsl(var(--text-secondary))] -my-0.5">▼</div>
-      
+
       {/* Vendas */}
-      <div className="w-[40%] text-center p-2 rounded-lg relative transition-all duration-300 cursor-pointer bg-gradient-to-br from-[#c026d3] to-[#d946ef] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.3)] max-md:p-2.5">
+      <div className="w-[30%] text-center p-2 rounded-lg relative transition-all duration-300 cursor-pointer bg-gradient-to-br from-[#c026d3] to-[#d946ef] hover:scale-[1.02] hover:shadow-[0_10px_30px_rgba(0,0,0,0.3)] max-md:p-2.5">
         <div className="text-sm opacity-95 mb-0.5 font-bold max-md:text-sm">💰 Vendas</div>
         <div className="text-2xl font-extrabold mb-0.5 max-md:text-xl">{vendas}</div>
         <div className="text-sm opacity-95 flex items-center justify-center gap-1 font-semibold max-md:text-xs max-md:flex-col max-md:gap-0">

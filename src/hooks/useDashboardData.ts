@@ -2,16 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import type { AllData, Month, Product, ModuleName, ThemeName, Toast } from '@/types/dashboard';
 import { fetchSheetData } from '@/lib/sheets-api';
 
-const SHEET_ID = '1V0-yWzGbDWUEQ21CPtNcHrzPQfLTXKHNBYUlSfzO2Pc';
-
-// Mapeamento de nomes de exibição para nomes reais das abas
-const SHEET_NAMES: Record<string, string> = {
-  'Outubro': 'Dados de Out/25',
-  'Novembro': 'Dados de Nov/25',
-  'Dezembro': 'Dados de Dez/25',
-  'Janeiro': 'Dados de Jan/26',
-};
-
 export const MONTHS: Month[] = [
   { id: 'out', name: 'Outubro', gid: '0', startDate: '2024-10-01', endDate: '2024-10-31' },
   { id: 'nov', name: 'Novembro', gid: '799831430', startDate: '2024-11-01', endDate: '2024-11-30' },

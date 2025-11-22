@@ -14,7 +14,216 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      closers: {
+        Row: {
+          id: string
+          nome: string
+          foto_url: string | null
+          taxa_conversao: number
+          numero_vendas: number
+          valor_total_vendas: number
+          valor_total_entradas: number
+          tempo_empresa: string | null
+          time: string | null
+          produto_mais_vendido: string | null
+          ativo: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          nome: string
+          foto_url?: string | null
+          taxa_conversao?: number
+          numero_vendas?: number
+          valor_total_vendas?: number
+          valor_total_entradas?: number
+          tempo_empresa?: string | null
+          time?: string | null
+          produto_mais_vendido?: string | null
+          ativo?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+          foto_url?: string | null
+          taxa_conversao?: number
+          numero_vendas?: number
+          valor_total_vendas?: number
+          valor_total_entradas?: number
+          tempo_empresa?: string | null
+          time?: string | null
+          produto_mais_vendido?: string | null
+          ativo?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      funis: {
+        Row: {
+          id: string
+          nome_produto: string
+          valor_venda: number
+          especialista: string | null
+          descricao: string | null
+          total_vendas: number
+          valor_total_gerado: number
+          ativo: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          nome_produto: string
+          valor_venda?: number
+          especialista?: string | null
+          descricao?: string | null
+          total_vendas?: number
+          valor_total_gerado?: number
+          ativo?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          nome_produto?: string
+          valor_venda?: number
+          especialista?: string | null
+          descricao?: string | null
+          total_vendas?: number
+          valor_total_gerado?: number
+          ativo?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vendas: {
+        Row: {
+          id: string
+          closer_id: string | null
+          funil_id: string | null
+          produto: string
+          valor_venda: number
+          valor_entrada: number
+          negociacao: string | null
+          data_venda: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          closer_id?: string | null
+          funil_id?: string | null
+          produto: string
+          valor_venda: number
+          valor_entrada?: number
+          negociacao?: string | null
+          data_venda?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          closer_id?: string | null
+          funil_id?: string | null
+          produto?: string
+          valor_venda?: number
+          valor_entrada?: number
+          negociacao?: string | null
+          data_venda?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendas_closer_id_fkey"
+            columns: ["closer_id"]
+            isOneToOne: false
+            referencedRelation: "closers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendas_funil_id_fkey"
+            columns: ["funil_id"]
+            isOneToOne: false
+            referencedRelation: "funis"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      funis_aquisicao: {
+        Row: {
+          id: string
+          nome_funil: string
+          investido: number
+          faturamento_trafego: number
+          roas_trafego: number
+          numero_alunos: number
+          periodo: string
+          data_inicio: string | null
+          data_fim: string | null
+          sheet_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          nome_funil: string
+          investido?: number
+          faturamento_trafego?: number
+          roas_trafego?: number
+          numero_alunos?: number
+          periodo: string
+          data_inicio?: string | null
+          data_fim?: string | null
+          sheet_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          nome_funil?: string
+          investido?: number
+          faturamento_trafego?: number
+          roas_trafego?: number
+          numero_alunos?: number
+          periodo?: string
+          data_inicio?: string | null
+          data_fim?: string | null
+          sheet_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sync_logs: {
+        Row: {
+          id: string
+          tipo: 'aquisicao' | 'monetizacao' | 'sdr'
+          status: 'success' | 'error'
+          mensagem: string | null
+          registros_sincronizados: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tipo: 'aquisicao' | 'monetizacao' | 'sdr'
+          status: 'success' | 'error'
+          mensagem?: string | null
+          registros_sincronizados?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tipo?: 'aquisicao' | 'monetizacao' | 'sdr'
+          status?: 'success' | 'error'
+          mensagem?: string | null
+          registros_sincronizados?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

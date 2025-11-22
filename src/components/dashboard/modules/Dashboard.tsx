@@ -31,11 +31,12 @@ export function DashboardModule({
   const productData = allData[currentProduct];
 
   const getFunnelData = () => {
-    if (!productData) return { alunos: 0, qualificados: 0, agendados: 0, callRealizada: 0, vendas: 0 };
+    if (!productData) return { alunos: 0, formularios: 0, qualificados: 0, agendados: 0, callRealizada: 0, vendas: 0 };
 
     if (currentWeek === 'total') {
       return {
         alunos: productData.semanas.reduce((sum, s) => sum + s.alunos, 0),
+        formularios: productData.semanas.reduce((sum, s) => sum + s.formularios, 0),
         qualificados: productData.semanas.reduce((sum, s) => sum + s.qualificados, 0),
         agendados: productData.semanas.reduce((sum, s) => sum + s.agendados, 0),
         callRealizada: productData.semanas.reduce((sum, s) => sum + s.callRealizada, 0),
@@ -47,6 +48,7 @@ export function DashboardModule({
         const semana = productData.semanas[weekIndex];
         return {
           alunos: semana.alunos,
+          formularios: semana.formularios,
           qualificados: semana.qualificados,
           agendados: semana.agendados,
           callRealizada: semana.callRealizada,
@@ -55,7 +57,7 @@ export function DashboardModule({
       }
     }
 
-    return { alunos: 0, qualificados: 0, agendados: 0, callRealizada: 0, vendas: 0 };
+    return { alunos: 0, formularios: 0, qualificados: 0, agendados: 0, callRealizada: 0, vendas: 0 };
   };
 
   const funnelData = getFunnelData();

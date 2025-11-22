@@ -1,8 +1,7 @@
 // src/lib/sheets-api.ts
-// Fetch DIRETO da Google Sheets API (SEM Edge Functions!)
+// Fetch via CSV público do Google Sheets (não requer API Key)
 
 const SPREADSHEET_ID = '1XsdWQNR7FUo4TrrhsMjSGESS3PtS9G7X8FoHHStxLtU';
-const API_KEY = import.meta.env.VITE_GOOGLE_SHEETS_API_KEY;
 
 const SHEET_NAMES: Record<string, string> = {
   'Outubro': 'Dados de Out/25',
@@ -12,10 +11,14 @@ const SHEET_NAMES: Record<string, string> = {
 };
 
 export interface WeekData {
+  funil?: string;
+  periodo?: string;
   investido: number;
   faturamentoTrafego: number;
   roasTrafego: number;
   alunos: number;
+  formularios: number;
+  taxaPreenchimento: number;
   qualificados: number;
   agendados: number;
   taxaAgendamento: number;
@@ -27,8 +30,8 @@ export interface WeekData {
   vendaMonetizacao: number;
   entradas: number;
   faturamentoFunil: number;
-  lucroFunil: number;
   roasFunil: number;
+  lucroFunil: number;
 }
 
 export interface ProductData {
@@ -41,121 +44,147 @@ function parseValue(val: any): number {
   if (!val || val === '#N/A' || val === '#DIV/0!' || val === '' || val === '#NUM!' || val === '-') {
     return 0;
   }
-  
+
   let cleanVal = val.toString().replace(/[^\d,.-]/g, '');
   cleanVal = cleanVal.replace(/\./g, ''); // Remove pontos de milhar
   cleanVal = cleanVal.replace(',', '.'); // Substitui vírgula por ponto
-  
+
   return parseFloat(cleanVal) || 0;
 }
 
-function parseRow(row: any[]): WeekData {
+function parseRow(row: string[]): WeekData {
   const investido = parseValue(row[2]);
-  const faturamentoFunil = parseValue(row[16]);
-  const roasFunil = investido > 0 ? (faturamentoFunil / investido) : 0;
-  
+  const faturamentoTrafego = parseValue(row[3]);
+  const faturamentoFunil = parseValue(row[18]);
+  const lucroFunil = faturamentoFunil - investido;
+
   return {
-    investido,                               // Coluna C
-    faturamentoTrafego: parseValue(row[3]),  // Coluna D
-    roasTrafego: parseValue(row[4]),         // Coluna E
-    alunos: parseValue(row[5]),              // Coluna F
-    qualificados: parseValue(row[6]),        // Coluna G
-    agendados: parseValue(row[7]),           // Coluna H
-    taxaAgendamento: parseValue(row[8]),     // Coluna I
-    callRealizada: parseValue(row[9]),       // Coluna J
-    taxaComparecimento: parseValue(row[10]), // Coluna K
-    numeroVenda: parseValue(row[11]),        // Coluna L
-    taxaConversao: parseValue(row[12]),      // Coluna M
-    taxaAscensao: parseValue(row[13]),       // Coluna N
-    vendaMonetizacao: parseValue(row[14]),   // Coluna O
-    entradas: parseValue(row[15]),           // Coluna P
-    faturamentoFunil,                        // Coluna Q
-    lucroFunil: parseValue(row[17]),         // Coluna R
-    roasFunil                                // Calculado
+    funil: row[0] || '',
+    periodo: row[1] || '',
+    investido,
+    faturamentoTrafego,
+    roasTrafego: parseValue(row[4]),
+    alunos: parseValue(row[5]),
+    formularios: parseValue(row[6]),
+    taxaPreenchimento: parseValue(row[7]),
+    qualificados: parseValue(row[8]),
+    agendados: parseValue(row[9]),
+    taxaAgendamento: parseValue(row[10]),
+    callRealizada: parseValue(row[11]),
+    taxaComparecimento: parseValue(row[12]),
+    numeroVenda: parseValue(row[13]),
+    taxaConversao: parseValue(row[14]),
+    taxaAscensao: parseValue(row[15]),
+    vendaMonetizacao: parseValue(row[16]),
+    entradas: parseValue(row[17]),
+    faturamentoFunil,
+    roasFunil: parseValue(row[19]),
+    lucroFunil
   };
 }
 
-function parseSheetData(rows: any[][]): ProductData[] {
+function parseCSV(csvText: string): string[][] {
+  const rows: string[][] = [];
+  const lines = csvText.split('\n');
+
+  for (const line of lines) {
+    if (!line.trim()) continue;
+
+    const row: string[] = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        row.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    row.push(current.trim());
+    rows.push(row);
+  }
+
+  return rows;
+}
+
+function parseSheetData(rows: string[][]): ProductData[] {
   const products: ProductData[] = [];
-  
-  // Começar da linha 1 (índice 1), pulando o header (índice 0)
+
+  // Começar da linha 1, pulando o header
   let i = 1;
-  
+
   while (i < rows.length) {
     const row = rows[i];
-    
-    // Verificar se tem nome do funil na coluna A
-    if (!row[0]) {
+
+    if (!row || !row[0] || row[0].trim() === '') {
       i++;
       continue;
     }
-    
+
     const productName = row[0].toString().trim();
     const weeks: WeekData[] = [];
     let tendencia: WeekData | null = null;
-    
+
     console.log(`📦 Processando produto: ${productName} (linha ${i + 1})`);
-    
+
     // Ler as próximas 5 linhas (4 semanas + 1 tendência)
     for (let j = 0; j < 5 && (i + j) < rows.length; j++) {
       const currentRow = rows[i + j];
-      const periodo = currentRow[1]?.toString().toLowerCase() || '';
-      
-      // Verificar se é tendência
+      if (!currentRow || !currentRow[1]) continue;
+
+      const periodo = currentRow[1].toString().toLowerCase();
+
       if (periodo.includes('tendência') || periodo.includes('tendencia')) {
         tendencia = parseRow(currentRow);
-        console.log(`  📈 Tendência encontrada (linha ${i + j + 1})`);
+        console.log(`  📈 Tendência encontrada`);
       } else if (periodo.includes('semana')) {
         const weekData = parseRow(currentRow);
         weeks.push(weekData);
-        console.log(`  📅 ${currentRow[1]} (linha ${i + j + 1})`);
+        console.log(`  📅 ${currentRow[1]}`);
       }
     }
-    
-    // Adicionar produto se tiver pelo menos 1 semana
+
     if (weeks.length > 0) {
       products.push({
         name: productName,
         weeks,
         tendencia
       });
-      console.log(`  ✅ ${productName}: ${weeks.length} semanas processadas`);
+      console.log(`  ✅ ${productName}: ${weeks.length} semanas`);
     }
-    
-    // Avançar 5 linhas (bloco completo)
+
     i += 5;
   }
-  
-  console.log(`✅ Total de produtos processados: ${products.length}`);
+
+  console.log(`✅ Total: ${products.length} produtos`);
   return products;
 }
 
 export async function fetchSheetData(month: string): Promise<ProductData[]> {
-  console.log('🔄 Buscando dados DIRETAMENTE da Google Sheets API');
+  console.log('🔄 Buscando dados do Google Sheets via CSV público');
   console.log('📅 Mês:', month);
-  
-  if (!API_KEY) {
-    throw new Error('VITE_GOOGLE_SHEETS_API_KEY não configurada!');
-  }
-  
+
   const sheetName = SHEET_NAMES[month];
   if (!sheetName) {
     throw new Error(`Mês inválido: ${month}. Use: ${Object.keys(SHEET_NAMES).join(', ')}`);
   }
-  
-  const range = `${sheetName}!A1:R200`;
-  const encodedRange = encodeURIComponent(range);
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodedRange}?key=${API_KEY}`;
-  
+
+  // URL para exportar como CSV público
+  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+
   console.log('📋 Aba:', sheetName);
-  console.log('📍 Range:', range);
-  console.log('🔗 URL:', url.replace(API_KEY, 'API_KEY_OCULTA'));
-  
+
   try {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        'Accept': 'text/csv',
       },
     });
 
@@ -163,20 +192,23 @@ export async function fetchSheetData(month: string): Promise<ProductData[]> {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Erro da API:', errorText);
-      throw new Error(`Erro ${response.status}: ${errorText}`);
+      console.error('❌ Erro:', errorText);
+      throw new Error(`Erro ${response.status}: Não foi possível acessar a planilha`);
     }
 
-    const data = await response.json();
-    console.log('✅ Dados recebidos:', data.values?.length, 'linhas');
+    const csvText = await response.text();
+    console.log('✅ CSV recebido:', csvText.length, 'caracteres');
 
-    if (!data.values || !Array.isArray(data.values)) {
-      throw new Error('Formato de dados inválido da API');
+    if (!csvText || csvText.length < 100) {
+      throw new Error('Dados vazios ou inválidos da planilha');
     }
 
-    const parsed = parseSheetData(data.values);
-    console.log('✅ Dados parseados:', parsed.length, 'produtos');
-    
+    const rows = parseCSV(csvText);
+    console.log('✅ Linhas parseadas:', rows.length);
+
+    const parsed = parseSheetData(rows);
+    console.log('✅ Produtos parseados:', parsed.length);
+
     return parsed;
   } catch (error) {
     console.error('❌ Erro ao buscar dados:', error);

@@ -1,22 +1,20 @@
 import React from 'react';
-import { useDashboardData } from '@/hooks/useDashboardData';
+import { useDashboardData, MONTHS } from '@/hooks/useDashboardData';
 import { useBranding } from '@/hooks/useBranding';
 import { ThemeSelector } from '@/components/dashboard/ThemeSelector';
 import { ResponsiveSidebar } from '@/components/dashboard/ResponsiveSidebar';
 import { BottomNav } from '@/components/dashboard/BottomNav';
 import { ToastContainer } from '@/components/dashboard/Toast';
 import { DashboardModule } from '@/components/dashboard/modules/Dashboard';
-import { ResumoModule } from '@/components/dashboard/modules/Resumo';
-import { ROIModule } from '@/components/dashboard/modules/ROI';
-import { CustosModule } from '@/components/dashboard/modules/Custos';
-import { InsightsModule } from '@/components/dashboard/modules/Insights';
-import { CompararFunisModule } from '@/components/dashboard/modules/CompararFunis';
-import { ExportarModule } from '@/components/dashboard/modules/Exportar';
-import { ComparacaoModule } from '@/components/dashboard/modules/OtherModules';
+import { AquisicaoModule } from '@/components/dashboard/modules/Aquisicao';
+import { SDRModule } from '@/components/dashboard/modules/SDR';
+import { MonetizacaoModule } from '@/components/dashboard/modules/Monetizacao';
+import { RelatorioModule } from '@/components/dashboard/modules/Relatorio';
+import { CompararMesesModule } from '@/components/dashboard/modules/CompararMeses';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator';
 import { UserMenu } from '@/components/UserMenu';
-import { OrganizationSwitcher } from '@/components/dashboard/OrganizationSwitcher';
+import type { Month } from '@/types/dashboard';
 
 const Index = () => {
   useBranding(); // Aplicar branding da organização
@@ -42,6 +40,14 @@ const Index = () => {
 
   const [sidebarMinimized, setSidebarMinimized] = React.useState(false);
 
+  // Get current month object from MONTHS array
+  const currentMonthObject: Month = MONTHS.find(m => m.id === currentMonth) || MONTHS[0];
+
+  // Handler to convert Month object to string for selectMonth
+  const handleMonthSelect = (month: Month) => {
+    selectMonth(month.id);
+  };
+
   return (
     <div className="min-h-screen bg-secondary">
       {/* User Menu */}
@@ -60,7 +66,7 @@ const Index = () => {
       <BottomNav currentModule={currentModule} onModuleChange={selectModule} />
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
-      <div className={`transition-all duration-300 ease-in-out min-h-screen pt-20 px-4 pb-8 lg:pt-8 lg:pb-8 ${sidebarMinimized ? 'lg:ml-20' : 'lg:ml-64'}`}>
+      <div className={`transition-all duration-300 ease-in-out min-h-screen pt-20 px-4 pb-20 lg:pt-8 lg:pb-8 max-md:pb-[80px] ${sidebarMinimized ? 'lg:ml-20' : 'lg:ml-64'}`}>
         <div className="max-w-[1400px] mx-auto">
           {loading ? (
             <div className="text-center p-20">
@@ -80,15 +86,19 @@ const Index = () => {
                   onWeekChange={setCurrentWeek}
                 />
               )}
-              {currentModule === 'resumo' && (
-                <ResumoModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />
+              {currentModule === 'aquisicao' && (
+                <AquisicaoModule currentMonth={currentMonthObject} onMonthSelect={handleMonthSelect} />
               )}
-              {currentModule === 'roi' && <ROIModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
-              {currentModule === 'custos' && <CustosModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
-              {currentModule === 'insights' && <InsightsModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
-              {currentModule === 'comparar-funis' && <CompararFunisModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
-              {currentModule === 'comparacao' && <ComparacaoModule />}
-              {currentModule === 'exportar' && <ExportarModule />}
+              {currentModule === 'sdr' && (
+                <SDRModule currentMonth={currentMonthObject} onMonthSelect={handleMonthSelect} />
+              )}
+              {currentModule === 'monetizacao' && <MonetizacaoModule />}
+              {currentModule === 'comparar' && (
+                <CompararMesesModule currentMonth={currentMonthObject} onMonthSelect={handleMonthSelect} />
+              )}
+              {currentModule === 'relatorio' && (
+                <RelatorioModule currentMonth={currentMonthObject} onMonthSelect={handleMonthSelect} />
+              )}
             </>
           )}
         </div>

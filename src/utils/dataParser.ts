@@ -31,42 +31,51 @@ export function parseValue(val: any): number {
 }
 
 export function parseRow(row: any[]): WeekData {
-  // Mapear colunas conforme estrutura da planilha
-  const investido = parseValue(row[1]);           // Coluna B
-  const faturamentoTrafego = parseValue(row[2]);  // Coluna C
-  const roasTrafego = parseValue(row[3]);         // Coluna D
-  const alunos = parseValue(row[4]);              // Coluna E
-  const qualificados = parseValue(row[5]);        // Coluna F
-  const agendados = parseValue(row[6]);           // Coluna G
-  const taxaAgendamento = parseValue(row[7]);     // Coluna H
-  const callRealizada = parseValue(row[8]);       // Coluna I
-  const taxaComparecimento = parseValue(row[9]);  // Coluna J
-  const numeroVenda = parseValue(row[10]);        // Coluna K
-  const taxaConversao = parseValue(row[11]);      // Coluna L
-  const taxaAscensao = parseValue(row[12]);       // Coluna M
-  const vendaMonetizacao = parseValue(row[13]);   // Coluna N
-  const entradas = parseValue(row[14]);           // Coluna O
-  const faturamentoFunil = parseValue(row[15]);   // Coluna P
-  const lucroFunil = parseValue(row[16]);         // Coluna Q
-  
-  const roasFunil = investido > 0 ? (faturamentoFunil / investido) : 0;
+  // Mapeamento correto das colunas conforme a planilha
+  // Coluna A - Funil (row[0])
+  // Coluna B - Período (row[1])
+  const investido = parseValue(row[2]);                  // Coluna C - Investimento
+  const faturamentoTrafego = parseValue(row[3]);         // Coluna D - Faturamento Tráfego
+  const roasTrafego = parseValue(row[4]);                // Coluna E - Roas Tráfego
+  const alunos = parseValue(row[5]);                     // Coluna F - Número de alunos
+  const formularios = parseValue(row[6]);                // Coluna G - Número de formulários
+  const taxaPreenchimento = parseValue(row[7]);          // Coluna H - Taxa de preenchimento
+  const qualificados = parseValue(row[8]);               // Coluna I - Qualificados
+  const agendados = parseValue(row[9]);                  // Coluna J - Agendados
+  const taxaAgendamento = parseValue(row[10]);           // Coluna K - Taxa de agendamento
+  const callRealizada = parseValue(row[11]);             // Coluna L - Call realizada
+  const taxaComparecimento = parseValue(row[12]);        // Coluna M - Taxa de comparecimento
+  const numeroVenda = parseValue(row[13]);               // Coluna N - Número de vendas
+  const taxaConversao = parseValue(row[14]);             // Coluna O - Taxa de conversão
+  const taxaAscensao = parseValue(row[15]);              // Coluna P - Taxa de ascensão
+  const vendaMonetizacao = parseValue(row[16]);          // Coluna Q - Venda Monetização
+  const entradas = parseValue(row[17]);                  // Coluna R - Entradas Monetização
+  const faturamentoFunil = parseValue(row[18]);          // Coluna S - Faturamento Funil
+  const roasFunil = parseValue(row[19]);                 // Coluna T - Roas do Funil
+  const lucroFunil = faturamentoFunil - investido;       // Calculado
 
   return {
+    funil: row[0] || '',                                 // Coluna A - Funil
+    periodo: row[1] || '',                               // Coluna B - Período
+    investido,
+    faturamentoTrafego,
+    roasTrafego,
     alunos,
+    formularios,
+    taxaPreenchimento,
     qualificados,
     agendados,
     taxaAgendamento,
     callRealizada,
+    taxaComparecimento,
     numeroVenda,
-    investido,
-    faturamentoTrafego,
-    faturamentoFunil,
-    roasTrafego,
-    roasFunil,
+    taxaConversao,
+    taxaAscensao,
     vendaMonetizacao,
     entradas,
+    faturamentoFunil,
+    roasFunil,
     lucroFunil,
-    taxaConversao,
   };
 }
 
