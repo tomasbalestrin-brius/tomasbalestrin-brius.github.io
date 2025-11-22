@@ -9,6 +9,7 @@ export function BottomNav({ currentModule, onModuleChange }: BottomNavProps) {
   const modules: Array<{ id: ModuleName; icon: string; label: string }> = [
     { id: 'dashboard', icon: '🏠', label: 'Home' },
     { id: 'aquisicao', icon: '📈', label: 'Aquisição' },
+    { id: 'sdr', icon: '📞', label: 'SDR' },
     { id: 'monetizacao', icon: '💰', label: 'Monetização' },
     { id: 'relatorio', icon: '📋', label: 'Relatório' },
   ];

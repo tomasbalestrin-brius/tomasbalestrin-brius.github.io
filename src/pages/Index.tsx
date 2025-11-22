@@ -7,6 +7,7 @@ import { BottomNav } from '@/components/dashboard/BottomNav';
 import { ToastContainer } from '@/components/dashboard/Toast';
 import { DashboardModule } from '@/components/dashboard/modules/Dashboard';
 import { AquisicaoModule } from '@/components/dashboard/modules/Aquisicao';
+import { SDRModule } from '@/components/dashboard/modules/SDR';
 import { MonetizacaoModule } from '@/components/dashboard/modules/Monetizacao';
 import { RelatorioModule } from '@/components/dashboard/modules/Relatorio';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
@@ -86,6 +87,9 @@ const Index = () => {
               )}
               {currentModule === 'aquisicao' && (
                 <AquisicaoModule currentMonth={currentMonthObject} onMonthSelect={handleMonthSelect} />
+              )}
+              {currentModule === 'sdr' && (
+                <SDRModule currentMonth={currentMonthObject} onMonthSelect={handleMonthSelect} />
               )}
               {currentModule === 'monetizacao' && <MonetizacaoModule />}
               {currentModule === 'relatorio' && (

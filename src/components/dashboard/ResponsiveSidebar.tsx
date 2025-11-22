@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { ModuleName } from '@/types/dashboard';
 import { useAuth } from '@/contexts/AuthContext';
-import { LayoutDashboard, TrendingUp, DollarSign, FileText } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, Phone, DollarSign, FileText } from 'lucide-react';
 
 interface ResponsiveSidebarProps {
   currentModule: ModuleName;
@@ -53,6 +53,7 @@ export function ResponsiveSidebar({ currentModule, onModuleChange, onMinimizeCha
   const modules = [
     { id: 'dashboard' as ModuleName, icon: LayoutDashboard, label: 'Dashboard' },
     { id: 'aquisicao' as ModuleName, icon: TrendingUp, label: 'Aquisição' },
+    { id: 'sdr' as ModuleName, icon: Phone, label: 'SDR' },
     { id: 'monetizacao' as ModuleName, icon: DollarSign, label: 'Monetização' },
     { id: 'relatorio' as ModuleName, icon: FileText, label: 'Relatório' },
   ];

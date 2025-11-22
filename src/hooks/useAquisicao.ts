@@ -22,23 +22,38 @@ export function useAquisicao(month: string) {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (fetchError) throw fetchError;
+      // Handle table not found gracefully
+      if (fetchError) {
+        if (fetchError.code === '42P01' || fetchError.message?.includes('not found') || fetchError.code === 'PGRST116') {
+          console.warn('Tabela funis_aquisicao ainda nao existe. Use o Supabase para criar.');
+          setFunis([]);
+          return;
+        }
+        throw fetchError;
+      }
       setFunis((data as FunilAquisicao[]) || []);
 
-      // Get last sync log
-      const { data: syncLogs } = await supabase
-        .from('sync_logs')
-        .select('*')
-        .eq('tipo', 'aquisicao')
-        .order('created_at', { ascending: false })
-        .limit(1);
+      // Get last sync log (also handle if table doesn't exist)
+      try {
+        const { data: syncLogs } = await supabase
+          .from('sync_logs')
+          .select('*')
+          .eq('tipo', 'aquisicao')
+          .order('created_at', { ascending: false })
+          .limit(1);
 
-      if (syncLogs && syncLogs.length > 0) {
-        setLastSync(new Date(syncLogs[0].created_at).toLocaleString('pt-BR'));
+        if (syncLogs && syncLogs.length > 0) {
+          setLastSync(new Date(syncLogs[0].created_at).toLocaleString('pt-BR'));
+        }
+      } catch (syncError) {
+        console.warn('Tabela sync_logs ainda nao existe');
       }
     } catch (err) {
       console.error('Erro ao buscar dados de aquisicao:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
+      // Don't show error for missing tables
+      if (err instanceof Error && !err.message?.includes('not found')) {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -77,30 +92,44 @@ export function useAquisicao(month: string) {
         };
       });
 
-      // Upsert to Supabase (update if exists, insert if not)
-      for (const funil of transformedData) {
-        const { error: upsertError } = await supabase
-          .from('funis_aquisicao')
-          .upsert(
-            { ...funil },
-            { onConflict: 'nome_funil,periodo' }
-          );
+      // Try to upsert to Supabase (will fail gracefully if tables don't exist)
+      let savedToDb = false;
+      try {
+        for (const funil of transformedData) {
+          const { error: upsertError } = await supabase
+            .from('funis_aquisicao')
+            .upsert(
+              { ...funil },
+              { onConflict: 'nome_funil,periodo' }
+            );
 
-        if (upsertError) {
-          console.error('Erro ao salvar funil:', funil.nome_funil, upsertError);
+          if (upsertError) {
+            // If table doesn't exist, skip saving to DB
+            if (upsertError.code === '42P01' || upsertError.message?.includes('not found')) {
+              console.warn('Tabela funis_aquisicao nao existe. Mostrando apenas dados da planilha.');
+              break;
+            }
+            console.error('Erro ao salvar funil:', funil.nome_funil, upsertError);
+          } else {
+            savedToDb = true;
+          }
         }
+
+        // Log sync only if we could save to DB
+        if (savedToDb) {
+          await supabase.from('sync_logs').insert({
+            tipo: 'aquisicao',
+            status: 'success',
+            mensagem: `Sincronizado ${transformedData.length} funis de ${month}`,
+            registros_sincronizados: transformedData.length,
+          });
+
+          // Refresh data from Supabase
+          await fetchFromSupabase();
+        }
+      } catch (dbErr) {
+        console.warn('Nao foi possivel salvar no Supabase:', dbErr);
       }
-
-      // Log sync
-      await supabase.from('sync_logs').insert({
-        tipo: 'aquisicao',
-        status: 'success',
-        mensagem: `Sincronizado ${transformedData.length} funis de ${month}`,
-        registros_sincronizados: transformedData.length,
-      });
-
-      // Refresh data
-      await fetchFromSupabase();
 
       setLastSync(new Date().toLocaleString('pt-BR'));
       console.log('Sincronizacao concluida com sucesso!');
@@ -109,13 +138,17 @@ export function useAquisicao(month: string) {
       console.error('Erro ao sincronizar:', err);
       setError(err instanceof Error ? err.message : 'Erro ao sincronizar');
 
-      // Log sync error
-      await supabase.from('sync_logs').insert({
-        tipo: 'aquisicao',
-        status: 'error',
-        mensagem: err instanceof Error ? err.message : 'Erro desconhecido',
-        registros_sincronizados: 0,
-      });
+      // Try to log sync error (may fail if table doesn't exist)
+      try {
+        await supabase.from('sync_logs').insert({
+          tipo: 'aquisicao',
+          status: 'error',
+          mensagem: err instanceof Error ? err.message : 'Erro desconhecido',
+          registros_sincronizados: 0,
+        });
+      } catch (logErr) {
+        console.warn('Nao foi possivel logar erro no Supabase');
+      }
     } finally {
       setSyncing(false);
     }
