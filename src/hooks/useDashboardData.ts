@@ -3,10 +3,10 @@ import type { AllData, Month, Product, ModuleName, ThemeName, Toast } from '@/ty
 import { fetchSheetData } from '@/lib/sheets-api';
 
 export const MONTHS: Month[] = [
-  { id: 'out', name: 'Outubro', gid: '0', startDate: '2024-10-01', endDate: '2024-10-31' },
-  { id: 'nov', name: 'Novembro', gid: '799831430', startDate: '2024-11-01', endDate: '2024-11-30' },
-  { id: 'dez', name: 'Dezembro', gid: '1796217875', startDate: '2024-12-01', endDate: '2024-12-31' },
-  { id: 'jan', name: 'Janeiro', gid: '1107738440', startDate: '2025-01-01', endDate: '2025-01-31' },
+  { id: 'out', name: 'Outubro', gid: '0', startDate: '2025-10-01', endDate: '2025-10-31' },
+  { id: 'nov', name: 'Novembro', gid: '799831430', startDate: '2025-11-01', endDate: '2025-11-30' },
+  { id: 'dez', name: 'Dezembro', gid: '1796217875', startDate: '2025-12-01', endDate: '2025-12-31' },
+  { id: 'jan', name: 'Janeiro', gid: '1107738440', startDate: '2026-01-01', endDate: '2026-01-31' },
 ];
 
 export const ALL_PRODUCTS: Product[] = [
