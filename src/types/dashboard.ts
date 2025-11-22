@@ -57,13 +57,78 @@ export interface FunnelData {
 
 export type ModuleName =
   | 'dashboard'
-  | 'resumo'
-  | 'comparar-funis'
-  | 'comparacao'
-  | 'roi'
-  | 'custos'
-  | 'insights'
-  | 'exportar';
+  | 'aquisicao'
+  | 'monetizacao'
+  | 'relatorio';
+
+// Tipos para Supabase - Monetização
+export interface Closer {
+  id: string;
+  nome: string;
+  foto_url?: string;
+  taxa_conversao: number;
+  numero_vendas: number;
+  valor_total_vendas: number;
+  valor_total_entradas: number;
+  tempo_empresa?: string;
+  time?: string;
+  produto_mais_vendido?: string;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Funil {
+  id: string;
+  nome_produto: string;
+  valor_venda: number;
+  especialista: string;
+  descricao?: string;
+  total_vendas: number;
+  valor_total_gerado: number;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Venda {
+  id: string;
+  closer_id: string;
+  funil_id: string;
+  produto: string;
+  valor_venda: number;
+  valor_entrada: number;
+  negociacao?: string;
+  data_venda: string;
+  created_at: string;
+  // Relacionamentos
+  closer?: Closer;
+  funil?: Funil;
+}
+
+export interface FunilAquisicao {
+  id: string;
+  nome_funil: string;
+  investido: number;
+  faturamento_trafego: number;
+  roas_trafego: number;
+  numero_alunos: number;
+  periodo: string;
+  data_inicio?: string;
+  data_fim?: string;
+  sheet_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SyncLog {
+  id: string;
+  tipo: 'aquisicao' | 'monetizacao';
+  status: 'success' | 'error';
+  mensagem?: string;
+  registros_sincronizados: number;
+  created_at: string;
+}
 
 export type ThemeName = 'dark' | 'light' | 'blue' | 'green' | 'purple';
 

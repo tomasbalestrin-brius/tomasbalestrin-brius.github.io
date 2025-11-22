@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { ModuleName } from '@/types/dashboard';
 import { useAuth } from '@/contexts/AuthContext';
-import { LayoutDashboard, FileText, TrendingUp, DollarSign, Lightbulb, GitCompare, Calendar, Download } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, DollarSign, FileText } from 'lucide-react';
 
 interface ResponsiveSidebarProps {
   currentModule: ModuleName;
@@ -52,13 +52,9 @@ export function ResponsiveSidebar({ currentModule, onModuleChange, onMinimizeCha
 
   const modules = [
     { id: 'dashboard' as ModuleName, icon: LayoutDashboard, label: 'Dashboard' },
-    { id: 'resumo' as ModuleName, icon: FileText, label: 'Resumo Geral' },
-    { id: 'roi' as ModuleName, icon: TrendingUp, label: 'Lucro e ROAS' },
-    { id: 'custos' as ModuleName, icon: DollarSign, label: 'Custo por Lead' },
-    { id: 'insights' as ModuleName, icon: Lightbulb, label: 'Insights' },
-    { id: 'comparar-funis' as ModuleName, icon: GitCompare, label: 'Comparar Funis' },
-    { id: 'comparacao' as ModuleName, icon: Calendar, label: 'Comparar Meses' },
-    { id: 'exportar' as ModuleName, icon: Download, label: 'Exportar' },
+    { id: 'aquisicao' as ModuleName, icon: TrendingUp, label: 'Aquisição' },
+    { id: 'monetizacao' as ModuleName, icon: DollarSign, label: 'Monetização' },
+    { id: 'relatorio' as ModuleName, icon: FileText, label: 'Relatório' },
   ];
 
   const handleNavigate = (moduleId: ModuleName) => {

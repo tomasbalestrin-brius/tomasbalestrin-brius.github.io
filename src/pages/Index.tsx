@@ -6,17 +6,12 @@ import { ResponsiveSidebar } from '@/components/dashboard/ResponsiveSidebar';
 import { BottomNav } from '@/components/dashboard/BottomNav';
 import { ToastContainer } from '@/components/dashboard/Toast';
 import { DashboardModule } from '@/components/dashboard/modules/Dashboard';
-import { ResumoModule } from '@/components/dashboard/modules/Resumo';
-import { ROIModule } from '@/components/dashboard/modules/ROI';
-import { CustosModule } from '@/components/dashboard/modules/Custos';
-import { InsightsModule } from '@/components/dashboard/modules/Insights';
-import { CompararFunisModule } from '@/components/dashboard/modules/CompararFunis';
-import { ExportarModule } from '@/components/dashboard/modules/Exportar';
-import { ComparacaoModule } from '@/components/dashboard/modules/OtherModules';
+import { AquisicaoModule } from '@/components/dashboard/modules/Aquisicao';
+import { MonetizacaoModule } from '@/components/dashboard/modules/Monetizacao';
+import { RelatorioModule } from '@/components/dashboard/modules/Relatorio';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator';
 import { UserMenu } from '@/components/UserMenu';
-import { OrganizationSwitcher } from '@/components/dashboard/OrganizationSwitcher';
 
 const Index = () => {
   useBranding(); // Aplicar branding da organização
@@ -80,15 +75,13 @@ const Index = () => {
                   onWeekChange={setCurrentWeek}
                 />
               )}
-              {currentModule === 'resumo' && (
-                <ResumoModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />
+              {currentModule === 'aquisicao' && (
+                <AquisicaoModule currentMonth={currentMonth} onMonthSelect={selectMonth} />
               )}
-              {currentModule === 'roi' && <ROIModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
-              {currentModule === 'custos' && <CustosModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
-              {currentModule === 'insights' && <InsightsModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
-              {currentModule === 'comparar-funis' && <CompararFunisModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
-              {currentModule === 'comparacao' && <ComparacaoModule />}
-              {currentModule === 'exportar' && <ExportarModule />}
+              {currentModule === 'monetizacao' && <MonetizacaoModule />}
+              {currentModule === 'relatorio' && (
+                <RelatorioModule currentMonth={currentMonth} onMonthSelect={selectMonth} />
+              )}
             </>
           )}
         </div>
