@@ -10,6 +10,7 @@ import { AquisicaoModule } from '@/components/dashboard/modules/Aquisicao';
 import { SDRModule } from '@/components/dashboard/modules/SDR';
 import { MonetizacaoModule } from '@/components/dashboard/modules/Monetizacao';
 import { RelatorioModule } from '@/components/dashboard/modules/Relatorio';
+import { CompararMesesModule } from '@/components/dashboard/modules/CompararMeses';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator';
 import { UserMenu } from '@/components/UserMenu';
@@ -65,7 +66,7 @@ const Index = () => {
       <BottomNav currentModule={currentModule} onModuleChange={selectModule} />
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
-      <div className={`transition-all duration-300 ease-in-out min-h-screen pt-20 px-4 pb-8 lg:pt-8 lg:pb-8 ${sidebarMinimized ? 'lg:ml-20' : 'lg:ml-64'}`}>
+      <div className={`transition-all duration-300 ease-in-out min-h-screen pt-20 px-4 pb-20 lg:pt-8 lg:pb-8 max-md:pb-[80px] ${sidebarMinimized ? 'lg:ml-20' : 'lg:ml-64'}`}>
         <div className="max-w-[1400px] mx-auto">
           {loading ? (
             <div className="text-center p-20">
@@ -92,6 +93,9 @@ const Index = () => {
                 <SDRModule currentMonth={currentMonthObject} onMonthSelect={handleMonthSelect} />
               )}
               {currentModule === 'monetizacao' && <MonetizacaoModule />}
+              {currentModule === 'comparar' && (
+                <CompararMesesModule currentMonth={currentMonthObject} onMonthSelect={handleMonthSelect} />
+              )}
               {currentModule === 'relatorio' && (
                 <RelatorioModule currentMonth={currentMonthObject} onMonthSelect={handleMonthSelect} />
               )}

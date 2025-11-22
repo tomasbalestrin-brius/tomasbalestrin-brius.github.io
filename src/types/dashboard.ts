@@ -60,7 +60,8 @@ export type ModuleName =
   | 'aquisicao'
   | 'sdr'
   | 'monetizacao'
-  | 'relatorio';
+  | 'relatorio'
+  | 'comparar';
 
 // Tipos para Supabase - Monetização
 export interface Closer {
