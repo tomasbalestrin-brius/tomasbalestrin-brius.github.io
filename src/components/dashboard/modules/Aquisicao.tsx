@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { TrendingUp, RefreshCw, Calendar, DollarSign, Users, Target } from 'lucide-react';
-import type { Month, FunilAquisicao } from '@/types/dashboard';
+import { TrendingUp, RefreshCw, Calendar, DollarSign, Users, Target, Loader2, AlertCircle, BarChart3 } from 'lucide-react';
+import type { Month } from '@/types/dashboard';
 import { MonthSelector } from '@/components/dashboard/MonthSelector';
+import { useAquisicao } from '@/hooks/useAquisicao';
+import { MONTHS } from '@/hooks/useDashboardData';
 
 interface AquisicaoModuleProps {
   currentMonth: Month;
@@ -9,25 +10,22 @@ interface AquisicaoModuleProps {
 }
 
 export function AquisicaoModule({ currentMonth, onMonthSelect }: AquisicaoModuleProps) {
-  const [loading, setLoading] = useState(false);
-  const [lastSync, setLastSync] = useState<string | null>(null);
-  const [funis, setFunis] = useState<FunilAquisicao[]>([]);
+  // Get month name from currentMonth
+  const monthName = MONTHS.find(m => m.id === currentMonth.id)?.name || currentMonth.name;
 
-  // Placeholder data
-  const placeholderMetrics = {
-    totalInvestido: 0,
-    totalFaturamento: 0,
-    roasMedio: 0,
-    totalAlunos: 0,
-  };
+  const {
+    funis,
+    rawData,
+    metrics,
+    loading,
+    syncing,
+    lastSync,
+    error,
+    syncFromSheets,
+  } = useAquisicao(monthName);
 
-  const handleSync = async () => {
-    setLoading(true);
-    // TODO: Implementar sync com Google Sheets
-    setTimeout(() => {
-      setLoading(false);
-      setLastSync(new Date().toLocaleString('pt-BR'));
-    }, 2000);
+  const handleSync = () => {
+    syncFromSheets();
   };
 
   return (
@@ -47,14 +45,22 @@ export function AquisicaoModule({ currentMonth, onMonthSelect }: AquisicaoModule
 
           <button
             onClick={handleSync}
-            disabled={loading}
+            disabled={syncing || loading}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded-lg transition-colors"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            {loading ? 'Sincronizando...' : 'Sincronizar'}
+            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Sincronizando...' : 'Sincronizar'}
           </button>
         </div>
       </div>
+
+      {/* Error Alert */}
+      {error && (
+        <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <p>{error}</p>
+        </div>
+      )}
 
       {/* Last Sync Info */}
       {lastSync && (
@@ -64,98 +70,166 @@ export function AquisicaoModule({ currentMonth, onMonthSelect }: AquisicaoModule
         </div>
       )}
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center gap-3 p-8 text-slate-400">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          <span>Carregando dados...</span>
+        </div>
+      )}
+
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <DollarSign className="w-5 h-5 text-red-400" />
-            <span className="text-slate-400 text-sm">Total Investido</span>
+      {!loading && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <DollarSign className="w-5 h-5 text-red-400" />
+              <span className="text-slate-400 text-sm">Total Investido</span>
+            </div>
+            <div className="text-2xl font-bold text-white">
+              R$ {metrics.totalInvestido.toLocaleString('pt-BR')}
+            </div>
           </div>
-          <div className="text-2xl font-bold text-white">
-            R$ {placeholderMetrics.totalInvestido.toLocaleString('pt-BR')}
+
+          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <DollarSign className="w-5 h-5 text-green-400" />
+              <span className="text-slate-400 text-sm">Faturamento Trafego</span>
+            </div>
+            <div className="text-2xl font-bold text-white">
+              R$ {metrics.totalFaturamento.toLocaleString('pt-BR')}
+            </div>
+          </div>
+
+          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Target className="w-5 h-5 text-purple-400" />
+              <span className="text-slate-400 text-sm">ROAS Medio</span>
+            </div>
+            <div className={`text-2xl font-bold ${metrics.roasMedio >= 1 ? 'text-green-400' : 'text-red-400'}`}>
+              {metrics.roasMedio.toFixed(2)}x
+            </div>
+          </div>
+
+          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Users className="w-5 h-5 text-blue-400" />
+              <span className="text-slate-400 text-sm">Total Alunos</span>
+            </div>
+            <div className="text-2xl font-bold text-white">
+              {metrics.totalAlunos.toLocaleString('pt-BR')}
+            </div>
           </div>
         </div>
+      )}
 
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <DollarSign className="w-5 h-5 text-green-400" />
-            <span className="text-slate-400 text-sm">Faturamento Trafego</span>
+      {/* Raw Data Preview (from Google Sheets) */}
+      {rawData.length > 0 && (
+        <div className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
+          <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-blue-400" />
+              Dados do Google Sheets ({monthName})
+            </h2>
+            <span className="text-sm text-slate-400">{rawData.length} funis</span>
           </div>
-          <div className="text-2xl font-bold text-white">
-            R$ {placeholderMetrics.totalFaturamento.toLocaleString('pt-BR')}
-          </div>
-        </div>
 
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Target className="w-5 h-5 text-purple-400" />
-            <span className="text-slate-400 text-sm">ROAS Medio</span>
-          </div>
-          <div className="text-2xl font-bold text-white">
-            {placeholderMetrics.roasMedio.toFixed(2)}x
-          </div>
-        </div>
-
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="w-5 h-5 text-blue-400" />
-            <span className="text-slate-400 text-sm">Total Alunos</span>
-          </div>
-          <div className="text-2xl font-bold text-white">
-            {placeholderMetrics.totalAlunos.toLocaleString('pt-BR')}
-          </div>
-        </div>
-      </div>
-
-      {/* Funis Table */}
-      <div className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-slate-700">
-          <h2 className="text-lg font-semibold text-white">Funis de Aquisicao</h2>
-        </div>
-
-        {funis.length === 0 ? (
-          <div className="p-12 text-center">
-            <TrendingUp className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400 text-lg mb-2">Nenhum dado de aquisicao ainda</p>
-            <p className="text-slate-500 text-sm">Clique em "Sincronizar" para importar dados do Google Sheets</p>
-          </div>
-        ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-900/50">
                 <tr>
                   <th className="px-4 py-3 text-left text-sm font-medium text-slate-400">Funil</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Semanas</th>
                   <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Investido</th>
                   <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Faturamento</th>
                   <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">ROAS</th>
                   <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Alunos</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-slate-400">Periodo</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700">
-                {funis.map((funil) => (
-                  <tr key={funil.id} className="hover:bg-slate-700/30 transition-colors">
-                    <td className="px-4 py-3 text-white font-medium">{funil.nome_funil}</td>
-                    <td className="px-4 py-3 text-right text-red-400">
-                      R$ {funil.investido.toLocaleString('pt-BR')}
-                    </td>
-                    <td className="px-4 py-3 text-right text-green-400">
-                      R$ {funil.faturamento_trafego.toLocaleString('pt-BR')}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className={`font-medium ${funil.roas_trafego >= 1 ? 'text-green-400' : 'text-red-400'}`}>
-                        {funil.roas_trafego.toFixed(2)}x
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right text-blue-400">{funil.numero_alunos}</td>
-                    <td className="px-4 py-3 text-slate-400">{funil.periodo}</td>
-                  </tr>
-                ))}
+                {rawData.map((product, index) => {
+                  const totalInvestido = product.weeks.reduce((sum, w) => sum + w.investido, 0);
+                  const totalFaturamento = product.weeks.reduce((sum, w) => sum + w.faturamentoTrafego, 0);
+                  const totalAlunos = product.weeks.reduce((sum, w) => sum + w.alunos, 0);
+                  const roas = totalInvestido > 0 ? totalFaturamento / totalInvestido : 0;
+
+                  return (
+                    <tr key={index} className="hover:bg-slate-700/30 transition-colors">
+                      <td className="px-4 py-3 text-white font-medium">{product.name}</td>
+                      <td className="px-4 py-3 text-right text-slate-400">{product.weeks.length}</td>
+                      <td className="px-4 py-3 text-right text-red-400">
+                        R$ {totalInvestido.toLocaleString('pt-BR')}
+                      </td>
+                      <td className="px-4 py-3 text-right text-green-400">
+                        R$ {totalFaturamento.toLocaleString('pt-BR')}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className={`font-medium ${roas >= 1 ? 'text-green-400' : 'text-red-400'}`}>
+                          {roas.toFixed(2)}x
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right text-blue-400">{totalAlunos}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Funis Table (from Supabase) */}
+      {!loading && (
+        <div className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
+          <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-white">Funis de Aquisicao (Salvos)</h2>
+            <span className="text-sm text-slate-400">{funis.length} registros</span>
+          </div>
+
+          {funis.length === 0 ? (
+            <div className="p-12 text-center">
+              <TrendingUp className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-400 text-lg mb-2">Nenhum dado de aquisicao salvo</p>
+              <p className="text-slate-500 text-sm">Clique em "Sincronizar" para importar dados do Google Sheets</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-900/50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-400">Funil</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Investido</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Faturamento</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">ROAS</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Alunos</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-400">Periodo</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700">
+                  {funis.map((funil) => (
+                    <tr key={funil.id} className="hover:bg-slate-700/30 transition-colors">
+                      <td className="px-4 py-3 text-white font-medium">{funil.nome_funil}</td>
+                      <td className="px-4 py-3 text-right text-red-400">
+                        R$ {funil.investido.toLocaleString('pt-BR')}
+                      </td>
+                      <td className="px-4 py-3 text-right text-green-400">
+                        R$ {funil.faturamento_trafego.toLocaleString('pt-BR')}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className={`font-medium ${funil.roas_trafego >= 1 ? 'text-green-400' : 'text-red-400'}`}>
+                          {funil.roas_trafego.toFixed(2)}x
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right text-blue-400">{funil.numero_alunos}</td>
+                      <td className="px-4 py-3 text-slate-400">{funil.periodo}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

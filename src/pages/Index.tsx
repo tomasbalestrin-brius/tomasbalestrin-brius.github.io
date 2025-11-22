@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDashboardData } from '@/hooks/useDashboardData';
+import { useDashboardData, MONTHS } from '@/hooks/useDashboardData';
 import { useBranding } from '@/hooks/useBranding';
 import { ThemeSelector } from '@/components/dashboard/ThemeSelector';
 import { ResponsiveSidebar } from '@/components/dashboard/ResponsiveSidebar';
@@ -12,6 +12,7 @@ import { RelatorioModule } from '@/components/dashboard/modules/Relatorio';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator';
 import { UserMenu } from '@/components/UserMenu';
+import type { Month } from '@/types/dashboard';
 
 const Index = () => {
   useBranding(); // Aplicar branding da organização
@@ -36,6 +37,14 @@ const Index = () => {
   } = useDashboardData();
 
   const [sidebarMinimized, setSidebarMinimized] = React.useState(false);
+
+  // Get current month object from MONTHS array
+  const currentMonthObject: Month = MONTHS.find(m => m.id === currentMonth) || MONTHS[0];
+
+  // Handler to convert Month object to string for selectMonth
+  const handleMonthSelect = (month: Month) => {
+    selectMonth(month.id);
+  };
 
   return (
     <div className="min-h-screen bg-secondary">
@@ -76,11 +85,11 @@ const Index = () => {
                 />
               )}
               {currentModule === 'aquisicao' && (
-                <AquisicaoModule currentMonth={currentMonth} onMonthSelect={selectMonth} />
+                <AquisicaoModule currentMonth={currentMonthObject} onMonthSelect={handleMonthSelect} />
               )}
               {currentModule === 'monetizacao' && <MonetizacaoModule />}
               {currentModule === 'relatorio' && (
-                <RelatorioModule currentMonth={currentMonth} onMonthSelect={selectMonth} />
+                <RelatorioModule currentMonth={currentMonthObject} onMonthSelect={handleMonthSelect} />
               )}
             </>
           )}
