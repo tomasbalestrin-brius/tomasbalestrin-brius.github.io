@@ -82,6 +82,11 @@ export function RelatorioModule({ currentMonth, onMonthSelect }: RelatorioModule
           .select('*')
           .order('created_at', { ascending: false });
 
+        // Handle table not found gracefully
+        if (error && (error.code === '42P01' || error.message?.includes('not found'))) {
+          console.warn('Tabela funis_aquisicao nao existe ainda');
+          return { headers: ['Nome Funil', 'Investido', 'Faturamento Trafego', 'ROAS Trafego', 'Numero Alunos', 'Periodo', 'Data Criacao'], rows: [] };
+        }
         if (error) throw error;
 
         const headers = ['Nome Funil', 'Investido', 'Faturamento Trafego', 'ROAS Trafego', 'Numero Alunos', 'Periodo', 'Data Criacao'];
@@ -104,9 +109,14 @@ export function RelatorioModule({ currentMonth, onMonthSelect }: RelatorioModule
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
-
         const headers = ['Nome Funil', 'Periodo', 'Qualificados', 'Agendados', 'Taxa Agendamento (%)', 'Calls Realizadas', 'Taxa Comparecimento (%)'];
+
+        // Handle table not found gracefully
+        if (error && (error.code === '42P01' || error.message?.includes('not found'))) {
+          console.warn('Tabela funis_aquisicao nao existe ainda');
+          return { headers, rows: [] };
+        }
+        if (error) throw error;
         const rows = (data || []).map(item => {
           // SDR data is calculated from acquisition funnels
           // Since we store aggregated data, we use available fields
@@ -136,9 +146,14 @@ export function RelatorioModule({ currentMonth, onMonthSelect }: RelatorioModule
           .select('*')
           .order('valor_total_vendas', { ascending: false });
 
-        if (error) throw error;
-
         const headers = ['Nome', 'Time', 'Taxa Conversao (%)', 'Numero Vendas', 'Valor Total Vendas', 'Valor Total Entradas', 'Ativo'];
+
+        // Handle table not found gracefully
+        if (error && (error.code === '42P01' || error.message?.includes('not found'))) {
+          console.warn('Tabela closers nao existe ainda');
+          return { headers, rows: [] };
+        }
+        if (error) throw error;
         const rows = (data || []).map(item => [
           item.nome || '',
           item.time || '',
@@ -158,9 +173,14 @@ export function RelatorioModule({ currentMonth, onMonthSelect }: RelatorioModule
           .select('*')
           .order('total_vendas', { ascending: false });
 
-        if (error) throw error;
-
         const headers = ['Nome Produto', 'Valor Venda', 'Especialista', 'Descricao', 'Total Vendas', 'Valor Total Gerado', 'Ativo'];
+
+        // Handle table not found gracefully
+        if (error && (error.code === '42P01' || error.message?.includes('not found'))) {
+          console.warn('Tabela funis nao existe ainda');
+          return { headers, rows: [] };
+        }
+        if (error) throw error;
         const rows = (data || []).map(item => [
           item.nome_produto || '',
           (item.valor_venda || 0).toString(),
@@ -194,9 +214,14 @@ export function RelatorioModule({ currentMonth, onMonthSelect }: RelatorioModule
 
         const { data, error } = await query;
 
-        if (error) throw error;
-
         const headers = ['Data Venda', 'Produto', 'Closer', 'Valor Venda', 'Valor Entrada', 'Negociacao'];
+
+        // Handle table not found gracefully
+        if (error && (error.code === '42P01' || error.message?.includes('not found'))) {
+          console.warn('Tabela vendas nao existe ainda');
+          return { headers, rows: [] };
+        }
+        if (error) throw error;
         const rows = (data || []).map(item => [
           item.data_venda ? new Date(item.data_venda).toLocaleDateString('pt-BR') : '',
           item.produto || '',
