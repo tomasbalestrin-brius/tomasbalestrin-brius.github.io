@@ -1,7 +1,8 @@
 // src/lib/sheets-api.ts
 // Fetch DIRETO da Google Sheets API (SEM Edge Functions!)
 
-const SPREADSHEET_ID = '1XsdWQNR7FUo4TrrhsMjSGESS3PtS9G7X8FoHHStxLtU';
+// ID da planilha unificado - usar variável de ambiente ou fallback
+const SPREADSHEET_ID = import.meta.env.VITE_GOOGLE_SHEETS_SPREADSHEET_ID || '1V0-yWzGbDWUEQ21CPtNcHrzPQfLTXKHNBYUlSfzO2Pc';
 const API_KEY = import.meta.env.VITE_GOOGLE_SHEETS_API_KEY;
 
 const SHEET_NAMES: Record<string, string> = {
