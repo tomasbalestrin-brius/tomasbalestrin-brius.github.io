@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Phone, RefreshCw, Calendar, Users, Target, Loader2, AlertCircle, BarChart3, CheckCircle, ClipboardList } from 'lucide-react';
 import type { Month } from '@/types/dashboard';
 import { MonthSelector } from '@/components/dashboard/MonthSelector';
@@ -9,7 +10,19 @@ interface SDRModuleProps {
   onMonthSelect: (month: Month) => void;
 }
 
+type PeriodoFilter = 'total' | 'semana1' | 'semana2' | 'semana3' | 'semana4';
+
+const PERIODOS = [
+  { id: 'total', name: 'Total do Mês' },
+  { id: 'semana1', name: 'Semana 1' },
+  { id: 'semana2', name: 'Semana 2' },
+  { id: 'semana3', name: 'Semana 3' },
+  { id: 'semana4', name: 'Semana 4' },
+];
+
 export function SDRModule({ currentMonth, onMonthSelect }: SDRModuleProps) {
+  const [periodo, setPeriodo] = useState<PeriodoFilter>('total');
+
   // Get month name from currentMonth
   const monthName = MONTHS.find(m => m.id === currentMonth.id)?.name || currentMonth.name;
 
@@ -26,36 +39,77 @@ export function SDRModule({ currentMonth, onMonthSelect }: SDRModuleProps) {
     syncFromSheets();
   };
 
-  // Calculate SDR metrics from rawData
-  const sdrMetrics = {
-    totalQualificados: rawData.reduce((sum, product) =>
-      sum + product.weeks.reduce((weekSum, w) => weekSum + w.qualificados, 0), 0
-    ),
-    totalAgendados: rawData.reduce((sum, product) =>
-      sum + product.weeks.reduce((weekSum, w) => weekSum + w.agendados, 0), 0
-    ),
-    totalCalls: rawData.reduce((sum, product) =>
-      sum + product.weeks.reduce((weekSum, w) => weekSum + w.callRealizada, 0), 0
-    ),
-    taxaMediaAgendamento: (() => {
-      const totalQualificados = rawData.reduce((sum, product) =>
-        sum + product.weeks.reduce((weekSum, w) => weekSum + w.qualificados, 0), 0
-      );
-      const totalAgendados = rawData.reduce((sum, product) =>
-        sum + product.weeks.reduce((weekSum, w) => weekSum + w.agendados, 0), 0
-      );
-      return totalQualificados > 0 ? (totalAgendados / totalQualificados) * 100 : 0;
-    })(),
-    taxaMediaComparecimento: (() => {
-      const totalAgendados = rawData.reduce((sum, product) =>
-        sum + product.weeks.reduce((weekSum, w) => weekSum + w.agendados, 0), 0
-      );
-      const totalCalls = rawData.reduce((sum, product) =>
-        sum + product.weeks.reduce((weekSum, w) => weekSum + w.callRealizada, 0), 0
-      );
-      return totalAgendados > 0 ? (totalCalls / totalAgendados) * 100 : 0;
-    })(),
+  // Encontrar o produto "Geral" para os cards principais
+  const geralProduct = rawData.find(p => p.name === 'Geral');
+
+  // Calcular métricas do Geral baseado no período selecionado
+  const getGeralMetrics = () => {
+    if (!geralProduct) {
+      return { qualificados: 0, agendados: 0, calls: 0, taxaAgendamento: 0, taxaComparecimento: 0 };
+    }
+
+    if (periodo === 'total') {
+      const qualificados = geralProduct.weeks.reduce((sum, w) => sum + w.qualificados, 0);
+      const agendados = geralProduct.weeks.reduce((sum, w) => sum + w.agendados, 0);
+      const calls = geralProduct.weeks.reduce((sum, w) => sum + w.callRealizada, 0);
+      const taxaAgendamento = qualificados > 0 ? (agendados / qualificados) * 100 : 0;
+      const taxaComparecimento = agendados > 0 ? (calls / agendados) * 100 : 0;
+      return { qualificados, agendados, calls, taxaAgendamento, taxaComparecimento };
+    }
+
+    const weekIndex = parseInt(periodo.replace('semana', '')) - 1;
+    const week = geralProduct.weeks[weekIndex];
+
+    if (!week) {
+      return { qualificados: 0, agendados: 0, calls: 0, taxaAgendamento: 0, taxaComparecimento: 0 };
+    }
+
+    const taxaAgendamento = week.qualificados > 0 ? (week.agendados / week.qualificados) * 100 : 0;
+    const taxaComparecimento = week.agendados > 0 ? (week.callRealizada / week.agendados) * 100 : 0;
+
+    return {
+      qualificados: week.qualificados,
+      agendados: week.agendados,
+      calls: week.callRealizada,
+      taxaAgendamento,
+      taxaComparecimento,
+    };
   };
+
+  const geralMetrics = getGeralMetrics();
+
+  // Calcular dados da tabela baseado no período selecionado
+  const getProductData = (product: typeof rawData[0]) => {
+    if (periodo === 'total') {
+      const qualificados = product.weeks.reduce((sum, w) => sum + w.qualificados, 0);
+      const agendados = product.weeks.reduce((sum, w) => sum + w.agendados, 0);
+      const calls = product.weeks.reduce((sum, w) => sum + w.callRealizada, 0);
+      const taxaAgendamento = qualificados > 0 ? (agendados / qualificados) * 100 : 0;
+      const taxaComparecimento = agendados > 0 ? (calls / agendados) * 100 : 0;
+      return { qualificados, agendados, calls, taxaAgendamento, taxaComparecimento, hasData: true };
+    }
+
+    const weekIndex = parseInt(periodo.replace('semana', '')) - 1;
+    const week = product.weeks[weekIndex];
+
+    if (!week) {
+      return { qualificados: 0, agendados: 0, calls: 0, taxaAgendamento: 0, taxaComparecimento: 0, hasData: false };
+    }
+
+    const taxaAgendamento = week.qualificados > 0 ? (week.agendados / week.qualificados) * 100 : 0;
+    const taxaComparecimento = week.agendados > 0 ? (week.callRealizada / week.agendados) * 100 : 0;
+
+    return {
+      qualificados: week.qualificados,
+      agendados: week.agendados,
+      calls: week.callRealizada,
+      taxaAgendamento,
+      taxaComparecimento,
+      hasData: true,
+    };
+  };
+
+  const periodoLabel = PERIODOS.find(p => p.id === periodo)?.name || 'Total';
 
   return (
     <div className="space-y-6">
@@ -66,10 +120,10 @@ export function SDRModule({ currentMonth, onMonthSelect }: SDRModuleProps) {
             <Phone className="w-8 h-8 text-green-400" />
             SDR
           </h1>
-          <p className="text-slate-400 mt-1">Metricas de qualificacao e agendamento</p>
+          <p className="text-slate-400 mt-1">Métricas de qualificação e agendamento</p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <MonthSelector currentMonth={currentMonth} onMonthSelect={onMonthSelect} />
 
           <button
@@ -95,9 +149,29 @@ export function SDRModule({ currentMonth, onMonthSelect }: SDRModuleProps) {
       {lastSync && (
         <div className="flex items-center gap-2 text-sm text-slate-400">
           <Calendar className="w-4 h-4" />
-          Ultima sincronizacao: {lastSync}
+          Última sincronização: {lastSync}
         </div>
       )}
+
+      {/* Period Selector */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-slate-400 text-sm font-medium">Período:</span>
+        <div className="flex gap-2 flex-wrap">
+          {PERIODOS.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => setPeriodo(p.id as PeriodoFilter)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                periodo === p.id
+                  ? 'bg-green-600 text-white'
+                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'
+              }`}
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Loading State */}
       {loading && (
@@ -107,59 +181,65 @@ export function SDRModule({ currentMonth, onMonthSelect }: SDRModuleProps) {
         </div>
       )}
 
-      {/* Metrics Cards */}
+      {/* Metrics Cards - Dados do GERAL */}
       {!loading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <ClipboardList className="w-5 h-5 text-blue-400" />
-              <span className="text-slate-400 text-sm">Total Qualificados</span>
-            </div>
-            <div className="text-2xl font-bold text-white">
-              {sdrMetrics.totalQualificados.toLocaleString('pt-BR')}
-            </div>
+        <>
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <span>📊 Exibindo dados do funil <strong className="text-green-400">Geral</strong> - {periodoLabel}</span>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <Calendar className="w-5 h-5 text-purple-400" />
-              <span className="text-slate-400 text-sm">Total Agendados</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <ClipboardList className="w-5 h-5 text-blue-400" />
+                <span className="text-slate-400 text-sm">Qualificados</span>
+              </div>
+              <div className="text-2xl font-bold text-white">
+                {geralMetrics.qualificados.toLocaleString('pt-BR')}
+              </div>
             </div>
-            <div className="text-2xl font-bold text-white">
-              {sdrMetrics.totalAgendados.toLocaleString('pt-BR')}
-            </div>
-          </div>
 
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <Target className="w-5 h-5 text-yellow-400" />
-              <span className="text-slate-400 text-sm">Taxa Agendamento</span>
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <Calendar className="w-5 h-5 text-purple-400" />
+                <span className="text-slate-400 text-sm">Agendados</span>
+              </div>
+              <div className="text-2xl font-bold text-white">
+                {geralMetrics.agendados.toLocaleString('pt-BR')}
+              </div>
             </div>
-            <div className={`text-2xl font-bold ${sdrMetrics.taxaMediaAgendamento >= 50 ? 'text-green-400' : 'text-yellow-400'}`}>
-              {sdrMetrics.taxaMediaAgendamento.toFixed(1)}%
-            </div>
-          </div>
 
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <Phone className="w-5 h-5 text-green-400" />
-              <span className="text-slate-400 text-sm">Total Calls</span>
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <Target className="w-5 h-5 text-yellow-400" />
+                <span className="text-slate-400 text-sm">Taxa Agendamento</span>
+              </div>
+              <div className={`text-2xl font-bold ${geralMetrics.taxaAgendamento >= 50 ? 'text-green-400' : 'text-yellow-400'}`}>
+                {geralMetrics.taxaAgendamento.toFixed(1)}%
+              </div>
             </div>
-            <div className="text-2xl font-bold text-white">
-              {sdrMetrics.totalCalls.toLocaleString('pt-BR')}
-            </div>
-          </div>
 
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <CheckCircle className="w-5 h-5 text-emerald-400" />
-              <span className="text-slate-400 text-sm">Taxa Comparecimento</span>
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <Phone className="w-5 h-5 text-green-400" />
+                <span className="text-slate-400 text-sm">Calls</span>
+              </div>
+              <div className="text-2xl font-bold text-white">
+                {geralMetrics.calls.toLocaleString('pt-BR')}
+              </div>
             </div>
-            <div className={`text-2xl font-bold ${sdrMetrics.taxaMediaComparecimento >= 70 ? 'text-green-400' : 'text-yellow-400'}`}>
-              {sdrMetrics.taxaMediaComparecimento.toFixed(1)}%
+
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <CheckCircle className="w-5 h-5 text-emerald-400" />
+                <span className="text-slate-400 text-sm">Taxa Comparecimento</span>
+              </div>
+              <div className={`text-2xl font-bold ${geralMetrics.taxaComparecimento >= 70 ? 'text-green-400' : 'text-yellow-400'}`}>
+                {geralMetrics.taxaComparecimento.toFixed(1)}%
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* SDR Data Table */}
@@ -168,7 +248,7 @@ export function SDRModule({ currentMonth, onMonthSelect }: SDRModuleProps) {
           <div className="p-4 border-b border-slate-700 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-white flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-green-400" />
-              Metricas SDR por Funil ({monthName})
+              Métricas SDR por Funil ({monthName} - {periodoLabel})
             </h2>
             <span className="text-sm text-slate-400">{rawData.length} funis</span>
           </div>
@@ -187,32 +267,40 @@ export function SDRModule({ currentMonth, onMonthSelect }: SDRModuleProps) {
               </thead>
               <tbody className="divide-y divide-slate-700">
                 {rawData.map((product, index) => {
-                  const totalQualificados = product.weeks.reduce((sum, w) => sum + w.qualificados, 0);
-                  const totalAgendados = product.weeks.reduce((sum, w) => sum + w.agendados, 0);
-                  const totalCalls = product.weeks.reduce((sum, w) => sum + w.callRealizada, 0);
-                  const taxaAgendamento = totalQualificados > 0 ? (totalAgendados / totalQualificados) * 100 : 0;
-                  const taxaComparecimento = totalAgendados > 0 ? (totalCalls / totalAgendados) * 100 : 0;
+                  const data = getProductData(product);
+
+                  if (periodo !== 'total' && !data.hasData) return null;
 
                   return (
-                    <tr key={index} className="hover:bg-slate-700/30 transition-colors">
-                      <td className="px-4 py-3 text-white font-medium">{product.name}</td>
+                    <tr
+                      key={index}
+                      className={`hover:bg-slate-700/30 transition-colors ${
+                        product.name === 'Geral' ? 'bg-green-900/20' : ''
+                      }`}
+                    >
+                      <td className="px-4 py-3 text-white font-medium">
+                        {product.name}
+                        {product.name === 'Geral' && (
+                          <span className="ml-2 text-xs bg-green-600 text-white px-2 py-0.5 rounded">Principal</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-right text-blue-400">
-                        {totalQualificados.toLocaleString('pt-BR')}
+                        {data.qualificados.toLocaleString('pt-BR')}
                       </td>
                       <td className="px-4 py-3 text-right text-purple-400">
-                        {totalAgendados.toLocaleString('pt-BR')}
+                        {data.agendados.toLocaleString('pt-BR')}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <span className={`font-medium ${taxaAgendamento >= 50 ? 'text-green-400' : 'text-yellow-400'}`}>
-                          {taxaAgendamento.toFixed(1)}%
+                        <span className={`font-medium ${data.taxaAgendamento >= 50 ? 'text-green-400' : 'text-yellow-400'}`}>
+                          {data.taxaAgendamento.toFixed(1)}%
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right text-green-400">
-                        {totalCalls.toLocaleString('pt-BR')}
+                        {data.calls.toLocaleString('pt-BR')}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <span className={`font-medium ${taxaComparecimento >= 70 ? 'text-green-400' : 'text-yellow-400'}`}>
-                          {taxaComparecimento.toFixed(1)}%
+                        <span className={`font-medium ${data.taxaComparecimento >= 70 ? 'text-green-400' : 'text-yellow-400'}`}>
+                          {data.taxaComparecimento.toFixed(1)}%
                         </span>
                       </td>
                     </tr>
@@ -224,69 +312,11 @@ export function SDRModule({ currentMonth, onMonthSelect }: SDRModuleProps) {
         </div>
       )}
 
-      {/* Weekly Breakdown */}
-      {!loading && rawData.length > 0 && (
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
-          <div className="p-4 border-b border-slate-700">
-            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-purple-400" />
-              Detalhamento Semanal
-            </h2>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-900/50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-slate-400">Funil</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-slate-400">Semana</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Qualif.</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Agend.</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Taxa Ag.</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Calls</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Taxa Comp.</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700">
-                {rawData.flatMap((product, productIndex) =>
-                  product.weeks.map((week, weekIndex) => {
-                    const taxaAgendamento = week.qualificados > 0 ? (week.agendados / week.qualificados) * 100 : 0;
-                    const taxaComparecimento = week.agendados > 0 ? (week.callRealizada / week.agendados) * 100 : 0;
-
-                    return (
-                      <tr key={`${productIndex}-${weekIndex}`} className="hover:bg-slate-700/30 transition-colors">
-                        <td className="px-4 py-3 text-white font-medium">
-                          {weekIndex === 0 ? product.name : ''}
-                        </td>
-                        <td className="px-4 py-3 text-slate-400">{week.periodo || `Semana ${weekIndex + 1}`}</td>
-                        <td className="px-4 py-3 text-right text-blue-400">{week.qualificados}</td>
-                        <td className="px-4 py-3 text-right text-purple-400">{week.agendados}</td>
-                        <td className="px-4 py-3 text-right">
-                          <span className={`font-medium ${taxaAgendamento >= 50 ? 'text-green-400' : 'text-yellow-400'}`}>
-                            {taxaAgendamento.toFixed(1)}%
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right text-green-400">{week.callRealizada}</td>
-                        <td className="px-4 py-3 text-right">
-                          <span className={`font-medium ${taxaComparecimento >= 70 ? 'text-green-400' : 'text-yellow-400'}`}>
-                            {taxaComparecimento.toFixed(1)}%
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
       {/* Empty State */}
       {!loading && rawData.length === 0 && (
         <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-12 text-center">
           <Phone className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-          <p className="text-slate-400 text-lg mb-2">Nenhum dado SDR disponivel</p>
+          <p className="text-slate-400 text-lg mb-2">Nenhum dado SDR disponível</p>
           <p className="text-slate-500 text-sm">Clique em "Sincronizar" para importar dados do Google Sheets</p>
         </div>
       )}
