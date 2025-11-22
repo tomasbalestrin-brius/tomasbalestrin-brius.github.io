@@ -58,6 +58,7 @@ export interface FunnelData {
 export type ModuleName =
   | 'dashboard'
   | 'aquisicao'
+  | 'sdr'
   | 'monetizacao'
   | 'relatorio';
 
