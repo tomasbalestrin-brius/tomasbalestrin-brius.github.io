@@ -8,27 +8,16 @@ import { ToastContainer } from '@/components/dashboard/Toast';
 import { DashboardModule } from '@/components/dashboard/modules/Dashboard';
 import { ResumoModule } from '@/components/dashboard/modules/Resumo';
 import { ROIModule } from '@/components/dashboard/modules/ROI';
-import { ROASDashboard } from '@/components/dashboard/ROASDashboard';
-import { FormulariosAnalytics } from '@/components/dashboard/FormulariosAnalytics';
-import { EvolutionCharts } from '@/components/dashboard/EvolutionCharts';
-import { AlertsSystem } from '@/components/dashboard/AlertsSystem';
-import { CustosModule } from '@/components/dashboard/modules/Custos';
-import { InsightsModule } from '@/components/dashboard/modules/Insights';
-import { CompararFunisModule } from '@/components/dashboard/modules/CompararFunis';
-import { ExportarModule } from '@/components/dashboard/modules/Exportar';
-import { ComparacaoModule } from '@/components/dashboard/modules/OtherModules';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator';
 import { UserMenu } from '@/components/UserMenu';
-import { OrganizationSwitcher } from '@/components/dashboard/OrganizationSwitcher';
 
 const Index = () => {
   useBranding(); // Aplicar branding da organização
-  
+
   const {
     allData,
     currentMonth,
-    currentTeam,
     currentProduct,
     currentWeek,
     currentModule,
@@ -36,7 +25,6 @@ const Index = () => {
     loading,
     toasts,
     selectMonth,
-    selectTeam,
     selectProduct,
     setCurrentWeek,
     selectModule,
@@ -54,13 +42,13 @@ const Index = () => {
       </div>
 
       <ThemeSelector currentTheme={theme} onThemeChange={changeTheme} />
-      
+
       <ResponsiveSidebar
         currentModule={currentModule}
         onModuleChange={selectModule}
         onMinimizeChange={setSidebarMinimized}
       />
-      
+
       <BottomNav currentModule={currentModule} onModuleChange={selectModule} />
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
@@ -88,15 +76,6 @@ const Index = () => {
                 <ResumoModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />
               )}
               {currentModule === 'roi' && <ROIModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
-              {currentModule === 'roas' && <ROASDashboard allData={allData} currentMonth={currentMonth} currentProduct={currentProduct} />}
-              {currentModule === 'formularios' && <FormulariosAnalytics allData={allData} currentMonth={currentMonth} currentProduct={currentProduct} />}
-              {currentModule === 'evolucao' && <EvolutionCharts allData={allData} currentMonth={currentMonth} currentProduct={currentProduct} />}
-              {currentModule === 'alertas' && <AlertsSystem allData={allData} currentMonth={currentMonth} currentProduct={currentProduct} />}
-              {currentModule === 'custos' && <CustosModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
-              {currentModule === 'insights' && <InsightsModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
-              {currentModule === 'comparar-funis' && <CompararFunisModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
-              {currentModule === 'comparacao' && <ComparacaoModule allData={allData} currentMonth={currentMonth} onMonthSelect={selectMonth} />}
-              {currentModule === 'exportar' && <ExportarModule allData={allData} currentMonth={currentMonth} currentProduct={currentProduct} currentWeek={currentWeek} />}
             </>
           )}
         </div>
