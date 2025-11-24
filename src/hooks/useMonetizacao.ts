@@ -732,6 +732,90 @@ export function useVendas() {
   };
 }
 
+// Hook para buscar dados de aquisição de um funil específico
+export function useFunilAquisicao(funilId: string | null) {
+  const [aquisicaoData, setAquisicaoData] = useState<{
+    investimento: number;
+    faturamento: number;
+    roas: number;
+    alunos: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!funilId) {
+      setAquisicaoData(null);
+      return;
+    }
+
+    const fetchAquisicaoData = async () => {
+      try {
+        setLoading(true);
+
+        // Get funil info
+        const funis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+        const funil = funis.find(f => f.id === funilId);
+        if (!funil) return;
+
+        // Get current month
+        const today = new Date();
+        const currentMonth = MONTHS.find(m => {
+          const start = new Date(m.startDate);
+          const end = new Date(m.endDate);
+          return today >= start && today <= end;
+        });
+
+        if (!currentMonth) return;
+
+        // Fetch sheet data
+        const sheetData = await fetchSheetData(currentMonth.name);
+
+        // Find product matching funil name
+        const product = sheetData.find(p =>
+          p.name.toLowerCase().trim() === funil.nome_produto.toLowerCase().trim()
+        );
+
+        if (!product) {
+          setAquisicaoData({
+            investimento: 0,
+            faturamento: 0,
+            roas: 0,
+            alunos: 0,
+          });
+          return;
+        }
+
+        // Calculate totals from all weeks
+        const totalInvestimento = product.weeks.reduce((sum, w) => sum + (w.investido || 0), 0);
+        const totalFaturamento = product.weeks.reduce((sum, w) => sum + (w.faturamentoFunil || 0), 0);
+        const totalAlunos = product.weeks.reduce((sum, w) => sum + (w.alunos || 0), 0);
+        const roas = totalInvestimento > 0 ? totalFaturamento / totalInvestimento : 0;
+
+        setAquisicaoData({
+          investimento: totalInvestimento,
+          faturamento: totalFaturamento,
+          roas,
+          alunos: totalAlunos,
+        });
+      } catch (error) {
+        console.error('Erro ao buscar dados de aquisição:', error);
+        setAquisicaoData({
+          investimento: 0,
+          faturamento: 0,
+          roas: 0,
+          alunos: 0,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAquisicaoData();
+  }, [funilId]);
+
+  return { aquisicaoData, loading };
+}
+
 // Hook combinado para métricas de monetização
 export function useMonetizacaoMetrics() {
   const { closers, loading: loadingClosers } = useClosers();
