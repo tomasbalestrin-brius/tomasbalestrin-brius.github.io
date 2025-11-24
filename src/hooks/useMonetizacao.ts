@@ -329,10 +329,6 @@ export function useVendas() {
   const [error, setError] = useState<string | null>(null);
   const [useLocal, setUseLocal] = useState(false);
 
-  // Get closers and funis for joining
-  const closersData = getFromStorage<Closer>(STORAGE_KEYS.closers);
-  const funisData = getFromStorage<Funil>(STORAGE_KEYS.funis);
-
   const fetchVendas = useCallback(async () => {
     try {
       setLoading(true);
@@ -351,6 +347,8 @@ export function useVendas() {
         console.log('Supabase vendas não disponível, usando localStorage');
         setUseLocal(true);
         const localData = getFromStorage<Venda>(STORAGE_KEYS.vendas);
+        const closersData = getFromStorage<Closer>(STORAGE_KEYS.closers);
+        const funisData = getFromStorage<Funil>(STORAGE_KEYS.funis);
         // Join with closers and funis from localStorage
         const joinedData = localData.map(v => ({
           ...v,
@@ -367,6 +365,8 @@ export function useVendas() {
       console.log('Erro no Supabase, usando localStorage para vendas');
       setUseLocal(true);
       const localData = getFromStorage<Venda>(STORAGE_KEYS.vendas);
+      const closersData = getFromStorage<Closer>(STORAGE_KEYS.closers);
+      const funisData = getFromStorage<Funil>(STORAGE_KEYS.funis);
       const joinedData = localData.map(v => ({
         ...v,
         closer: closersData.find(c => c.id === v.closer_id),
@@ -378,7 +378,7 @@ export function useVendas() {
     } finally {
       setLoading(false);
     }
-  }, [closersData, funisData]);
+  }, []);
 
   const createVenda = async (venda: Omit<Venda, 'id' | 'created_at' | 'closer' | 'funil'>) => {
     try {
@@ -529,7 +529,7 @@ export function useVendas() {
 
   useEffect(() => {
     fetchVendas();
-  }, []);
+  }, [fetchVendas]);
 
   return {
     vendas,
