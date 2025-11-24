@@ -327,7 +327,7 @@ export function MonetizacaoModule() {
 
   // Hooks
   const { closers, loading: loadingClosers, createCloser, updateCloser, deleteCloser } = useClosers();
-  const { funis, loading: loadingFunis, createFunil, updateFunil, deleteFunil } = useFunis();
+  const { funis, loading: loadingFunis, syncing: syncingFunis, createFunil, updateFunil, deleteFunil } = useFunis();
   const { vendas, loading: loadingVendas, createVenda, updateVenda, deleteVenda } = useVendas();
   const { metrics, top3Closers, top3Funis, loading: loadingMetrics } = useMonetizacaoMetrics();
 
@@ -409,10 +409,10 @@ export function MonetizacaoModule() {
           </h1>
           <p className="text-slate-400 mt-1">Gestao de closers, funis e vendas</p>
         </div>
-        {loading && (
+        {(loading || syncingFunis) && (
           <div className="flex items-center gap-2 text-slate-400">
             <Loader2 className="w-4 h-4 animate-spin" />
-            Carregando...
+            {syncingFunis ? 'Sincronizando funis do Google Sheets...' : 'Carregando...'}
           </div>
         )}
       </div>
@@ -605,7 +605,12 @@ export function MonetizacaoModule() {
       {/* Funis Tab */}
       {activeTab === 'funis' && (
         <div className="space-y-4">
-          <div className="flex justify-end">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-2">
+              <p className="text-blue-400 text-sm">
+                ℹ️ Funis são sincronizados automaticamente do Google Sheets (Aquisição)
+              </p>
+            </div>
             <button
               onClick={() => setFunilModal({ open: true })}
               className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"

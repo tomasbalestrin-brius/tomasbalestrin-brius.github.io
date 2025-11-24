@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Closer, Funil, Venda } from '@/types/dashboard';
+import { fetchSheetData, type ProductData } from '@/lib/sheets-api';
+import { MONTHS } from '@/hooks/useDashboardData';
 
 // LocalStorage keys
 const STORAGE_KEYS = {
   closers: 'monetizacao_closers',
   funis: 'monetizacao_funis',
   vendas: 'monetizacao_vendas',
+  lastSync: 'monetizacao_last_sync',
 };
 
 // Event system for syncing hooks
@@ -53,6 +56,99 @@ function saveToStorage<T>(key: string, data: T[]): void {
 
 function generateId(): string {
   return `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// Sync funis from Google Sheets to Monetização
+async function syncFunisFromSheets(): Promise<void> {
+  try {
+    console.log('🔄 Sincronizando funis do Google Sheets...');
+
+    // Get current month
+    const today = new Date();
+    const currentMonth = MONTHS.find(m => {
+      const start = new Date(m.startDate);
+      const end = new Date(m.endDate);
+      return today >= start && today <= end;
+    });
+
+    if (!currentMonth) {
+      console.log('❌ Mês atual não encontrado');
+      return;
+    }
+
+    console.log(`📅 Buscando dados de ${currentMonth.name}...`);
+
+    // Fetch data from Google Sheets
+    const sheetData = await fetchSheetData(currentMonth.name);
+    console.log(`✅ ${sheetData.length} produtos encontrados no Google Sheets`);
+
+    // Get existing funis from localStorage
+    const existingFunis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+    const existingFunilNames = new Set(existingFunis.map(f => f.nome_produto.toLowerCase()));
+
+    // Create funis that don't exist yet
+    let newFunilsCount = 0;
+    const updatedFunis = [...existingFunis];
+
+    for (const product of sheetData) {
+      const funilName = product.name.trim();
+
+      // Skip empty names or "Geral" (too generic)
+      if (!funilName || funilName === '') continue;
+
+      // Check if funil already exists
+      if (existingFunilNames.has(funilName.toLowerCase())) {
+        console.log(`⏭️  Funil "${funilName}" já existe`);
+        continue;
+      }
+
+      // Calculate average values from weeks data
+      const totalWeeks = product.weeks.length;
+      const avgVendas = totalWeeks > 0
+        ? product.weeks.reduce((sum, w) => sum + (w.numeroVenda || 0), 0) / totalWeeks
+        : 0;
+      const avgFaturamento = totalWeeks > 0
+        ? product.weeks.reduce((sum, w) => sum + (w.faturamentoFunil || 0), 0) / totalWeeks
+        : 0;
+
+      // Create new funil
+      const newFunil: Funil = {
+        id: generateId(),
+        nome_produto: funilName,
+        valor_venda: avgFaturamento > 0 ? Math.round(avgFaturamento / Math.max(1, avgVendas)) : 0,
+        especialista: 'Importado do Google Sheets',
+        descricao: `Funil sincronizado automaticamente da planilha de Aquisição (${currentMonth.name})`,
+        total_vendas: Math.round(avgVendas),
+        valor_total_gerado: Math.round(avgFaturamento),
+        ativo: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      updatedFunis.push(newFunil);
+      existingFunilNames.add(funilName.toLowerCase());
+      newFunilsCount++;
+
+      console.log(`✅ Criado funil: ${funilName}`);
+    }
+
+    if (newFunilsCount > 0) {
+      // Save to localStorage
+      saveToStorage(STORAGE_KEYS.funis, updatedFunis);
+
+      // Save last sync time
+      localStorage.setItem(STORAGE_KEYS.lastSync, new Date().toISOString());
+
+      // Emit event to update UI
+      emitEvent('funisUpdated');
+
+      console.log(`🎉 ${newFunilsCount} novos funis criados!`);
+    } else {
+      console.log('✅ Todos os funis já estão sincronizados');
+    }
+  } catch (error) {
+    console.error('❌ Erro ao sincronizar funis:', error);
+  }
 }
 
 // Hook para Closers
@@ -216,11 +312,25 @@ export function useFunis() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [useLocal, setUseLocal] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
-  const fetchFunis = useCallback(async () => {
+  const fetchFunis = useCallback(async (shouldSync: boolean = true) => {
     try {
       setLoading(true);
       setError(null);
+
+      // Sync from Google Sheets if needed (only once per day)
+      if (shouldSync) {
+        const lastSync = localStorage.getItem(STORAGE_KEYS.lastSync);
+        const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+        const shouldSyncAgain = !lastSync || new Date(lastSync).getTime() < oneDayAgo;
+
+        if (shouldSyncAgain) {
+          setSyncing(true);
+          await syncFunisFromSheets();
+          setSyncing(false);
+        }
+      }
 
       const { data, error: fetchError } = await supabase
         .from('funis')
@@ -353,6 +463,7 @@ export function useFunis() {
     funis,
     loading,
     error,
+    syncing,
     refetch: fetchFunis,
     createFunil,
     updateFunil,
