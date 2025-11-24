@@ -824,34 +824,51 @@ export function MonetizacaoModule() {
                 const valorMonetizacao = funilVendas.reduce((sum, v) => sum + (v.valor_venda || 0), 0);
                 const faturamentoTotal = funil.valor_total_gerado + valorMonetizacao;
 
+                // Check if it's a summary/total card
+                const isSummary = funil.nome_produto.toLowerCase().includes('geral') ||
+                                  funil.nome_produto.toLowerCase().includes('total');
+
                 return (
                   <div
                     key={funil.id}
-                    className={`bg-slate-800/50 border rounded-xl p-6 transition-all cursor-pointer hover:scale-105 ${funil.ativo ? 'border-slate-700 hover:border-green-500/50' : 'border-red-900/50 opacity-60'}`}
-                    onClick={() => setFunilDetailModal(funil)}
+                    className={`bg-slate-800/50 border rounded-xl p-6 transition-all ${
+                      isSummary
+                        ? 'border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-purple-500/5'
+                        : `cursor-pointer hover:scale-105 ${funil.ativo ? 'border-slate-700 hover:border-green-500/50' : 'border-red-900/50 opacity-60'}`
+                    }`}
+                    onClick={() => !isSummary && setFunilDetailModal(funil)}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <div className="text-white font-medium text-lg">{funil.nome_produto}</div>
-                      <div className="flex gap-1">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setFunilModal({ open: true, funil });
-                          }}
-                          className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteFunil(funil.id);
-                          }}
-                          className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                      <div className="flex items-center gap-2">
+                        <div className="text-white font-medium text-lg">{funil.nome_produto}</div>
+                        {isSummary && (
+                          <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
+                            Compilado
+                          </span>
+                        )}
                       </div>
+                      {!isSummary && (
+                        <div className="flex gap-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFunilModal({ open: true, funil });
+                            }}
+                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteFunil(funil.id);
+                            }}
+                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                     <div className="text-slate-400 text-sm mb-4">{funil.especialista}</div>
                     <div className="grid grid-cols-2 gap-4 text-sm mb-3">
@@ -864,10 +881,12 @@ export function MonetizacaoModule() {
                         <div className="text-green-400 font-medium">R$ {faturamentoTotal.toLocaleString('pt-BR')}</div>
                       </div>
                     </div>
-                    <div className="flex items-center justify-center gap-2 text-xs text-blue-400 mt-4 pt-3 border-t border-slate-700">
-                      <ArrowRight className="w-3 h-3" />
-                      Clique para ver detalhes
-                    </div>
+                    {!isSummary && (
+                      <div className="flex items-center justify-center gap-2 text-xs text-blue-400 mt-4 pt-3 border-t border-slate-700">
+                        <ArrowRight className="w-3 h-3" />
+                        Clique para ver detalhes
+                      </div>
+                    )}
                   </div>
                 );
               })}

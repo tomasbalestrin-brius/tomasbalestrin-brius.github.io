@@ -93,7 +93,7 @@ async function syncFunisFromSheets(): Promise<void> {
     for (const product of sheetData) {
       const funilName = product.name.trim();
 
-      // Skip empty names or "Geral" (too generic)
+      // Skip empty names
       if (!funilName || funilName === '') continue;
 
       // Check if funil already exists
@@ -101,6 +101,10 @@ async function syncFunisFromSheets(): Promise<void> {
         console.log(`⏭️  Funil "${funilName}" já existe`);
         continue;
       }
+
+      // Identify if this is a summary/total (not a real funil)
+      const isSummary = funilName.toLowerCase().includes('geral') ||
+                        funilName.toLowerCase().includes('total');
 
       // Calculate average values from weeks data
       const totalWeeks = product.weeks.length;
@@ -116,11 +120,13 @@ async function syncFunisFromSheets(): Promise<void> {
         id: generateId(),
         nome_produto: funilName,
         valor_venda: avgFaturamento > 0 ? Math.round(avgFaturamento / Math.max(1, avgVendas)) : 0,
-        especialista: 'Importado do Google Sheets',
-        descricao: `Funil sincronizado automaticamente da planilha de Aquisição (${currentMonth.name})`,
+        especialista: isSummary ? '📊 Total/Compilado (Somente Visualização)' : 'Importado do Google Sheets',
+        descricao: isSummary
+          ? `Compilado total - Não é um funil real para registrar vendas`
+          : `Funil sincronizado automaticamente da planilha de Aquisição (${currentMonth.name})`,
         total_vendas: Math.round(avgVendas),
         valor_total_gerado: Math.round(avgFaturamento),
-        ativo: true,
+        ativo: !isSummary, // Totais ficam como inativos para não aparecerem em dropdowns
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -129,7 +135,7 @@ async function syncFunisFromSheets(): Promise<void> {
       existingFunilNames.add(funilName.toLowerCase());
       newFunilsCount++;
 
-      console.log(`✅ Criado funil: ${funilName}`);
+      console.log(`✅ Criado ${isSummary ? 'total' : 'funil'}: ${funilName}`);
     }
 
     if (newFunilsCount > 0) {
