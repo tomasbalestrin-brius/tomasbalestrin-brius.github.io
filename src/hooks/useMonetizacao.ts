@@ -9,6 +9,30 @@ const STORAGE_KEYS = {
   vendas: 'monetizacao_vendas',
 };
 
+// Event system for syncing hooks
+type EventCallback = () => void;
+const eventListeners: { [key: string]: EventCallback[] } = {
+  closersUpdated: [],
+  funisUpdated: [],
+  vendasUpdated: [],
+};
+
+function emitEvent(eventName: string) {
+  eventListeners[eventName]?.forEach(callback => callback());
+}
+
+function addEventListener(eventName: string, callback: EventCallback) {
+  if (!eventListeners[eventName]) {
+    eventListeners[eventName] = [];
+  }
+  eventListeners[eventName].push(callback);
+
+  // Return cleanup function
+  return () => {
+    eventListeners[eventName] = eventListeners[eventName].filter(cb => cb !== callback);
+  };
+}
+
 // Helper functions for localStorage
 function getFromStorage<T>(key: string): T[] {
   try {
@@ -83,6 +107,7 @@ export function useClosers() {
         const updated = [...closers, newCloser];
         setClosers(updated.sort((a, b) => b.valor_total_vendas - a.valor_total_vendas));
         saveToStorage(STORAGE_KEYS.closers, updated);
+        emitEvent('closersUpdated');
         return { success: true, data: newCloser };
       }
 
@@ -114,6 +139,7 @@ export function useClosers() {
         );
         setClosers(updated.sort((a, b) => b.valor_total_vendas - a.valor_total_vendas));
         saveToStorage(STORAGE_KEYS.closers, updated);
+        emitEvent('closersUpdated');
         return { success: true, data: updated.find(c => c.id === id) };
       }
 
@@ -143,6 +169,7 @@ export function useClosers() {
         const updated = closers.filter(c => c.id !== id);
         setClosers(updated);
         saveToStorage(STORAGE_KEYS.closers, updated);
+        emitEvent('closersUpdated');
         return { success: true };
       }
 
@@ -166,6 +193,10 @@ export function useClosers() {
 
   useEffect(() => {
     fetchClosers();
+
+    // Listen for updates from other hooks (e.g., when vendas update closer stats)
+    const cleanup = addEventListener('closersUpdated', fetchClosers);
+    return cleanup;
   }, [fetchClosers]);
 
   return {
@@ -227,6 +258,7 @@ export function useFunis() {
         const updated = [...funis, newFunil];
         setFunis(updated.sort((a, b) => b.total_vendas - a.total_vendas));
         saveToStorage(STORAGE_KEYS.funis, updated);
+        emitEvent('funisUpdated');
         return { success: true, data: newFunil };
       }
 
@@ -257,6 +289,7 @@ export function useFunis() {
         );
         setFunis(updated.sort((a, b) => b.total_vendas - a.total_vendas));
         saveToStorage(STORAGE_KEYS.funis, updated);
+        emitEvent('funisUpdated');
         return { success: true, data: updated.find(f => f.id === id) };
       }
 
@@ -286,6 +319,7 @@ export function useFunis() {
         const updated = funis.filter(f => f.id !== id);
         setFunis(updated);
         saveToStorage(STORAGE_KEYS.funis, updated);
+        emitEvent('funisUpdated');
         return { success: true };
       }
 
@@ -309,6 +343,10 @@ export function useFunis() {
 
   useEffect(() => {
     fetchFunis();
+
+    // Listen for updates from other hooks (e.g., when vendas update funil stats)
+    const cleanup = addEventListener('funisUpdated', fetchFunis);
+    return cleanup;
   }, [fetchFunis]);
 
   return {
@@ -410,6 +448,8 @@ export function useVendas() {
               valor_total_entradas: (currentClosers[closerIndex].valor_total_entradas || 0) + (venda.valor_entrada || 0),
             };
             saveToStorage(STORAGE_KEYS.closers, currentClosers);
+            // Notify other hooks that closers have been updated
+            emitEvent('closersUpdated');
           }
         }
 
@@ -423,10 +463,13 @@ export function useVendas() {
               valor_total_gerado: (currentFunis[funilIndex].valor_total_gerado || 0) + (venda.valor_venda || 0),
             };
             saveToStorage(STORAGE_KEYS.funis, currentFunis);
+            // Notify other hooks that funis have been updated
+            emitEvent('funisUpdated');
           }
         }
 
         setVendas(prev => [newVenda, ...prev]);
+        emitEvent('vendasUpdated');
         return { success: true, data: newVenda };
       }
 
@@ -503,9 +546,45 @@ export function useVendas() {
     try {
       if (useLocal) {
         const currentVendas = getFromStorage<Venda>(STORAGE_KEYS.vendas);
+        const vendaToDelete = currentVendas.find(v => v.id === id);
+
+        if (vendaToDelete) {
+          // Update closer stats (decrement)
+          if (vendaToDelete.closer_id) {
+            const currentClosers = getFromStorage<Closer>(STORAGE_KEYS.closers);
+            const closerIndex = currentClosers.findIndex(c => c.id === vendaToDelete.closer_id);
+            if (closerIndex !== -1) {
+              currentClosers[closerIndex] = {
+                ...currentClosers[closerIndex],
+                numero_vendas: Math.max(0, (currentClosers[closerIndex].numero_vendas || 0) - 1),
+                valor_total_vendas: Math.max(0, (currentClosers[closerIndex].valor_total_vendas || 0) - (vendaToDelete.valor_venda || 0)),
+                valor_total_entradas: Math.max(0, (currentClosers[closerIndex].valor_total_entradas || 0) - (vendaToDelete.valor_entrada || 0)),
+              };
+              saveToStorage(STORAGE_KEYS.closers, currentClosers);
+              emitEvent('closersUpdated');
+            }
+          }
+
+          // Update funil stats (decrement)
+          if (vendaToDelete.funil_id) {
+            const currentFunis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+            const funilIndex = currentFunis.findIndex(f => f.id === vendaToDelete.funil_id);
+            if (funilIndex !== -1) {
+              currentFunis[funilIndex] = {
+                ...currentFunis[funilIndex],
+                total_vendas: Math.max(0, (currentFunis[funilIndex].total_vendas || 0) - 1),
+                valor_total_gerado: Math.max(0, (currentFunis[funilIndex].valor_total_gerado || 0) - (vendaToDelete.valor_venda || 0)),
+              };
+              saveToStorage(STORAGE_KEYS.funis, currentFunis);
+              emitEvent('funisUpdated');
+            }
+          }
+        }
+
         const updated = currentVendas.filter(v => v.id !== id);
         saveToStorage(STORAGE_KEYS.vendas, updated);
         setVendas(prev => prev.filter(v => v.id !== id));
+        emitEvent('vendasUpdated');
         return { success: true };
       }
 
