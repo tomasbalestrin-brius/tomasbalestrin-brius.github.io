@@ -177,19 +177,22 @@ export function useClosers() {
 
       if (fetchError) {
         // Fallback to localStorage
-        console.log('Supabase closers não disponível, usando localStorage');
+        console.log('🔄 Supabase closers não disponível, usando localStorage');
         setUseLocal(true);
         const localData = getFromStorage<Closer>(STORAGE_KEYS.closers);
-        setClosers(localData.sort((a, b) => b.valor_total_vendas - a.valor_total_vendas));
+        console.log(`📦 Carregados ${localData.length} closers do localStorage`);
+        setClosers(localData.sort((a, b) => (b.valor_total_vendas || 0) - (a.valor_total_vendas || 0)));
       } else {
+        console.log(`✅ Carregados ${data?.length || 0} closers do Supabase`);
         setClosers((data as Closer[]) || []);
       }
     } catch (err) {
       // Fallback to localStorage on any error
-      console.log('Erro no Supabase, usando localStorage para closers');
+      console.log('❌ Erro no Supabase, usando localStorage para closers');
       setUseLocal(true);
       const localData = getFromStorage<Closer>(STORAGE_KEYS.closers);
-      setClosers(localData.sort((a, b) => b.valor_total_vendas - a.valor_total_vendas));
+      console.log(`📦 Carregados ${localData.length} closers do localStorage (após erro)`);
+      setClosers(localData.sort((a, b) => (b.valor_total_vendas || 0) - (a.valor_total_vendas || 0)));
     } finally {
       setLoading(false);
     }
@@ -207,8 +210,9 @@ export function useClosers() {
         } as Closer;
 
         const updated = [...closers, newCloser];
-        setClosers(updated.sort((a, b) => b.valor_total_vendas - a.valor_total_vendas));
+        setClosers(updated.sort((a, b) => (b.valor_total_vendas || 0) - (a.valor_total_vendas || 0)));
         saveToStorage(STORAGE_KEYS.closers, updated);
+        console.log(`💾 Closer criado e salvo no localStorage. Total: ${updated.length} closers`);
         emitEvent('closersUpdated');
         return { success: true, data: newCloser };
       }
@@ -239,8 +243,9 @@ export function useClosers() {
         const updated = closers.map(c =>
           c.id === id ? { ...c, ...updates, updated_at: new Date().toISOString() } : c
         );
-        setClosers(updated.sort((a, b) => b.valor_total_vendas - a.valor_total_vendas));
+        setClosers(updated.sort((a, b) => (b.valor_total_vendas || 0) - (a.valor_total_vendas || 0)));
         saveToStorage(STORAGE_KEYS.closers, updated);
+        console.log(`💾 Closer atualizado no localStorage`);
         emitEvent('closersUpdated');
         return { success: true, data: updated.find(c => c.id === id) };
       }
@@ -271,6 +276,7 @@ export function useClosers() {
         const updated = closers.filter(c => c.id !== id);
         setClosers(updated);
         saveToStorage(STORAGE_KEYS.closers, updated);
+        console.log(`🗑️ Closer deletado do localStorage. Total: ${updated.length}`);
         emitEvent('closersUpdated');
         return { success: true };
       }
@@ -297,9 +303,17 @@ export function useClosers() {
     fetchClosers();
 
     // Listen for updates from other hooks (e.g., when vendas update closer stats)
-    const cleanup = addEventListener('closersUpdated', fetchClosers);
+    // Only refetch when the update comes from outside (not from this hook itself)
+    const cleanup = addEventListener('closersUpdated', () => {
+      // Re-read from localStorage without trying Supabase again
+      if (useLocal) {
+        const localData = getFromStorage<Closer>(STORAGE_KEYS.closers);
+        console.log(`🔄 Closers atualizados por evento externo. Total: ${localData.length}`);
+        setClosers(localData.sort((a, b) => (b.valor_total_vendas || 0) - (a.valor_total_vendas || 0)));
+      }
+    });
     return cleanup;
-  }, [fetchClosers]);
+  }, [fetchClosers, useLocal]);
 
   return {
     closers,
@@ -344,18 +358,21 @@ export function useFunis() {
         .order('total_vendas', { ascending: false });
 
       if (fetchError) {
-        console.log('Supabase funis não disponível, usando localStorage');
+        console.log('🔄 Supabase funis não disponível, usando localStorage');
         setUseLocal(true);
         const localData = getFromStorage<Funil>(STORAGE_KEYS.funis);
-        setFunis(localData.sort((a, b) => b.total_vendas - a.total_vendas));
+        console.log(`📦 Carregados ${localData.length} funis do localStorage`);
+        setFunis(localData.sort((a, b) => (b.total_vendas || 0) - (a.total_vendas || 0)));
       } else {
+        console.log(`✅ Carregados ${data?.length || 0} funis do Supabase`);
         setFunis((data as Funil[]) || []);
       }
     } catch (err) {
-      console.log('Erro no Supabase, usando localStorage para funis');
+      console.log('❌ Erro no Supabase, usando localStorage para funis');
       setUseLocal(true);
       const localData = getFromStorage<Funil>(STORAGE_KEYS.funis);
-      setFunis(localData.sort((a, b) => b.total_vendas - a.total_vendas));
+      console.log(`📦 Carregados ${localData.length} funis do localStorage (após erro)`);
+      setFunis(localData.sort((a, b) => (b.total_vendas || 0) - (a.total_vendas || 0)));
     } finally {
       setLoading(false);
     }
@@ -372,8 +389,9 @@ export function useFunis() {
         } as Funil;
 
         const updated = [...funis, newFunil];
-        setFunis(updated.sort((a, b) => b.total_vendas - a.total_vendas));
+        setFunis(updated.sort((a, b) => (b.total_vendas || 0) - (a.total_vendas || 0)));
         saveToStorage(STORAGE_KEYS.funis, updated);
+        console.log(`💾 Funil criado e salvo no localStorage. Total: ${updated.length} funis`);
         emitEvent('funisUpdated');
         return { success: true, data: newFunil };
       }
@@ -403,8 +421,9 @@ export function useFunis() {
         const updated = funis.map(f =>
           f.id === id ? { ...f, ...updates, updated_at: new Date().toISOString() } : f
         );
-        setFunis(updated.sort((a, b) => b.total_vendas - a.total_vendas));
+        setFunis(updated.sort((a, b) => (b.total_vendas || 0) - (a.total_vendas || 0)));
         saveToStorage(STORAGE_KEYS.funis, updated);
+        console.log(`💾 Funil atualizado no localStorage`);
         emitEvent('funisUpdated');
         return { success: true, data: updated.find(f => f.id === id) };
       }
@@ -435,6 +454,7 @@ export function useFunis() {
         const updated = funis.filter(f => f.id !== id);
         setFunis(updated);
         saveToStorage(STORAGE_KEYS.funis, updated);
+        console.log(`🗑️ Funil deletado do localStorage. Total: ${updated.length}`);
         emitEvent('funisUpdated');
         return { success: true };
       }
@@ -461,9 +481,17 @@ export function useFunis() {
     fetchFunis();
 
     // Listen for updates from other hooks (e.g., when vendas update funil stats)
-    const cleanup = addEventListener('funisUpdated', fetchFunis);
+    // Only refetch when the update comes from outside (not from this hook itself)
+    const cleanup = addEventListener('funisUpdated', () => {
+      // Re-read from localStorage without trying Supabase again
+      if (useLocal) {
+        const localData = getFromStorage<Funil>(STORAGE_KEYS.funis);
+        console.log(`🔄 Funis atualizados por evento externo. Total: ${localData.length}`);
+        setFunis(localData.sort((a, b) => (b.total_vendas || 0) - (a.total_vendas || 0)));
+      }
+    });
     return cleanup;
-  }, [fetchFunis]);
+  }, [fetchFunis, useLocal]);
 
   return {
     funis,
