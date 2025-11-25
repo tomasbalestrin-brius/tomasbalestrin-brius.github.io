@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { DollarSign, Users, ShoppingCart, Plus, TrendingUp, Award, Target, X, Edit2, Trash2, Loader2 } from 'lucide-react';
+import { DollarSign, Users, ShoppingCart, Plus, TrendingUp, Award, Target, X, Edit2, Trash2, Loader2, BarChart3, ArrowRight } from 'lucide-react';
 import type { Closer, Funil, Venda } from '@/types/dashboard';
-import { useClosers, useFunis, useVendas, useMonetizacaoMetrics } from '@/hooks/useMonetizacao';
+import { useClosers, useFunis, useVendas, useMonetizacaoMetrics, useFunilAquisicao } from '@/hooks/useMonetizacao';
 
 // Modal Component
 function Modal({ isOpen, onClose, title, children }: { isOpen: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
@@ -322,12 +322,201 @@ function VendaForm({ venda, closers, funis, onSubmit, onCancel, loading }: {
   );
 }
 
+// Funil Detail Modal
+function FunilDetailModal({ funil, vendas, onClose }: {
+  funil: Funil;
+  vendas: Venda[];
+  onClose: () => void;
+}) {
+  const { aquisicaoData, loading: loadingAquisicao } = useFunilAquisicao(funil.id);
+
+  // Filter vendas for this funil
+  const funilVendas = vendas.filter(v => v.funil_id === funil.id);
+
+  // Calculate monetização metrics
+  const monetizacao = {
+    totalVendas: funilVendas.length,
+    valorVendas: funilVendas.reduce((sum, v) => sum + (v.valor_venda || 0), 0),
+    valorEntradas: funilVendas.reduce((sum, v) => sum + (v.valor_entrada || 0), 0),
+  };
+
+  // Calculate totals (Aquisição + Monetização)
+  const totais = {
+    investimento: aquisicaoData?.investimento || 0,
+    faturamento: (aquisicaoData?.faturamento || 0) + monetizacao.valorVendas,
+    roas: 0,
+  };
+  totais.roas = totais.investimento > 0 ? totais.faturamento / totais.investimento : 0;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-slate-800 border border-slate-700 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="sticky top-0 bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white">{funil.nome_produto}</h2>
+            <p className="text-slate-400 text-sm mt-1">{funil.especialista}</p>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-white">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-6">
+          {loadingAquisicao ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+            </div>
+          ) : (
+            <>
+              {/* Geral */}
+              <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart3 className="w-5 h-5 text-green-400" />
+                  <h3 className="text-lg font-semibold text-white">Geral (Total)</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <div className="text-slate-400 text-sm">Investimento Total</div>
+                    <div className="text-2xl font-bold text-white">
+                      R$ {totais.investimento.toLocaleString('pt-BR')}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-slate-400 text-sm">Faturamento Total</div>
+                    <div className="text-2xl font-bold text-green-400">
+                      R$ {totais.faturamento.toLocaleString('pt-BR')}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-slate-400 text-sm">ROAS Total</div>
+                    <div className="text-2xl font-bold text-blue-400">
+                      {totais.roas.toFixed(2)}x
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Aquisição */}
+                <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <TrendingUp className="w-5 h-5 text-blue-400" />
+                    <h3 className="text-lg font-semibold text-white">Aquisição</h3>
+                    <span className="text-xs text-slate-500">(Google Sheets)</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Investimento</span>
+                      <span className="text-white font-medium">
+                        R$ {(aquisicaoData?.investimento || 0).toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Faturamento</span>
+                      <span className="text-blue-400 font-medium">
+                        R$ {(aquisicaoData?.faturamento || 0).toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">ROAS</span>
+                      <span className="text-purple-400 font-medium">
+                        {(aquisicaoData?.roas || 0).toFixed(2)}x
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Alunos</span>
+                      <span className="text-white font-medium">
+                        {(aquisicaoData?.alunos || 0).toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Monetização */}
+                <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <DollarSign className="w-5 h-5 text-green-400" />
+                    <h3 className="text-lg font-semibold text-white">Monetização</h3>
+                    <span className="text-xs text-slate-500">(Vendas Registradas)</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Total de Vendas</span>
+                      <span className="text-white font-medium">
+                        {monetizacao.totalVendas}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Valor de Vendas</span>
+                      <span className="text-green-400 font-medium">
+                        R$ {monetizacao.valorVendas.toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Valor de Entradas</span>
+                      <span className="text-yellow-400 font-medium">
+                        R$ {monetizacao.valorEntradas.toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Ticket Médio</span>
+                      <span className="text-white font-medium">
+                        R$ {monetizacao.totalVendas > 0
+                          ? (monetizacao.valorVendas / monetizacao.totalVendas).toLocaleString('pt-BR', { maximumFractionDigits: 2 })
+                          : '0'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Vendas List */}
+              {funilVendas.length > 0 && (
+                <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <ShoppingCart className="w-5 h-5" />
+                    Vendas Recentes ({funilVendas.length})
+                  </h3>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {funilVendas.slice(0, 10).map((venda) => (
+                      <div key={venda.id} className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                        <div>
+                          <div className="text-white font-medium">{venda.closer?.nome || 'Closer não definido'}</div>
+                          <div className="text-slate-400 text-sm">
+                            {new Date(venda.data_venda).toLocaleDateString('pt-BR')}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-green-400 font-medium">
+                            R$ {venda.valor_venda.toLocaleString('pt-BR')}
+                          </div>
+                          <div className="text-yellow-400 text-sm">
+                            Entrada: R$ {venda.valor_entrada.toLocaleString('pt-BR')}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function MonetizacaoModule() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'closers' | 'funis' | 'vendas'>('dashboard');
 
   // Hooks
   const { closers, loading: loadingClosers, createCloser, updateCloser, deleteCloser } = useClosers();
-  const { funis, loading: loadingFunis, createFunil, updateFunil, deleteFunil } = useFunis();
+  const { funis, loading: loadingFunis, syncing: syncingFunis, createFunil, updateFunil, deleteFunil } = useFunis();
   const { vendas, loading: loadingVendas, createVenda, updateVenda, deleteVenda } = useVendas();
   const { metrics, top3Closers, top3Funis, loading: loadingMetrics } = useMonetizacaoMetrics();
 
@@ -335,6 +524,7 @@ export function MonetizacaoModule() {
   const [closerModal, setCloserModal] = useState<{ open: boolean; closer?: Closer }>({ open: false });
   const [funilModal, setFunilModal] = useState<{ open: boolean; funil?: Funil }>({ open: false });
   const [vendaModal, setVendaModal] = useState<{ open: boolean; venda?: Venda }>({ open: false });
+  const [funilDetailModal, setFunilDetailModal] = useState<Funil | null>(null);
   const [formLoading, setFormLoading] = useState(false);
 
   const tabs = [
@@ -409,10 +599,10 @@ export function MonetizacaoModule() {
           </h1>
           <p className="text-slate-400 mt-1">Gestao de closers, funis e vendas</p>
         </div>
-        {loading && (
+        {(loading || syncingFunis) && (
           <div className="flex items-center gap-2 text-slate-400">
             <Loader2 className="w-4 h-4 animate-spin" />
-            Carregando...
+            {syncingFunis ? 'Sincronizando funis do Google Sheets...' : 'Carregando...'}
           </div>
         )}
       </div>
@@ -605,7 +795,12 @@ export function MonetizacaoModule() {
       {/* Funis Tab */}
       {activeTab === 'funis' && (
         <div className="space-y-4">
-          <div className="flex justify-end">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-2">
+              <p className="text-blue-400 text-sm">
+                ℹ️ Funis são sincronizados automaticamente do Google Sheets (Aquisição)
+              </p>
+            </div>
             <button
               onClick={() => setFunilModal({ open: true })}
               className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
@@ -623,33 +818,78 @@ export function MonetizacaoModule() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {funis.map((funil) => (
-                <div key={funil.id} className={`bg-slate-800/50 border rounded-xl p-6 ${funil.ativo ? 'border-slate-700' : 'border-red-900/50 opacity-60'}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-white font-medium text-lg">{funil.nome_produto}</div>
-                    <div className="flex gap-1">
-                      <button onClick={() => setFunilModal({ open: true, funil })} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDeleteFunil(funil.id)} className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+              {funis.map((funil) => {
+                // Calculate monetization data for this funil
+                const funilVendas = vendas.filter(v => v.funil_id === funil.id);
+                const valorMonetizacao = funilVendas.reduce((sum, v) => sum + (v.valor_venda || 0), 0);
+                const faturamentoTotal = funil.valor_total_gerado + valorMonetizacao;
+
+                // Check if it's a summary/total card
+                const isSummary = funil.nome_produto.toLowerCase().includes('geral') ||
+                                  funil.nome_produto.toLowerCase().includes('total');
+
+                return (
+                  <div
+                    key={funil.id}
+                    className={`bg-slate-800/50 border rounded-xl p-6 transition-all ${
+                      isSummary
+                        ? 'border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-purple-500/5'
+                        : `cursor-pointer hover:scale-105 ${funil.ativo ? 'border-slate-700 hover:border-green-500/50' : 'border-red-900/50 opacity-60'}`
+                    }`}
+                    onClick={() => !isSummary && setFunilDetailModal(funil)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="text-white font-medium text-lg">{funil.nome_produto}</div>
+                        {isSummary && (
+                          <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
+                            Compilado
+                          </span>
+                        )}
+                      </div>
+                      {!isSummary && (
+                        <div className="flex gap-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFunilModal({ open: true, funil });
+                            }}
+                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteFunil(funil.id);
+                            }}
+                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
                     </div>
+                    <div className="text-slate-400 text-sm mb-4">{funil.especialista}</div>
+                    <div className="grid grid-cols-2 gap-4 text-sm mb-3">
+                      <div>
+                        <div className="text-slate-400">Investimento</div>
+                        <div className="text-white font-medium">R$ {funil.total_vendas.toLocaleString('pt-BR')}</div>
+                      </div>
+                      <div>
+                        <div className="text-slate-400">Faturamento Total</div>
+                        <div className="text-green-400 font-medium">R$ {faturamentoTotal.toLocaleString('pt-BR')}</div>
+                      </div>
+                    </div>
+                    {!isSummary && (
+                      <div className="flex items-center justify-center gap-2 text-xs text-blue-400 mt-4 pt-3 border-t border-slate-700">
+                        <ArrowRight className="w-3 h-3" />
+                        Clique para ver detalhes
+                      </div>
+                    )}
                   </div>
-                  <div className="text-slate-400 text-sm mb-4">{funil.especialista}</div>
-                  {funil.descricao && <div className="text-slate-500 text-sm mb-4 line-clamp-2">{funil.descricao}</div>}
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <div className="text-slate-400">Valor</div>
-                      <div className="text-green-400 font-medium">R$ {funil.valor_venda.toLocaleString('pt-BR')}</div>
-                    </div>
-                    <div>
-                      <div className="text-slate-400">Vendas</div>
-                      <div className="text-white font-medium">{funil.total_vendas}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -734,6 +974,15 @@ export function MonetizacaoModule() {
       <Modal isOpen={vendaModal.open} onClose={() => setVendaModal({ open: false })} title={vendaModal.venda ? 'Editar Venda' : 'Registrar Venda'}>
         <VendaForm venda={vendaModal.venda} closers={closers} funis={funis} onSubmit={handleVendaSubmit} onCancel={() => setVendaModal({ open: false })} loading={formLoading} />
       </Modal>
+
+      {/* Funil Detail Modal */}
+      {funilDetailModal && (
+        <FunilDetailModal
+          funil={funilDetailModal}
+          vendas={vendas}
+          onClose={() => setFunilDetailModal(null)}
+        />
+      )}
     </div>
   );
 }
