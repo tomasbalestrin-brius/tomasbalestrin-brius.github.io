@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, RefreshCw, Calendar, DollarSign, Users, Target, Loader2, AlertCircle, BarChart3 } from 'lucide-react';
+import { TrendingUp, RefreshCw, Calendar, DollarSign, Users, Target, Loader2, AlertCircle, BarChart3, ArrowUp, ArrowDown } from 'lucide-react';
 import type { Month } from '@/types/dashboard';
 import { MonthSelector } from '@/components/dashboard/MonthSelector';
 import { useAquisicao } from '@/hooks/useAquisicao';
@@ -11,6 +11,8 @@ interface AquisicaoModuleProps {
 }
 
 type PeriodoFilter = 'total' | 'semana1' | 'semana2' | 'semana3' | 'semana4';
+type SortColumn = 'investido' | 'faturamento' | 'roas' | 'alunos' | null;
+type SortDirection = 'asc' | 'desc';
 
 const PERIODOS = [
   { id: 'total', name: 'Total do Mês' },
@@ -22,6 +24,8 @@ const PERIODOS = [
 
 export function AquisicaoModule({ currentMonth, onMonthSelect }: AquisicaoModuleProps) {
   const [periodo, setPeriodo] = useState<PeriodoFilter>('total');
+  const [sortColumn, setSortColumn] = useState<SortColumn>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   // Get month name from currentMonth
   const monthName = MONTHS.find(m => m.id === currentMonth.id)?.name || currentMonth.name;
@@ -76,6 +80,18 @@ export function AquisicaoModule({ currentMonth, onMonthSelect }: AquisicaoModule
 
   const geralMetrics = getGeralMetrics();
 
+  // Handle column sort
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      // Toggle direction
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New column, default to descending
+      setSortColumn(column);
+      setSortDirection('desc');
+    }
+  };
+
   // Calcular dados da tabela baseado no período selecionado
   const getProductData = (product: typeof rawData[0]) => {
     if (periodo === 'total') {
@@ -102,6 +118,35 @@ export function AquisicaoModule({ currentMonth, onMonthSelect }: AquisicaoModule
       semanas: 1,
     };
   };
+
+  // Prepare and sort table data
+  const tableData = rawData
+    .map((product) => ({
+      product,
+      data: getProductData(product),
+    }))
+    .filter(({ data }) => {
+      // Filter out rows without data when not showing total
+      if (periodo !== 'total' && data.semanas === 0) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      // Keep "Geral" at the top always
+      if (a.product.name === 'Geral') return -1;
+      if (b.product.name === 'Geral') return 1;
+
+      // If no sort column selected, keep original order
+      if (!sortColumn) return 0;
+
+      const aVal = a.data[sortColumn];
+      const bVal = b.data[sortColumn];
+
+      if (sortDirection === 'desc') {
+        return bVal - aVal;
+      } else {
+        return aVal - bVal;
+      }
+    });
 
   const periodoLabel = PERIODOS.find(p => p.id === periodo)?.name || 'Total';
 
@@ -242,49 +287,82 @@ export function AquisicaoModule({ currentMonth, onMonthSelect }: AquisicaoModule
               <thead className="bg-slate-900/50">
                 <tr>
                   <th className="px-4 py-3 text-left text-sm font-medium text-slate-400">Funil</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Investido</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Faturamento</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">ROAS</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Alunos</th>
+                  <th
+                    className="px-4 py-3 text-right text-sm font-medium text-slate-400 cursor-pointer hover:text-white transition-colors select-none"
+                    onClick={() => handleSort('investido')}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      Investido
+                      {sortColumn === 'investido' && (
+                        sortDirection === 'desc' ? <ArrowDown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-right text-sm font-medium text-slate-400 cursor-pointer hover:text-white transition-colors select-none"
+                    onClick={() => handleSort('faturamento')}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      Faturamento
+                      {sortColumn === 'faturamento' && (
+                        sortDirection === 'desc' ? <ArrowDown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-right text-sm font-medium text-slate-400 cursor-pointer hover:text-white transition-colors select-none"
+                    onClick={() => handleSort('roas')}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      ROAS
+                      {sortColumn === 'roas' && (
+                        sortDirection === 'desc' ? <ArrowDown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-right text-sm font-medium text-slate-400 cursor-pointer hover:text-white transition-colors select-none"
+                    onClick={() => handleSort('alunos')}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      Alunos
+                      {sortColumn === 'alunos' && (
+                        sortDirection === 'desc' ? <ArrowDown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700">
-                {rawData.map((product, index) => {
-                  const data = getProductData(product);
-
-                  // Pular se não tem dados para o período selecionado
-                  if (periodo !== 'total' && data.semanas === 0) return null;
-
-                  return (
-                    <tr
-                      key={index}
-                      className={`hover:bg-slate-700/30 transition-colors ${
-                        product.name === 'Geral' ? 'bg-blue-900/20' : ''
-                      }`}
-                    >
-                      <td className="px-4 py-3 text-white font-medium">
-                        {product.name}
-                        {product.name === 'Geral' && (
-                          <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded">Principal</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right text-red-400">
-                        R$ {data.investido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="px-4 py-3 text-right text-green-400">
-                        R$ {data.faturamento.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className={`font-medium ${data.roas >= 1 ? 'text-green-400' : 'text-red-400'}`}>
-                          {data.roas.toFixed(2)}x
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right text-blue-400">
-                        {data.alunos.toLocaleString('pt-BR')}
-                      </td>
-                    </tr>
-                  );
-                })}
+                {tableData.map(({ product, data }, index) => (
+                  <tr
+                    key={index}
+                    className={`hover:bg-slate-700/30 transition-colors ${
+                      product.name === 'Geral' ? 'bg-blue-900/20' : ''
+                    }`}
+                  >
+                    <td className="px-4 py-3 text-white font-medium">
+                      {product.name}
+                      {product.name === 'Geral' && (
+                        <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded">Principal</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right text-red-400">
+                      R$ {data.investido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-4 py-3 text-right text-green-400">
+                      R$ {data.faturamento.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className={`font-medium ${data.roas >= 1 ? 'text-green-400' : 'text-red-400'}`}>
+                        {data.roas.toFixed(2)}x
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right text-blue-400">
+                      {data.alunos.toLocaleString('pt-BR')}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
