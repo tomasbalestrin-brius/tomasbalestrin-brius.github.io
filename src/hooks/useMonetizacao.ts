@@ -303,17 +303,14 @@ export function useClosers() {
     fetchClosers();
 
     // Listen for updates from other hooks (e.g., when vendas update closer stats)
-    // Only refetch when the update comes from outside (not from this hook itself)
     const cleanup = addEventListener('closersUpdated', () => {
-      // Re-read from localStorage without trying Supabase again
-      if (useLocal) {
-        const localData = getFromStorage<Closer>(STORAGE_KEYS.closers);
-        console.log(`🔄 Closers atualizados por evento externo. Total: ${localData.length}`);
-        setClosers(localData.sort((a, b) => (b.valor_total_vendas || 0) - (a.valor_total_vendas || 0)));
-      }
+      // Always re-read from localStorage when event is triggered
+      const localData = getFromStorage<Closer>(STORAGE_KEYS.closers);
+      console.log(`🔄 Closers atualizados por evento externo. Total: ${localData.length}`);
+      setClosers(localData.sort((a, b) => (b.valor_total_vendas || 0) - (a.valor_total_vendas || 0)));
     });
     return cleanup;
-  }, [fetchClosers, useLocal]);
+  }, [fetchClosers]);
 
   return {
     closers,
@@ -481,17 +478,14 @@ export function useFunis() {
     fetchFunis();
 
     // Listen for updates from other hooks (e.g., when vendas update funil stats)
-    // Only refetch when the update comes from outside (not from this hook itself)
     const cleanup = addEventListener('funisUpdated', () => {
-      // Re-read from localStorage without trying Supabase again
-      if (useLocal) {
-        const localData = getFromStorage<Funil>(STORAGE_KEYS.funis);
-        console.log(`🔄 Funis atualizados por evento externo. Total: ${localData.length}`);
-        setFunis(localData.sort((a, b) => (b.total_vendas || 0) - (a.total_vendas || 0)));
-      }
+      // Always re-read from localStorage when event is triggered
+      const localData = getFromStorage<Funil>(STORAGE_KEYS.funis);
+      console.log(`🔄 Funis atualizados por evento externo. Total: ${localData.length}`);
+      setFunis(localData.sort((a, b) => (b.total_vendas || 0) - (a.total_vendas || 0)));
     });
     return cleanup;
-  }, [fetchFunis, useLocal]);
+  }, [fetchFunis]);
 
   return {
     funis,
