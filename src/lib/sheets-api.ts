@@ -10,20 +10,44 @@ const SHEET_NAMES: Record<string, string> = {
   'Janeiro': 'Dados de Jan/26'
 };
 
+/**
+ * Mapeamento das colunas da planilha Google Sheets:
+ *
+ * AQUISIÇÃO (Colunas A-F):
+ * A (0) = Funil
+ * B (1) = Período (Semana 1, 2, 3, 4, Tendência)
+ * C (2) = Investimento
+ * D (3) = Faturamento Tráfego
+ * E (4) = ROAS Tráfego
+ * F (5) = Número de Alunos
+ *
+ * SDR (Colunas G-M):
+ * G (6) = Número de Formulários
+ * H (7) = Taxa de Preenchimento
+ * I (8) = Qualificados
+ * J (9) = Agendados
+ * K (10) = Taxa de Agendamento
+ * L (11) = Call Realizada
+ * M (12) = Taxa de Comparecimento
+ */
+
 export interface WeekData {
   funil?: string;
   periodo?: string;
-  investido: number;
-  faturamentoTrafego: number;
-  roasTrafego: number;
-  alunos: number;
-  formularios: number;
-  taxaPreenchimento: number;
-  qualificados: number;
-  agendados: number;
-  taxaAgendamento: number;
-  callRealizada: number;
-  taxaComparecimento: number;
+  // Aquisição (C-F)
+  investido: number;        // Coluna C (2)
+  faturamentoTrafego: number; // Coluna D (3)
+  roasTrafego: number;      // Coluna E (4)
+  alunos: number;           // Coluna F (5)
+  // SDR (G-M)
+  formularios: number;      // Coluna G (6)
+  taxaPreenchimento: number; // Coluna H (7)
+  qualificados: number;     // Coluna I (8)
+  agendados: number;        // Coluna J (9)
+  taxaAgendamento: number;  // Coluna K (10)
+  callRealizada: number;    // Coluna L (11)
+  taxaComparecimento: number; // Coluna M (12)
+  // Campos adicionais
   numeroVenda: number;
   taxaConversao: number;
   taxaAscensao: number;
@@ -53,32 +77,52 @@ function parseValue(val: any): number {
 }
 
 function parseRow(row: string[]): WeekData {
-  const investido = parseValue(row[2]);
-  const faturamentoTrafego = parseValue(row[3]);
-  const faturamentoFunil = parseValue(row[18]);
+  // Aquisição (C-F)
+  const investido = parseValue(row[2]);         // C - Investimento
+  const faturamentoTrafego = parseValue(row[3]); // D - Faturamento Tráfego
+  const roasTrafego = parseValue(row[4]);       // E - ROAS Tráfego
+  const alunos = parseValue(row[5]);            // F - Número de Alunos
+
+  // SDR (G-M)
+  const formularios = parseValue(row[6]);       // G - Número de Formulários
+  const taxaPreenchimento = parseValue(row[7]); // H - Taxa de Preenchimento
+  const qualificados = parseValue(row[8]);      // I - Qualificados
+  const agendados = parseValue(row[9]);         // J - Agendados
+  const taxaAgendamento = parseValue(row[10]);  // K - Taxa de Agendamento
+  const callRealizada = parseValue(row[11]);    // L - Call Realizada
+  const taxaComparecimento = parseValue(row[12]); // M - Taxa de Comparecimento
+
+  // Campos adicionais (N-T)
+  const numeroVenda = parseValue(row[13]);      // N
+  const taxaConversao = parseValue(row[14]);    // O
+  const taxaAscensao = parseValue(row[15]);     // P
+  const vendaMonetizacao = parseValue(row[16]); // Q
+  const entradas = parseValue(row[17]);         // R
+  const faturamentoFunil = parseValue(row[18]); // S
+  const roasFunil = parseValue(row[19]);        // T
   const lucroFunil = faturamentoFunil - investido;
 
   return {
-    funil: row[0] || '',
-    periodo: row[1] || '',
+    funil: row[0] || '',     // A - Funil
+    periodo: row[1] || '',   // B - Período
     investido,
     faturamentoTrafego,
-    roasTrafego: parseValue(row[4]),
-    alunos: parseValue(row[5]),
-    formularios: parseValue(row[6]),
-    taxaPreenchimento: parseValue(row[7]),
-    qualificados: parseValue(row[8]),
-    agendados: parseValue(row[9]),
-    taxaAgendamento: parseValue(row[10]),
-    callRealizada: parseValue(row[11]),
-    taxaComparecimento: parseValue(row[12]),
-    numeroVenda: parseValue(row[13]),
-    taxaConversao: parseValue(row[14]),
-    taxaAscensao: parseValue(row[15]),
-    vendaMonetizacao: parseValue(row[16]),
-    entradas: parseValue(row[17]),
+    roasTrafego,
+    alunos,
+    formularios,
+    taxaPreenchimento,
+    qualificados,
+    agendados,
+    taxaAgendamento,
+    callRealizada,
+    taxaComparecimento,
+    numeroVenda,
+    taxaConversao,
+    taxaAscensao,
+    vendaMonetizacao,
+    entradas,
     faturamentoFunil,
-    roasFunil: parseValue(row[19]),
+    roasFunil,
     lucroFunil
   };
 }
