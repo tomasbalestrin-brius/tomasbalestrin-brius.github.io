@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Phone, RefreshCw, Calendar, Users, Target, Loader2, AlertCircle, BarChart3, CheckCircle, ClipboardList } from 'lucide-react';
+import { Phone, RefreshCw, Calendar, Users, Target, Loader2, AlertCircle, BarChart3, CheckCircle, ClipboardList, ArrowUp, ArrowDown } from 'lucide-react';
 import type { Month } from '@/types/dashboard';
 import { MonthSelector } from '@/components/dashboard/MonthSelector';
 import { useAquisicao } from '@/hooks/useAquisicao';
@@ -11,6 +11,8 @@ interface SDRModuleProps {
 }
 
 type PeriodoFilter = 'total' | 'semana1' | 'semana2' | 'semana3' | 'semana4';
+type SortColumn = 'qualificados' | 'agendados' | 'taxaAgendamento' | 'calls' | 'taxaComparecimento' | null;
+type SortDirection = 'asc' | 'desc';
 
 const PERIODOS = [
   { id: 'total', name: 'Total do Mês' },
@@ -22,6 +24,8 @@ const PERIODOS = [
 
 export function SDRModule({ currentMonth, onMonthSelect }: SDRModuleProps) {
   const [periodo, setPeriodo] = useState<PeriodoFilter>('total');
+  const [sortColumn, setSortColumn] = useState<SortColumn>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   // Get month name from currentMonth
   const monthName = MONTHS.find(m => m.id === currentMonth.id)?.name || currentMonth.name;
@@ -78,6 +82,18 @@ export function SDRModule({ currentMonth, onMonthSelect }: SDRModuleProps) {
 
   const geralMetrics = getGeralMetrics();
 
+  // Handle column sort
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      // Toggle direction
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New column, default to descending
+      setSortColumn(column);
+      setSortDirection('desc');
+    }
+  };
+
   // Calcular dados da tabela baseado no período selecionado
   const getProductData = (product: typeof rawData[0]) => {
     if (periodo === 'total') {
@@ -108,6 +124,35 @@ export function SDRModule({ currentMonth, onMonthSelect }: SDRModuleProps) {
       hasData: true,
     };
   };
+
+  // Prepare and sort table data
+  const tableData = rawData
+    .map((product) => ({
+      product,
+      data: getProductData(product),
+    }))
+    .filter(({ data, product }) => {
+      // Filter out rows without data when not showing total
+      if (periodo !== 'total' && !data.hasData) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      // Keep "Geral" at the top always
+      if (a.product.name === 'Geral') return -1;
+      if (b.product.name === 'Geral') return 1;
+
+      // If no sort column selected, keep original order
+      if (!sortColumn) return 0;
+
+      const aVal = a.data[sortColumn];
+      const bVal = b.data[sortColumn];
+
+      if (sortDirection === 'desc') {
+        return bVal - aVal;
+      } else {
+        return aVal - bVal;
+      }
+    });
 
   const periodoLabel = PERIODOS.find(p => p.id === periodo)?.name || 'Total';
 
@@ -258,54 +303,98 @@ export function SDRModule({ currentMonth, onMonthSelect }: SDRModuleProps) {
               <thead className="bg-slate-900/50">
                 <tr>
                   <th className="px-4 py-3 text-left text-sm font-medium text-slate-400">Funil</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Qualificados</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Agendados</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Taxa Agend.</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Calls</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-slate-400">Taxa Comp.</th>
+                  <th
+                    className="px-4 py-3 text-right text-sm font-medium text-slate-400 cursor-pointer hover:text-white transition-colors select-none"
+                    onClick={() => handleSort('qualificados')}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      Qualificados
+                      {sortColumn === 'qualificados' && (
+                        sortDirection === 'desc' ? <ArrowDown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-right text-sm font-medium text-slate-400 cursor-pointer hover:text-white transition-colors select-none"
+                    onClick={() => handleSort('agendados')}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      Agendados
+                      {sortColumn === 'agendados' && (
+                        sortDirection === 'desc' ? <ArrowDown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-right text-sm font-medium text-slate-400 cursor-pointer hover:text-white transition-colors select-none"
+                    onClick={() => handleSort('taxaAgendamento')}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      Taxa Agend.
+                      {sortColumn === 'taxaAgendamento' && (
+                        sortDirection === 'desc' ? <ArrowDown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-right text-sm font-medium text-slate-400 cursor-pointer hover:text-white transition-colors select-none"
+                    onClick={() => handleSort('calls')}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      Calls
+                      {sortColumn === 'calls' && (
+                        sortDirection === 'desc' ? <ArrowDown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-right text-sm font-medium text-slate-400 cursor-pointer hover:text-white transition-colors select-none"
+                    onClick={() => handleSort('taxaComparecimento')}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      Taxa Comp.
+                      {sortColumn === 'taxaComparecimento' && (
+                        sortDirection === 'desc' ? <ArrowDown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700">
-                {rawData.map((product, index) => {
-                  const data = getProductData(product);
-
-                  if (periodo !== 'total' && !data.hasData) return null;
-
-                  return (
-                    <tr
-                      key={index}
-                      className={`hover:bg-slate-700/30 transition-colors ${
-                        product.name === 'Geral' ? 'bg-green-900/20' : ''
-                      }`}
-                    >
-                      <td className="px-4 py-3 text-white font-medium">
-                        {product.name}
-                        {product.name === 'Geral' && (
-                          <span className="ml-2 text-xs bg-green-600 text-white px-2 py-0.5 rounded">Principal</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right text-blue-400">
-                        {data.qualificados.toLocaleString('pt-BR')}
-                      </td>
-                      <td className="px-4 py-3 text-right text-purple-400">
-                        {data.agendados.toLocaleString('pt-BR')}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className={`font-medium ${data.taxaAgendamento >= 50 ? 'text-green-400' : 'text-yellow-400'}`}>
-                          {data.taxaAgendamento.toFixed(1)}%
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right text-green-400">
-                        {data.calls.toLocaleString('pt-BR')}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className={`font-medium ${data.taxaComparecimento >= 70 ? 'text-green-400' : 'text-yellow-400'}`}>
-                          {data.taxaComparecimento.toFixed(1)}%
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {tableData.map(({ product, data }, index) => (
+                  <tr
+                    key={index}
+                    className={`hover:bg-slate-700/30 transition-colors ${
+                      product.name === 'Geral' ? 'bg-green-900/20' : ''
+                    }`}
+                  >
+                    <td className="px-4 py-3 text-white font-medium">
+                      {product.name}
+                      {product.name === 'Geral' && (
+                        <span className="ml-2 text-xs bg-green-600 text-white px-2 py-0.5 rounded">Principal</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right text-blue-400">
+                      {data.qualificados.toLocaleString('pt-BR')}
+                    </td>
+                    <td className="px-4 py-3 text-right text-purple-400">
+                      {data.agendados.toLocaleString('pt-BR')}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className={`font-medium ${data.taxaAgendamento >= 50 ? 'text-green-400' : 'text-yellow-400'}`}>
+                        {data.taxaAgendamento.toFixed(1)}%
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right text-green-400">
+                      {data.calls.toLocaleString('pt-BR')}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className={`font-medium ${data.taxaComparecimento >= 70 ? 'text-green-400' : 'text-yellow-400'}`}>
+                        {data.taxaComparecimento.toFixed(1)}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
