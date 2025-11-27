@@ -127,26 +127,34 @@ async function syncFunisFromSheets(): Promise<void> {
       const isSummary = funilName.toLowerCase().includes('geral') ||
                         funilName.toLowerCase().includes('total');
 
-      // Calculate average values from weeks data
-      const totalWeeks = product.weeks.length;
-      const avgVendas = totalWeeks > 0
-        ? product.weeks.reduce((sum, w) => sum + (w.numeroVenda || 0), 0) / totalWeeks
-        : 0;
-      const avgFaturamento = totalWeeks > 0
-        ? product.weeks.reduce((sum, w) => sum + (w.faturamentoTrafego || 0), 0) / totalWeeks
-        : 0;
+      // Calculate totals from all weeks
+      const totalInvestimento = product.weeks.reduce((sum, w) => sum + (w.investido || 0), 0);
+      const totalFaturamento = product.weeks.reduce((sum, w) => sum + (w.faturamentoTrafego || 0), 0);
+      const totalLucro = totalFaturamento - totalInvestimento;
+      const totalVendas = product.weeks.reduce((sum, w) => sum + (w.numeroVenda || 0), 0);
+
+      // Get tendencia data (if available)
+      const tendenciaFaturamento = product.tendencia?.faturamentoTrafego || 0;
+      const tendenciaInvestimento = product.tendencia?.investido || 0;
+      const tendenciaLucro = tendenciaFaturamento - tendenciaInvestimento;
 
       // Create new funil data
       const newFunilData = {
         nome_produto: funilName,
-        valor_venda: avgFaturamento > 0 ? Math.round(avgFaturamento / Math.max(1, avgVendas)) : 0,
+        valor_venda: totalFaturamento > 0 ? Math.round(totalFaturamento / Math.max(1, totalVendas)) : 0,
         especialista: isSummary ? '📊 Total/Compilado (Somente Visualização)' : 'Importado do Google Sheets',
         descricao: isSummary
           ? `Compilado total - Não é um funil real para registrar vendas`
           : `Funil sincronizado automaticamente da planilha de Aquisição (${currentMonth.name})`,
-        total_vendas: Math.round(avgVendas),
-        valor_total_gerado: Math.round(avgFaturamento),
+        total_vendas: Math.round(totalVendas),
+        valor_total_gerado: Math.round(totalFaturamento),
         ativo: !isSummary, // Totais ficam como inativos para não aparecerem em dropdowns
+        // Dados de aquisição
+        investimento: Math.round(totalInvestimento),
+        faturamento: Math.round(totalFaturamento),
+        lucro: Math.round(totalLucro),
+        tendencia_faturamento: Math.round(tendenciaFaturamento),
+        tendencia_lucro: Math.round(tendenciaLucro),
       };
 
       newFunisToCreate.push(newFunilData);
