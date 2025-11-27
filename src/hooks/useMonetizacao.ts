@@ -133,7 +133,7 @@ async function syncFunisFromSheets(): Promise<void> {
         ? product.weeks.reduce((sum, w) => sum + (w.numeroVenda || 0), 0) / totalWeeks
         : 0;
       const avgFaturamento = totalWeeks > 0
-        ? product.weeks.reduce((sum, w) => sum + (w.faturamentoFunil || 0), 0) / totalWeeks
+        ? product.weeks.reduce((sum, w) => sum + (w.faturamentoTrafego || 0), 0) / totalWeeks
         : 0;
 
       // Create new funil data
@@ -933,9 +933,9 @@ export function useFunilAquisicao(funilId: string | null) {
           return;
         }
 
-        // Calculate totals from all weeks
+        // Calculate totals from all weeks (AQUISIÇÃO only - using faturamentoTrafego)
         const totalInvestimento = product.weeks.reduce((sum, w) => sum + (w.investido || 0), 0);
-        const totalFaturamento = product.weeks.reduce((sum, w) => sum + (w.faturamentoFunil || 0), 0);
+        const totalFaturamento = product.weeks.reduce((sum, w) => sum + (w.faturamentoTrafego || 0), 0);
         const totalAlunos = product.weeks.reduce((sum, w) => sum + (w.alunos || 0), 0);
         const roas = totalInvestimento > 0 ? totalFaturamento / totalInvestimento : 0;
 
