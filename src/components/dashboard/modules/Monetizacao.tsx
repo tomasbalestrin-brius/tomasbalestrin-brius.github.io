@@ -964,9 +964,9 @@ export function MonetizacaoModule() {
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-white flex items-center gap-3">
             <DollarSign className="w-8 h-8 text-green-400" />
-            Monetizacao
+            Monetização
           </h1>
-          <p className="text-slate-400 mt-1">Gestao de closers, funis e vendas</p>
+          <p className="text-slate-400 mt-1">Gestão de closers, funis e vendas</p>
         </div>
         {(loading || syncingFunis) && (
           <div className="flex items-center gap-2 text-slate-400">
