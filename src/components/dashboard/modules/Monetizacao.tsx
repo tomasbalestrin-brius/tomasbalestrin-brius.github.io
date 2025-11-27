@@ -1,7 +1,18 @@
 import { useState } from 'react';
-import { DollarSign, Users, ShoppingCart, Plus, TrendingUp, Award, Target, X, Edit2, Trash2, Loader2, BarChart3, ArrowRight } from 'lucide-react';
+import { DollarSign, Users, ShoppingCart, Plus, TrendingUp, Award, Target, X, Edit2, Trash2, Loader2, BarChart3, ArrowRight, Package, Clock, Briefcase } from 'lucide-react';
 import type { Closer, Funil, Venda } from '@/types/dashboard';
 import { useClosers, useFunis, useVendas, useMonetizacaoMetrics, useFunilAquisicao } from '@/hooks/useMonetizacao';
+
+// Lista de produtos disponíveis
+const PRODUTOS_DISPONIVEIS = [
+  'Mentoria Premium Trimestral',
+  'Mentoria Premium Semestral',
+  'Mentoria Elite Premium',
+  'Implementação Comercial',
+  'Implementação de inteligência artificial',
+  'Bethel Growth',
+  'Ingresso do intensivo',
+] as const;
 
 // Modal Component
 function Modal({ isOpen, onClose, title, children }: { isOpen: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
@@ -246,7 +257,21 @@ function VendaForm({ venda, closers, funis, onSubmit, onCancel, loading }: {
         </select>
       </div>
       <div>
-        <label className="block text-sm text-slate-400 mb-1">Funil/Produto *</label>
+        <label className="block text-sm text-slate-400 mb-1">Produto Vendido *</label>
+        <select
+          required
+          value={formData.produto}
+          onChange={(e) => setFormData({ ...formData, produto: e.target.value })}
+          className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-green-500"
+        >
+          <option value="">Selecione um produto</option>
+          {PRODUTOS_DISPONIVEIS.map((produto) => (
+            <option key={produto} value={produto}>{produto}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm text-slate-400 mb-1">Funil/Campanha *</label>
         <select
           required
           value={formData.funil_id}
@@ -255,7 +280,6 @@ function VendaForm({ venda, closers, funis, onSubmit, onCancel, loading }: {
             setFormData({
               ...formData,
               funil_id: e.target.value,
-              produto: funil?.nome_produto || '',
               valor_venda: funil?.valor_venda || formData.valor_venda,
             });
           }}
@@ -319,6 +343,348 @@ function VendaForm({ venda, closers, funis, onSubmit, onCancel, loading }: {
         </button>
       </div>
     </form>
+  );
+}
+
+// Closer Detail Modal
+function CloserDetailModal({ closer, vendas, onEdit, onClose }: {
+  closer: Closer;
+  vendas: Venda[];
+  onEdit: () => void;
+  onClose: () => void;
+}) {
+  // Filter vendas for this closer
+  const closerVendas = vendas.filter(v => v.closer_id === closer.id);
+
+  // Calculate products sold by this closer
+  const produtosSummary = closerVendas.reduce((acc, venda) => {
+    const produto = venda.produto || 'Não especificado';
+    if (!acc[produto]) {
+      acc[produto] = { quantidade: 0, valor: 0 };
+    }
+    acc[produto].quantidade++;
+    acc[produto].valor += venda.valor_venda;
+    return acc;
+  }, {} as Record<string, { quantidade: number; valor: number }>);
+
+  const produtosArray = Object.entries(produtosSummary).map(([nome, data]) => ({
+    nome,
+    ...data,
+  })).sort((a, b) => b.valor - a.valor);
+
+  // Calculate time with company (mock - you might want to store this in the database)
+  const calcularTempoEmpresa = (createdAt: string) => {
+    const inicio = new Date(createdAt);
+    const agora = new Date();
+    const meses = Math.floor((agora.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24 * 30));
+    if (meses < 1) return 'Menos de 1 mês';
+    if (meses < 12) return `${meses} ${meses === 1 ? 'mês' : 'meses'}`;
+    const anos = Math.floor(meses / 12);
+    const mesesRestantes = meses % 12;
+    return `${anos} ${anos === 1 ? 'ano' : 'anos'}${mesesRestantes > 0 ? ` e ${mesesRestantes} ${mesesRestantes === 1 ? 'mês' : 'meses'}` : ''}`;
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-slate-800 border border-slate-700 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="sticky top-0 bg-slate-800 border-b border-slate-700 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-2xl font-bold text-white">
+                {closer.nome.charAt(0)}
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">{closer.nome}</h2>
+                <p className="text-slate-400 text-sm">{closer.time || 'Sem time definido'}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onEdit}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                <Edit2 className="w-4 h-4" />
+                Editar Perfil
+              </button>
+              <button onClick={onClose} className="text-slate-400 hover:text-white">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-6">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="w-4 h-4 text-blue-400" />
+                <span className="text-slate-400 text-sm">Tempo de Empresa</span>
+              </div>
+              <div className="text-xl font-bold text-white">
+                {calcularTempoEmpresa(closer.created_at)}
+              </div>
+            </div>
+
+            <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Briefcase className="w-4 h-4 text-purple-400" />
+                <span className="text-slate-400 text-sm">Cargo</span>
+              </div>
+              <div className="text-xl font-bold text-white">
+                Closer
+              </div>
+            </div>
+
+            <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <ShoppingCart className="w-4 h-4 text-green-400" />
+                <span className="text-slate-400 text-sm">Total Vendas</span>
+              </div>
+              <div className="text-xl font-bold text-white">
+                {closer.numero_vendas}
+              </div>
+            </div>
+
+            <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="w-4 h-4 text-yellow-400" />
+                <span className="text-slate-400 text-sm">Taxa Conversão</span>
+              </div>
+              <div className="text-xl font-bold text-white">
+                {closer.taxa_conversao}%
+              </div>
+            </div>
+          </div>
+
+          {/* Revenue Stats */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-6">
+              <div className="text-slate-400 text-sm mb-2">Valor Total em Vendas</div>
+              <div className="text-3xl font-bold text-green-400">
+                R$ {closer.valor_total_vendas.toLocaleString('pt-BR')}
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 rounded-xl p-6">
+              <div className="text-slate-400 text-sm mb-2">Valor Total em Entradas</div>
+              <div className="text-3xl font-bold text-yellow-400">
+                R$ {closer.valor_total_entradas.toLocaleString('pt-BR')}
+              </div>
+            </div>
+          </div>
+
+          {/* Products */}
+          <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <Package className="w-5 h-5 text-purple-400" />
+              Produtos Aptos a Vender
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {PRODUTOS_DISPONIVEIS.map((produto) => {
+                const vendido = produtosArray.find(p => p.nome === produto);
+                return (
+                  <div
+                    key={produto}
+                    className={`p-3 rounded-lg border ${
+                      vendido
+                        ? 'bg-green-500/10 border-green-500/30'
+                        : 'bg-slate-800/50 border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-white text-sm">{produto}</span>
+                      {vendido && (
+                        <span className="text-green-400 text-xs font-medium">
+                          {vendido.quantidade} venda{vendido.quantidade !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Recent Sales */}
+          {closerVendas.length > 0 && (
+            <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5" />
+                Vendas Recentes ({closerVendas.length})
+              </h3>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {closerVendas.slice(0, 10).map((venda) => (
+                  <div key={venda.id} className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                    <div>
+                      <div className="text-white font-medium">{venda.produto}</div>
+                      <div className="text-slate-400 text-sm">
+                        {new Date(venda.data_venda).toLocaleDateString('pt-BR')}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-green-400 font-medium">
+                        R$ {venda.valor_venda.toLocaleString('pt-BR')}
+                      </div>
+                      <div className="text-yellow-400 text-sm">
+                        Entrada: R$ {venda.valor_entrada.toLocaleString('pt-BR')}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Product Detail Modal
+function ProductDetailModal({ produto, vendas, closers, onClose }: {
+  produto: string;
+  vendas: Venda[];
+  closers: Closer[];
+  onClose: () => void;
+}) {
+  // Filter vendas for this product
+  const produtoVendas = vendas.filter(v => v.produto === produto);
+
+  // Calculate total sales and revenue
+  const totalVendas = produtoVendas.length;
+  const totalEntradas = produtoVendas.reduce((sum, v) => sum + v.valor_entrada, 0);
+  const totalValor = produtoVendas.reduce((sum, v) => sum + v.valor_venda, 0);
+
+  // Calculate top 3 sellers
+  const vendedoresSummary = produtoVendas.reduce((acc, venda) => {
+    const closerId = venda.closer_id;
+    if (!acc[closerId]) {
+      acc[closerId] = { quantidade: 0, valor: 0 };
+    }
+    acc[closerId].quantidade++;
+    acc[closerId].valor += venda.valor_venda;
+    return acc;
+  }, {} as Record<string, { quantidade: number; valor: number }>);
+
+  const top3Vendedores = Object.entries(vendedoresSummary)
+    .map(([closerId, data]) => ({
+      closer: closers.find(c => c.id === closerId),
+      ...data,
+    }))
+    .filter(item => item.closer)
+    .sort((a, b) => b.valor - a.valor)
+    .slice(0, 3);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-slate-800 border border-slate-700 rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="sticky top-0 bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white">{produto}</h2>
+            <p className="text-slate-400 text-sm mt-1">Estatísticas do Produto</p>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-white">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-6">
+          {/* Main Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <ShoppingCart className="w-5 h-5 text-green-400" />
+                <span className="text-slate-400 text-sm">Total de Vendas</span>
+              </div>
+              <div className="text-3xl font-bold text-white">{totalVendas}</div>
+            </div>
+
+            <div className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 rounded-xl p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <DollarSign className="w-5 h-5 text-yellow-400" />
+                <span className="text-slate-400 text-sm">Total de Entradas</span>
+              </div>
+              <div className="text-3xl font-bold text-yellow-400">
+                R$ {totalEntradas.toLocaleString('pt-BR')}
+              </div>
+            </div>
+          </div>
+
+          {/* Top 3 Sellers */}
+          <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <Award className="w-5 h-5 text-yellow-400" />
+              Top 3 Vendedores
+            </h3>
+            {top3Vendedores.length === 0 ? (
+              <p className="text-slate-400 text-center py-8">Nenhuma venda registrada</p>
+            ) : (
+              <div className="space-y-3">
+                {top3Vendedores.map((item, index) => (
+                  <div key={item.closer?.id} className="flex items-center gap-4 bg-slate-800/50 rounded-lg p-4">
+                    <span className="text-3xl">{index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}</span>
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-xl font-bold text-white">
+                      {item.closer?.nome.charAt(0)}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-white font-medium text-lg">{item.closer?.nome}</div>
+                      <div className="text-slate-400 text-sm">
+                        {item.quantidade} venda{item.quantidade !== 1 ? 's' : ''} •
+                        Taxa: {item.closer?.taxa_conversao}%
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-green-400 font-bold text-lg">
+                        R$ {item.valor.toLocaleString('pt-BR')}
+                      </div>
+                      <div className="text-slate-400 text-sm">
+                        Média: R$ {(item.valor / item.quantidade).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Recent Sales */}
+          {produtoVendas.length > 0 && (
+            <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">
+                Vendas Recentes ({produtoVendas.length})
+              </h3>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {produtoVendas.slice(0, 10).map((venda) => (
+                  <div key={venda.id} className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                    <div>
+                      <div className="text-white font-medium">{venda.closer?.nome || 'Closer não definido'}</div>
+                      <div className="text-slate-400 text-sm">
+                        {new Date(venda.data_venda).toLocaleDateString('pt-BR')}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-green-400 font-medium">
+                        R$ {venda.valor_venda.toLocaleString('pt-BR')}
+                      </div>
+                      <div className="text-yellow-400 text-sm">
+                        Entrada: R$ {venda.valor_entrada.toLocaleString('pt-BR')}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -512,7 +878,7 @@ function FunilDetailModal({ funil, vendas, onClose }: {
 }
 
 export function MonetizacaoModule() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'closers' | 'funis' | 'vendas'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'closers' | 'funis' | 'produtos' | 'vendas'>('dashboard');
 
   // Hooks
   const { closers, loading: loadingClosers, createCloser, updateCloser, deleteCloser } = useClosers();
@@ -525,12 +891,15 @@ export function MonetizacaoModule() {
   const [funilModal, setFunilModal] = useState<{ open: boolean; funil?: Funil }>({ open: false });
   const [vendaModal, setVendaModal] = useState<{ open: boolean; venda?: Venda }>({ open: false });
   const [funilDetailModal, setFunilDetailModal] = useState<Funil | null>(null);
+  const [closerDetailModal, setCloserDetailModal] = useState<Closer | null>(null);
+  const [productDetailModal, setProductDetailModal] = useState<string | null>(null);
   const [formLoading, setFormLoading] = useState(false);
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
     { id: 'closers', label: 'Closers', icon: Users },
     { id: 'funis', label: 'Funis', icon: Target },
+    { id: 'produtos', label: 'Produtos', icon: Package },
     { id: 'vendas', label: 'Vendas', icon: ShoppingCart },
   ];
 
@@ -751,7 +1120,13 @@ export function MonetizacaoModule() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {closers.map((closer) => (
-                <div key={closer.id} className={`bg-slate-800/50 border rounded-xl p-6 ${closer.ativo ? 'border-slate-700' : 'border-red-900/50 opacity-60'}`}>
+                <div
+                  key={closer.id}
+                  className={`bg-slate-800/50 border rounded-xl p-6 cursor-pointer transition-all hover:scale-105 ${
+                    closer.ativo ? 'border-slate-700 hover:border-green-500/50' : 'border-red-900/50 opacity-60'
+                  }`}
+                  onClick={() => setCloserDetailModal(closer)}
+                >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-xl font-bold text-white">
@@ -762,7 +1137,7 @@ export function MonetizacaoModule() {
                         <div className="text-slate-400 text-sm">{closer.time || 'Sem time'}</div>
                       </div>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                       <button onClick={() => setCloserModal({ open: true, closer })} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg">
                         <Edit2 className="w-4 h-4" />
                       </button>
@@ -771,7 +1146,7 @@ export function MonetizacaoModule() {
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                     <div>
                       <div className="text-slate-400">Vendas</div>
                       <div className="text-white font-medium">{closer.numero_vendas}</div>
@@ -784,6 +1159,10 @@ export function MonetizacaoModule() {
                       <div className="text-slate-400">Total Vendido</div>
                       <div className="text-green-400 font-medium">R$ {closer.valor_total_vendas.toLocaleString('pt-BR')}</div>
                     </div>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 text-xs text-blue-400 mt-4 pt-3 border-t border-slate-700">
+                    <ArrowRight className="w-3 h-3" />
+                    Clique para ver detalhes
                   </div>
                 </div>
               ))}
@@ -895,6 +1274,73 @@ export function MonetizacaoModule() {
         </div>
       )}
 
+      {/* Produtos Tab */}
+      {activeTab === 'produtos' && (
+        <div className="space-y-4">
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-3 mb-6">
+            <p className="text-blue-400 text-sm">
+              ℹ️ Estatísticas de produtos baseadas nas vendas registradas
+            </p>
+          </div>
+
+          {PRODUTOS_DISPONIVEIS.length === 0 ? (
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-12 text-center">
+              <Package className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-400 text-lg mb-2">Nenhum produto disponível</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {PRODUTOS_DISPONIVEIS.map((produto) => {
+                // Calculate stats for this product
+                const produtoVendas = vendas.filter(v => v.produto === produto);
+                const totalVendas = produtoVendas.length;
+                const totalEntradas = produtoVendas.reduce((sum, v) => sum + v.valor_entrada, 0);
+                const totalValor = produtoVendas.reduce((sum, v) => sum + v.valor_venda, 0);
+
+                return (
+                  <div
+                    key={produto}
+                    className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 cursor-pointer transition-all hover:scale-105 hover:border-purple-500/50"
+                    onClick={() => setProductDetailModal(produto)}
+                  >
+                    <div className="mb-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Package className="w-5 h-5 text-purple-400" />
+                        <h3 className="text-white font-semibold text-lg">{produto}</h3>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 mb-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400 text-sm">Total de Vendas</span>
+                        <span className="text-white font-medium">{totalVendas}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400 text-sm">Total em Entradas</span>
+                        <span className="text-yellow-400 font-medium">
+                          R$ {totalEntradas.toLocaleString('pt-BR')}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400 text-sm">Total em Vendas</span>
+                        <span className="text-green-400 font-medium">
+                          R$ {totalValor.toLocaleString('pt-BR')}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-2 text-xs text-blue-400 mt-4 pt-3 border-t border-slate-700">
+                      <ArrowRight className="w-3 h-3" />
+                      Clique para ver top vendedores
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Vendas Tab */}
       {activeTab === 'vendas' && (
         <div className="space-y-4">
@@ -981,6 +1427,29 @@ export function MonetizacaoModule() {
           funil={funilDetailModal}
           vendas={vendas}
           onClose={() => setFunilDetailModal(null)}
+        />
+      )}
+
+      {/* Closer Detail Modal */}
+      {closerDetailModal && (
+        <CloserDetailModal
+          closer={closerDetailModal}
+          vendas={vendas}
+          onEdit={() => {
+            setCloserModal({ open: true, closer: closerDetailModal });
+            setCloserDetailModal(null);
+          }}
+          onClose={() => setCloserDetailModal(null)}
+        />
+      )}
+
+      {/* Product Detail Modal */}
+      {productDetailModal && (
+        <ProductDetailModal
+          produto={productDetailModal}
+          vendas={vendas}
+          closers={closers}
+          onClose={() => setProductDetailModal(null)}
         />
       )}
     </div>
