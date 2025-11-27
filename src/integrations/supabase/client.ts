@@ -8,10 +8,42 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
+// Custom fetch to handle QUIC protocol errors
+const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
+  return fetch(url, {
+    ...options,
+    // Force connection reuse and avoid QUIC issues
+    keepalive: true,
+  }).catch((error) => {
+    // If QUIC fails, retry with explicit error handling
+    console.warn('Fetch error, retrying:', error);
+    return fetch(url, {
+      ...options,
+      cache: 'no-store',
+    });
+  });
+};
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-  }
+    detectSessionInUrl: true,
+    flowType: 'pkce',
+  },
+  global: {
+    fetch: customFetch,
+    headers: {
+      'X-Client-Info': 'supabase-js-web',
+    },
+  },
+  db: {
+    schema: 'public',
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
 });

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dashboard-v1';
+const CACHE_NAME = 'dashboard-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -6,6 +6,13 @@ const ASSETS_TO_CACHE = [
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png'
 ];
+
+// Listen for SKIP_WAITING message
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
 
 // Install - cache assets
 self.addEventListener('install', (event) => {
@@ -39,10 +46,20 @@ self.addEventListener('activate', (event) => {
 
 // Fetch - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
-  // Skip Google Sheets API calls - always go to network
-  if (event.request.url.includes('sheets.googleapis.com') || 
+  // Skip Google Sheets API and Supabase calls - always go to network with error handling
+  if (event.request.url.includes('sheets.googleapis.com') ||
       event.request.url.includes('supabase.co')) {
-    event.respondWith(fetch(event.request));
+    event.respondWith(
+      fetch(event.request).catch((error) => {
+        console.error('[SW] Network request failed:', error);
+        // Return a proper error response instead of throwing
+        return new Response(JSON.stringify({ error: 'Network request failed' }), {
+          status: 503,
+          statusText: 'Service Unavailable',
+          headers: { 'Content-Type': 'application/json' }
+        });
+      })
+    );
     return;
   }
 

@@ -331,21 +331,24 @@ export function useFunis() {
   const [useLocal, setUseLocal] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
-  const fetchFunis = useCallback(async (shouldSync: boolean = true) => {
+  const fetchFunis = useCallback(async (shouldSync: boolean = true, forceSync: boolean = false) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Sync from Google Sheets if needed (only once per day)
+      // Sync from Google Sheets if needed
       if (shouldSync) {
         const lastSync = localStorage.getItem(STORAGE_KEYS.lastSync);
         const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-        const shouldSyncAgain = !lastSync || new Date(lastSync).getTime() < oneDayAgo;
+        const shouldSyncAgain = forceSync || !lastSync || new Date(lastSync).getTime() < oneDayAgo;
 
         if (shouldSyncAgain) {
+          console.log('🔄 Iniciando sincronização com Google Sheets...');
           setSyncing(true);
           await syncFunisFromSheets();
           setSyncing(false);
+        } else {
+          console.log('⏭️ Sincronização não necessária (última sync há menos de 24h)');
         }
       }
 
@@ -487,12 +490,18 @@ export function useFunis() {
     return cleanup;
   }, [fetchFunis]);
 
+  const forceSyncFromSheets = useCallback(async () => {
+    console.log('🔄 Forçando sincronização manual com Google Sheets...');
+    await fetchFunis(true, true);
+  }, [fetchFunis]);
+
   return {
     funis,
     loading,
     error,
     syncing,
     refetch: fetchFunis,
+    forceSyncFromSheets,
     createFunil,
     updateFunil,
     deleteFunil,

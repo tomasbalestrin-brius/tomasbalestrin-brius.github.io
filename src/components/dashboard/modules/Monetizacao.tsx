@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DollarSign, Users, ShoppingCart, Plus, TrendingUp, Award, Target, X, Edit2, Trash2, Loader2, BarChart3, ArrowRight, Package, Clock, Briefcase } from 'lucide-react';
+import { DollarSign, Users, ShoppingCart, Plus, TrendingUp, Award, Target, X, Edit2, Trash2, Loader2, BarChart3, ArrowRight, Package, Clock, Briefcase, RefreshCcw } from 'lucide-react';
 import type { Closer, Funil, Venda } from '@/types/dashboard';
 import { useClosers, useFunis, useVendas, useMonetizacaoMetrics, useFunilAquisicao } from '@/hooks/useMonetizacao';
 
@@ -882,7 +882,7 @@ export function MonetizacaoModule() {
 
   // Hooks
   const { closers, loading: loadingClosers, createCloser, updateCloser, deleteCloser } = useClosers();
-  const { funis, loading: loadingFunis, syncing: syncingFunis, createFunil, updateFunil, deleteFunil } = useFunis();
+  const { funis, loading: loadingFunis, syncing: syncingFunis, forceSyncFromSheets, createFunil, updateFunil, deleteFunil } = useFunis();
   const { vendas, loading: loadingVendas, createVenda, updateVenda, deleteVenda } = useVendas();
   const { metrics, top3Closers, top3Funis, loading: loadingMetrics } = useMonetizacaoMetrics();
 
@@ -964,9 +964,9 @@ export function MonetizacaoModule() {
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-white flex items-center gap-3">
             <DollarSign className="w-8 h-8 text-green-400" />
-            Monetizacao
+            Monetização
           </h1>
-          <p className="text-slate-400 mt-1">Gestao de closers, funis e vendas</p>
+          <p className="text-slate-400 mt-1">Gestão de closers, funis e vendas</p>
         </div>
         {(loading || syncingFunis) && (
           <div className="flex items-center gap-2 text-slate-400">
@@ -1180,13 +1180,24 @@ export function MonetizacaoModule() {
                 ℹ️ Funis são sincronizados automaticamente do Google Sheets (Aquisição)
               </p>
             </div>
-            <button
-              onClick={() => setFunilModal({ open: true })}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Novo Funil
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => forceSyncFromSheets()}
+                disabled={syncingFunis}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Sincronizar com Google Sheets"
+              >
+                <RefreshCcw className={`w-4 h-4 ${syncingFunis ? 'animate-spin' : ''}`} />
+                {syncingFunis ? 'Sincronizando...' : 'Sincronizar'}
+              </button>
+              <button
+                onClick={() => setFunilModal({ open: true })}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Novo Funil
+              </button>
+            </div>
           </div>
 
           {funis.length === 0 ? (
