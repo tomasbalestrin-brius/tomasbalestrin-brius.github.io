@@ -6,13 +6,13 @@
 
 Acesse: **Vercel Dashboard > Seu Projeto > Settings > Environment Variables**
 
-Adicione as seguintes variáveis:
+Adicione as seguintes variáveis (Projeto Supabase: **Dashboard-geral**):
 
 ```
 VITE_GOOGLE_SHEETS_API_KEY=AIzaSyAL1gbG-HhApXjzMez6-XRkapW3yk3bN1g
-VITE_SUPABASE_PROJECT_ID=eunyqaesqqavdvehljkn
-VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1bnlxYWVzcXFhdmR2ZWhsamtuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMTUzNDUsImV4cCI6MjA3ODU5MTM0NX0.n2hKWeATBFad4mgpLXU7s7qMotGWuTUPrQug2HUbgMI
-VITE_SUPABASE_URL=https://eunyqaesqqavdvehljkn.supabase.co
+VITE_SUPABASE_PROJECT_ID=mugcwgwsowjdcyyogakg
+VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11Z2N3Z3dzb3dqZGN5eW9nYWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxNDE1ODEsImV4cCI6MjA3ODcxNzU4MX0.nRtEFkiyWvvSC5IWAMlOqjqwCGDF1P1JCuy5mUGWCtM
+VITE_SUPABASE_URL=https://mugcwgwsowjdcyyogakg.supabase.co
 ```
 
 **IMPORTANTE**: Marque todas como disponíveis para:
