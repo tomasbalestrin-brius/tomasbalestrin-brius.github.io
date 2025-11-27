@@ -860,10 +860,39 @@ export function useFunilAquisicao(funilId: string | null) {
       try {
         setLoading(true);
 
-        // Get funil info
-        const funis = getFromStorage<Funil>(STORAGE_KEYS.funis);
-        const funil = funis.find(f => f.id === funilId);
-        if (!funil) return;
+        // Get funil info from Supabase first
+        let funil: Funil | undefined;
+
+        try {
+          const { data, error } = await supabase
+            .from('funis')
+            .select('*')
+            .eq('id', funilId)
+            .single();
+
+          if (error) {
+            console.log('⚠️ Erro ao buscar funil do Supabase, usando localStorage');
+            const funis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+            funil = funis.find(f => f.id === funilId);
+          } else {
+            funil = data as Funil;
+          }
+        } catch (err) {
+          console.log('⚠️ Erro ao conectar com Supabase, usando localStorage');
+          const funis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+          funil = funis.find(f => f.id === funilId);
+        }
+
+        if (!funil) {
+          console.log('❌ Funil não encontrado:', funilId);
+          setAquisicaoData({
+            investimento: 0,
+            faturamento: 0,
+            roas: 0,
+            alunos: 0,
+          });
+          return;
+        }
 
         // Get current month
         const today = new Date();
@@ -873,9 +902,19 @@ export function useFunilAquisicao(funilId: string | null) {
           return today >= start && today <= end;
         });
 
-        if (!currentMonth) return;
+        if (!currentMonth) {
+          console.log('❌ Mês atual não encontrado');
+          setAquisicaoData({
+            investimento: 0,
+            faturamento: 0,
+            roas: 0,
+            alunos: 0,
+          });
+          return;
+        }
 
         // Fetch sheet data
+        console.log(`📅 Buscando dados de aquisição do funil "${funil.nome_produto}" (${currentMonth.name})...`);
         const sheetData = await fetchSheetData(currentMonth.name);
 
         // Find product matching funil name
@@ -884,6 +923,7 @@ export function useFunilAquisicao(funilId: string | null) {
         );
 
         if (!product) {
+          console.log(`⚠️ Produto "${funil.nome_produto}" não encontrado no Google Sheets`);
           setAquisicaoData({
             investimento: 0,
             faturamento: 0,
@@ -899,6 +939,13 @@ export function useFunilAquisicao(funilId: string | null) {
         const totalAlunos = product.weeks.reduce((sum, w) => sum + (w.alunos || 0), 0);
         const roas = totalInvestimento > 0 ? totalFaturamento / totalInvestimento : 0;
 
+        console.log(`✅ Dados de aquisição encontrados:`, {
+          investimento: totalInvestimento,
+          faturamento: totalFaturamento,
+          roas,
+          alunos: totalAlunos,
+        });
+
         setAquisicaoData({
           investimento: totalInvestimento,
           faturamento: totalFaturamento,
@@ -906,7 +953,7 @@ export function useFunilAquisicao(funilId: string | null) {
           alunos: totalAlunos,
         });
       } catch (error) {
-        console.error('Erro ao buscar dados de aquisição:', error);
+        console.error('❌ Erro ao buscar dados de aquisição:', error);
         setAquisicaoData({
           investimento: 0,
           faturamento: 0,
