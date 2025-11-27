@@ -82,13 +82,34 @@ async function syncFunisFromSheets(): Promise<void> {
     const sheetData = await fetchSheetData(currentMonth.name);
     console.log(`✅ ${sheetData.length} produtos encontrados no Google Sheets`);
 
-    // Get existing funis from localStorage
-    const existingFunis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+    // Try to get existing funis from Supabase
+    let existingFunis: Funil[] = [];
+    let useLocalStorage = false;
+
+    try {
+      const { data, error } = await supabase
+        .from('funis')
+        .select('*');
+
+      if (error) {
+        console.log('⚠️ Erro ao buscar funis do Supabase, usando localStorage como fallback');
+        useLocalStorage = true;
+        existingFunis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+      } else {
+        existingFunis = (data as Funil[]) || [];
+        console.log(`📊 ${existingFunis.length} funis existentes no Supabase`);
+      }
+    } catch (err) {
+      console.log('⚠️ Erro ao conectar com Supabase, usando localStorage como fallback');
+      useLocalStorage = true;
+      existingFunis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+    }
+
     const existingFunilNames = new Set(existingFunis.map(f => f.nome_produto.toLowerCase()));
 
     // Create funis that don't exist yet
+    const newFunisToCreate: Array<Omit<Funil, 'id' | 'created_at' | 'updated_at'>> = [];
     let newFunilsCount = 0;
-    const updatedFunis = [...existingFunis];
 
     for (const product of sheetData) {
       const funilName = product.name.trim();
@@ -115,9 +136,8 @@ async function syncFunisFromSheets(): Promise<void> {
         ? product.weeks.reduce((sum, w) => sum + (w.faturamentoFunil || 0), 0) / totalWeeks
         : 0;
 
-      // Create new funil
-      const newFunil: Funil = {
-        id: generateId(),
+      // Create new funil data
+      const newFunilData = {
         nome_produto: funilName,
         valor_venda: avgFaturamento > 0 ? Math.round(avgFaturamento / Math.max(1, avgVendas)) : 0,
         especialista: isSummary ? '📊 Total/Compilado (Somente Visualização)' : 'Importado do Google Sheets',
@@ -127,20 +147,71 @@ async function syncFunisFromSheets(): Promise<void> {
         total_vendas: Math.round(avgVendas),
         valor_total_gerado: Math.round(avgFaturamento),
         ativo: !isSummary, // Totais ficam como inativos para não aparecerem em dropdowns
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       };
 
-      updatedFunis.push(newFunil);
+      newFunisToCreate.push(newFunilData);
       existingFunilNames.add(funilName.toLowerCase());
       newFunilsCount++;
 
-      console.log(`✅ Criado ${isSummary ? 'total' : 'funil'}: ${funilName}`);
+      console.log(`✅ Preparado ${isSummary ? 'total' : 'funil'}: ${funilName}`);
     }
 
+    // Save new funis
     if (newFunilsCount > 0) {
-      // Save to localStorage
-      saveToStorage(STORAGE_KEYS.funis, updatedFunis);
+      if (useLocalStorage) {
+        // Fallback to localStorage
+        const updatedFunis = [
+          ...existingFunis,
+          ...newFunisToCreate.map(f => ({
+            ...f,
+            id: generateId(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          } as Funil))
+        ];
+        saveToStorage(STORAGE_KEYS.funis, updatedFunis);
+        console.log(`💾 ${newFunilsCount} novos funis salvos no localStorage (fallback)`);
+      } else {
+        // Save to Supabase
+        try {
+          const { data, error } = await supabase
+            .from('funis')
+            .insert(newFunisToCreate)
+            .select();
+
+          if (error) {
+            console.error('❌ Erro ao salvar funis no Supabase:', error);
+            // Fallback to localStorage on error
+            const updatedFunis = [
+              ...existingFunis,
+              ...newFunisToCreate.map(f => ({
+                ...f,
+                id: generateId(),
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              } as Funil))
+            ];
+            saveToStorage(STORAGE_KEYS.funis, updatedFunis);
+            console.log(`💾 ${newFunilsCount} novos funis salvos no localStorage (após erro no Supabase)`);
+          } else {
+            console.log(`☁️ ${data?.length || 0} novos funis salvos no Supabase!`);
+          }
+        } catch (err) {
+          console.error('❌ Erro ao salvar funis no Supabase:', err);
+          // Fallback to localStorage on exception
+          const updatedFunis = [
+            ...existingFunis,
+            ...newFunisToCreate.map(f => ({
+              ...f,
+              id: generateId(),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            } as Funil))
+          ];
+          saveToStorage(STORAGE_KEYS.funis, updatedFunis);
+          console.log(`💾 ${newFunilsCount} novos funis salvos no localStorage (após exceção)`);
+        }
+      }
 
       // Save last sync time
       localStorage.setItem(STORAGE_KEYS.lastSync, new Date().toISOString());

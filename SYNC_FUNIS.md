@@ -42,7 +42,18 @@ O módulo de Monetização sincroniza automaticamente os funis da planilha do Go
 
 Se você está vendo "Produto Demo 1" e "Produto Demo 2", siga estes passos:
 
-### Opção 1: Limpar pelo Console do Navegador
+### Opção 1: Forçar Sincronização (Recomendado)
+
+1. Vá na aba **Funis**
+2. Clique no botão **"Sincronizar"**
+3. Aguarde o ícone parar de girar
+4. Os funis do Google Sheets devem aparecer automaticamente
+
+**Nota:** Os funis de demonstração só aparecem se não houver dados no Supabase. Após a primeira sincronização, eles não aparecem mais.
+
+### Opção 2: Limpar Cache Local (Se necessário)
+
+Se os dados de demonstração persistirem:
 
 1. Pressione `F12` (DevTools)
 2. Vá na aba **Console**
@@ -51,30 +62,12 @@ Se você está vendo "Produto Demo 1" e "Produto Demo 2", siga estes passos:
 ```javascript
 localStorage.removeItem('monetizacao_funis');
 localStorage.removeItem('monetizacao_last_sync');
-console.log('✅ Dados de funis limpos! Recarregue a página.');
+console.log('✅ Cache local limpo! Recarregue a página.');
 ```
 
 4. Pressione `Enter`
 5. Recarregue a página (`Ctrl + R`)
 6. Clique no botão **"Sincronizar"** na aba Funis
-
-### Opção 2: Limpar pelo Application Storage
-
-1. Pressione `F12` (DevTools)
-2. Vá na aba **Application**
-3. No menu lateral: **Storage** > **Local Storage** > selecione o domínio
-4. Encontre e delete:
-   - `monetizacao_funis`
-   - `monetizacao_last_sync`
-5. Recarregue a página
-6. Clique no botão **"Sincronizar"**
-
-### Opção 3: Forçar Sincronização
-
-1. Vá na aba **Funis**
-2. Clique no botão **"Sincronizar"**
-3. Aguarde o ícone parar de girar
-4. Os funis devem aparecer automaticamente
 
 ## 🐛 Troubleshooting
 
@@ -126,9 +119,9 @@ Funil: "Mentoria Premium"
 
 ## 🔐 Dados Locais vs Supabase
 
-- 💾 **LocalStorage:** Usado como fallback quando Supabase não está disponível
-- ☁️ **Supabase:** Banco de dados principal (quando configurado)
-- 🔄 **Sincronização:** Dados do Sheets vão para LocalStorage primeiro, depois podem ser migrados para Supabase
+- ☁️ **Supabase:** Banco de dados principal - funis sincronizados são salvos diretamente aqui
+- 💾 **LocalStorage:** Usado apenas como fallback quando Supabase não está disponível
+- 🔄 **Sincronização:** Dados do Sheets vão direto para o Supabase (localStorage só em caso de erro)
 
 ## 📝 Logs Importantes
 
@@ -138,9 +131,11 @@ Abra o Console (`F12` > Console) para ver:
 🔄 Sincronizando funis do Google Sheets...
 📅 Buscando dados de Janeiro 2025...
 ✅ 5 produtos encontrados no Google Sheets
-✅ Criado funil: Mentoria Premium
-✅ Criado funil: Consultoria Business
+📊 2 funis existentes no Supabase
+✅ Preparado funil: Mentoria Premium
+✅ Preparado funil: Consultoria Business
 ⏭️  Funil "Produto Demo 1" já existe
+☁️ 3 novos funis salvos no Supabase!
 🎉 3 novos funis criados!
 ```
 
