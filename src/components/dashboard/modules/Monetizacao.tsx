@@ -706,10 +706,10 @@ function FunilDetailModal({ funil, vendas, onClose }: {
     valorEntradas: funilVendas.reduce((sum, v) => sum + (v.valor_entrada || 0), 0),
   };
 
-  // Calculate totals (Aquisição + Monetização)
+  // Calculate totals from Aquisição (Google Sheets only)
   const totais = {
     investimento: aquisicaoData?.investimento || 0,
-    faturamento: (aquisicaoData?.faturamento || 0) + monetizacao.valorVendas,
+    faturamento: aquisicaoData?.faturamento || 0,
     roas: 0,
   };
   totais.roas = totais.investimento > 0 ? totais.faturamento / totais.investimento : 0;
