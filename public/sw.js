@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dashboard-v2';
+const CACHE_NAME = 'dashboard-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -46,20 +46,11 @@ self.addEventListener('activate', (event) => {
 
 // Fetch - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
-  // Skip Google Sheets API and Supabase calls - always go to network with error handling
-  if (event.request.url.includes('sheets.googleapis.com') ||
-      event.request.url.includes('supabase.co')) {
-    event.respondWith(
-      fetch(event.request).catch((error) => {
-        console.error('[SW] Network request failed:', error);
-        // Return a proper error response instead of throwing
-        return new Response(JSON.stringify({ error: 'Network request failed' }), {
-          status: 503,
-          statusText: 'Service Unavailable',
-          headers: { 'Content-Type': 'application/json' }
-        });
-      })
-    );
+  // IMPORTANT: Do NOT intercept Supabase requests - let them pass through directly
+  // This includes auth, realtime, storage, and database calls
+  if (event.request.url.includes('supabase.co') ||
+      event.request.url.includes('sheets.googleapis.com')) {
+    // Let the request pass through without intervention
     return;
   }
 
@@ -70,7 +61,7 @@ self.addEventListener('fetch', (event) => {
           console.log('[SW] Serving from cache:', event.request.url);
           return response;
         }
-        
+
         console.log('[SW] Fetching from network:', event.request.url);
         return fetch(event.request).then((response) => {
           // Don't cache if not a success response
