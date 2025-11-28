@@ -1209,14 +1209,18 @@ export function MonetizacaoModule() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {funis.map((funil) => {
-                // Calculate monetization data for this funil
-                const funilVendas = vendas.filter(v => v.funil_id === funil.id);
-                const valorMonetizacao = funilVendas.reduce((sum, v) => sum + (v.valor_venda || 0), 0);
-                const faturamentoTotal = funil.valor_total_gerado + valorMonetizacao;
-
                 // Check if it's a summary/total card
                 const isSummary = funil.nome_produto.toLowerCase().includes('geral') ||
                                   funil.nome_produto.toLowerCase().includes('total');
+
+                // Calculate tendencies (percentage change)
+                const tendenciaFaturamentoPct = funil.faturamento && funil.tendencia_faturamento
+                  ? ((funil.tendencia_faturamento - funil.faturamento) / funil.faturamento) * 100
+                  : 0;
+
+                const tendenciaLucroPct = funil.lucro !== undefined && funil.tendencia_lucro !== undefined && funil.lucro !== 0
+                  ? ((funil.tendencia_lucro - funil.lucro) / Math.abs(funil.lucro)) * 100
+                  : 0;
 
                 return (
                   <div
@@ -1261,16 +1265,50 @@ export function MonetizacaoModule() {
                       )}
                     </div>
                     <div className="text-slate-400 text-sm mb-4">{funil.especialista}</div>
-                    <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-                      <div>
-                        <div className="text-slate-400">Investimento</div>
-                        <div className="text-white font-medium">R$ {funil.total_vendas.toLocaleString('pt-BR')}</div>
+
+                    {/* Grid de métricas */}
+                    <div className="space-y-3">
+                      {/* Linha 1: Investimento e Faturamento */}
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <div className="text-slate-400 text-xs mb-1">Investimento</div>
+                          <div className="text-white font-medium">
+                            R$ {(funil.investimento || 0).toLocaleString('pt-BR')}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-400 text-xs mb-1">Faturamento Total</div>
+                          <div className="text-green-400 font-medium">
+                            R$ {(funil.faturamento || 0).toLocaleString('pt-BR')}
+                          </div>
+                          {tendenciaFaturamentoPct !== 0 && (
+                            <div className={`text-xs flex items-center gap-1 mt-0.5 ${
+                              tendenciaFaturamentoPct > 0 ? 'text-green-400' : 'text-red-400'
+                            }`}>
+                              <TrendingUp className={`w-3 h-3 ${tendenciaFaturamentoPct < 0 ? 'rotate-180' : ''}`} />
+                              {Math.abs(tendenciaFaturamentoPct).toFixed(1)}%
+                            </div>
+                          )}
+                        </div>
                       </div>
+
+                      {/* Linha 2: Lucro */}
                       <div>
-                        <div className="text-slate-400">Faturamento Total</div>
-                        <div className="text-green-400 font-medium">R$ {faturamentoTotal.toLocaleString('pt-BR')}</div>
+                        <div className="text-slate-400 text-xs mb-1">Lucro</div>
+                        <div className={`font-medium ${(funil.lucro || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          R$ {(funil.lucro || 0).toLocaleString('pt-BR')}
+                        </div>
+                        {tendenciaLucroPct !== 0 && (
+                          <div className={`text-xs flex items-center gap-1 mt-0.5 ${
+                            tendenciaLucroPct > 0 ? 'text-green-400' : 'text-red-400'
+                          }`}>
+                            <TrendingUp className={`w-3 h-3 ${tendenciaLucroPct < 0 ? 'rotate-180' : ''}`} />
+                            {Math.abs(tendenciaLucroPct).toFixed(1)}%
+                          </div>
+                        )}
                       </div>
                     </div>
+
                     {!isSummary && (
                       <div className="flex items-center justify-center gap-2 text-xs text-blue-400 mt-4 pt-3 border-t border-slate-700">
                         <ArrowRight className="w-3 h-3" />
