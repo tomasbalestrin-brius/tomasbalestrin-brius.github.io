@@ -1,7 +1,5 @@
-const CACHE_NAME = 'dashboard-v3';
+const CACHE_NAME = 'dashboard-v4';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png'
@@ -54,6 +52,20 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // NEVER cache HTML, JS, or CSS files - always fetch fresh
+  const url = new URL(event.request.url);
+  const isAppFile = url.pathname.endsWith('.html') ||
+                    url.pathname.endsWith('.js') ||
+                    url.pathname.endsWith('.css') ||
+                    url.pathname === '/';
+
+  if (isAppFile) {
+    // Always fetch fresh from network, no caching
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Only cache static assets like images, icons, manifest
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -69,13 +81,18 @@ self.addEventListener('fetch', (event) => {
             return response;
           }
 
-          // Clone the response
-          const responseToCache = response.clone();
+          // Only cache images, fonts, and other static assets
+          const shouldCache = url.pathname.match(/\.(png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot)$/i) ||
+                             url.pathname.includes('/icons/') ||
+                             url.pathname === '/manifest.json';
 
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
+          if (shouldCache) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
+          }
 
           return response;
         });
