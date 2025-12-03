@@ -68,24 +68,24 @@ export function DashboardModule({
 
     if (currentWeek === 'total') {
       return {
-        alunos: productData.semanas.reduce((sum, s) => sum + s.alunos, 0),
-        formularios: productData.semanas.reduce((sum, s) => sum + s.formularios, 0),
-        qualificados: productData.semanas.reduce((sum, s) => sum + s.qualificados, 0),
-        agendados: productData.semanas.reduce((sum, s) => sum + s.agendados, 0),
-        callRealizada: productData.semanas.reduce((sum, s) => sum + s.callRealizada, 0),
-        vendas: productData.semanas.reduce((sum, s) => sum + s.numeroVenda, 0),
+        alunos: productData.semanas.reduce((sum, s) => sum + (s?.alunos || 0), 0),
+        formularios: productData.semanas.reduce((sum, s) => sum + (s?.formularios || 0), 0),
+        qualificados: productData.semanas.reduce((sum, s) => sum + (s?.qualificados || 0), 0),
+        agendados: productData.semanas.reduce((sum, s) => sum + (s?.agendados || 0), 0),
+        callRealizada: productData.semanas.reduce((sum, s) => sum + (s?.callRealizada || 0), 0),
+        vendas: productData.semanas.reduce((sum, s) => sum + (s?.numeroVenda || 0), 0),
       };
     } else {
       const weekIndex = parseInt(currentWeek) - 1;
       if (productData.semanas[weekIndex]) {
         const semana = productData.semanas[weekIndex];
         return {
-          alunos: semana.alunos,
-          formularios: semana.formularios,
-          qualificados: semana.qualificados,
-          agendados: semana.agendados,
-          callRealizada: semana.callRealizada,
-          vendas: semana.numeroVenda,
+          alunos: semana?.alunos || 0,
+          formularios: semana?.formularios || 0,
+          qualificados: semana?.qualificados || 0,
+          agendados: semana?.agendados || 0,
+          callRealizada: semana?.callRealizada || 0,
+          vendas: semana?.numeroVenda || 0,
         };
       }
     }

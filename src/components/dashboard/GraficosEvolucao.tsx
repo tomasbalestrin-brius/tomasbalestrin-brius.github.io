@@ -15,11 +15,11 @@ export function GraficosEvolucao({ productData, productName }: GraficosEvolucaoP
   // Prepare data for charts
   const weeklyData = productData.semanas.map((semana, index) => ({
     semana: `S${index + 1}`,
-    faturamento: semana.faturamentoFunil,
-    investido: semana.investido,
-    lucro: semana.lucroFunil,
-    taxaConversao: semana.taxaConversao,
-    taxaAgendamento: semana.taxaAgendamento,
+    faturamento: semana?.faturamentoFunil || 0,
+    investido: semana?.investido || 0,
+    lucro: semana?.lucroFunil || 0,
+    taxaConversao: semana?.taxaConversao || 0,
+    taxaAgendamento: semana?.taxaAgendamento || 0,
   }));
 
   const CustomTooltip = ({ active, payload, label }: any) => {

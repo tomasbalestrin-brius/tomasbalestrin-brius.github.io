@@ -31,9 +31,9 @@ function calcularTotaisGerais(productData: ProductData | undefined): TotaisGerai
   let roasFunilSoma = 0;
 
   productData.semanas.forEach(semana => {
-    faturamentoTotal += semana.faturamentoFunil;
-    lucroTotal += semana.lucroFunil;
-    roasFunilSoma += semana.roasFunil;
+    faturamentoTotal += semana?.faturamentoFunil || 0;
+    lucroTotal += semana?.lucroFunil || 0;
+    roasFunilSoma += semana?.roasFunil || 0;
   });
 
   const faturamentoTendencia = productData.tendencia?.faturamentoFunil || 0;
