@@ -1,11 +1,16 @@
-const CACHE_NAME = 'dashboard-v1';
+const CACHE_NAME = 'dashboard-v4';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png'
 ];
+
+// Listen for SKIP_WAITING message
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
 
 // Install - cache assets
 self.addEventListener('install', (event) => {
@@ -39,13 +44,28 @@ self.addEventListener('activate', (event) => {
 
 // Fetch - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
-  // Skip Google Sheets API calls - always go to network
-  if (event.request.url.includes('sheets.googleapis.com') || 
-      event.request.url.includes('supabase.co')) {
+  // IMPORTANT: Do NOT intercept Supabase requests - let them pass through directly
+  // This includes auth, realtime, storage, and database calls
+  if (event.request.url.includes('supabase.co') ||
+      event.request.url.includes('sheets.googleapis.com')) {
+    // Let the request pass through without intervention
+    return;
+  }
+
+  // NEVER cache HTML, JS, or CSS files - always fetch fresh
+  const url = new URL(event.request.url);
+  const isAppFile = url.pathname.endsWith('.html') ||
+                    url.pathname.endsWith('.js') ||
+                    url.pathname.endsWith('.css') ||
+                    url.pathname === '/';
+
+  if (isAppFile) {
+    // Always fetch fresh from network, no caching
     event.respondWith(fetch(event.request));
     return;
   }
 
+  // Only cache static assets like images, icons, manifest
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -53,7 +73,7 @@ self.addEventListener('fetch', (event) => {
           console.log('[SW] Serving from cache:', event.request.url);
           return response;
         }
-        
+
         console.log('[SW] Fetching from network:', event.request.url);
         return fetch(event.request).then((response) => {
           // Don't cache if not a success response
@@ -61,13 +81,18 @@ self.addEventListener('fetch', (event) => {
             return response;
           }
 
-          // Clone the response
-          const responseToCache = response.clone();
+          // Only cache images, fonts, and other static assets
+          const shouldCache = url.pathname.match(/\.(png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot)$/i) ||
+                             url.pathname.includes('/icons/') ||
+                             url.pathname === '/manifest.json';
 
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
+          if (shouldCache) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
+          }
 
           return response;
         });

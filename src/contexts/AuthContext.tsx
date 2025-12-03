@@ -1,17 +1,15 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, metadata?: { full_name?: string }) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  updateProfile: (data: { full_name?: string; avatar_url?: string }) => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,156 +18,134 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    // THEN check for existing session
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      console.log('🔐 Sessão inicial:', session ? 'Autenticado' : 'Não autenticado');
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+      console.log('🔐 Auth state changed:', _event, session ? 'Autenticado' : 'Não autenticado');
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, metadata?: { full_name?: string }) => {
+  const signIn = async (email: string, password: string) => {
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { error } = await supabase.auth.signUp({
+      console.log('🔐 Tentando login:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: metadata
-        }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro no login:', error.message);
+        return { error };
+      }
 
-      toast({
-        title: "Conta criada com sucesso!",
-        description: "Você já pode fazer login.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro ao criar conta",
-        description: error.message || "Ocorreu um erro ao criar sua conta",
-        variant: "destructive",
-      });
-      throw error;
+      console.log('✅ Login bem-sucedido:', data.user?.email);
+      return { error: null };
+    } catch (error) {
+      console.error('❌ Erro inesperado no login:', error);
+      return { error: error as AuthError };
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('🔐 Tentando criar conta:', email);
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro no cadastro:', error.message);
+        return { error };
+      }
 
-      toast({
-        title: "Login realizado com sucesso! ✅",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro ao fazer login",
-        description: error.message || "Email ou senha incorretos",
-        variant: "destructive",
-      });
-      throw error;
+      console.log('✅ Cadastro bem-sucedido:', data.user?.email);
+
+      // Create profile for new user
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: data.user.id,
+              full_name: fullName,
+            },
+          ]);
+
+        if (profileError) {
+          console.error('⚠️ Erro ao criar perfil:', profileError.message);
+        }
+      }
+
+      return { error: null };
+    } catch (error) {
+      console.error('❌ Erro inesperado no cadastro:', error);
+      return { error: error as AuthError };
     }
   };
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
-      toast({
-        title: "Você saiu da conta",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro ao sair",
-        description: error.message,
-        variant: "destructive",
-      });
-      throw error;
+      console.log('🔐 Fazendo logout...');
+      await supabase.auth.signOut();
+      console.log('✅ Logout bem-sucedido');
+    } catch (error) {
+      console.error('❌ Erro no logout:', error);
     }
   };
 
   const resetPassword = async (email: string) => {
     try {
-      const redirectUrl = `${window.location.origin}/login`;
-      
+      console.log('🔐 Solicitando reset de senha:', email);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao solicitar reset:', error.message);
+        return { error };
+      }
 
-      toast({
-        title: "Email enviado!",
-        description: "Verifique sua caixa de entrada para redefinir sua senha.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro ao enviar email",
-        description: error.message,
-        variant: "destructive",
-      });
-      throw error;
+      console.log('✅ Email de reset enviado');
+      return { error: null };
+    } catch (error) {
+      console.error('❌ Erro inesperado no reset:', error);
+      return { error: error as AuthError };
     }
   };
 
-  const updateProfile = async (data: { full_name?: string; avatar_url?: string }) => {
-    try {
-      const { error } = await supabase.auth.updateUser({
-        data
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Perfil atualizado!",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro ao atualizar perfil",
-        description: error.message,
-        variant: "destructive",
-      });
-      throw error;
-    }
+  const value = {
+    user,
+    session,
+    loading,
+    signIn,
+    signUp,
+    signOut,
+    resetPassword,
   };
 
-  return (
-    <AuthContext.Provider value={{ 
-      user, 
-      session, 
-      loading, 
-      signUp, 
-      signIn, 
-      signOut, 
-      resetPassword, 
-      updateProfile 
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

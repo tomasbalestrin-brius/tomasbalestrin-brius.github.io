@@ -35,23 +35,23 @@ export function TabelaSemanas({ productData }: TabelaSemanasProps) {
             {productData.semanas.map((semana, index) => (
               <tr key={index} className="border-b border-[hsl(var(--border-color))] hover:bg-[hsl(var(--bg-tertiary))] transition-colors">
                 <td className="p-3 font-semibold text-foreground">Semana {index + 1}</td>
-                <td className="p-3 text-right text-foreground">{formatCurrency(semana.investido)}</td>
-                <td className="p-3 text-right text-foreground">{formatCurrency(semana.faturamentoFunil)}</td>
-                <td className="p-3 text-right text-foreground">{formatCurrency(semana.lucroFunil)}</td>
-                <td className="p-3 text-right text-foreground">{semana.roasTrafego.toFixed(2)}</td>
-                <td className="p-3 text-right text-foreground">{semana.numeroVenda}</td>
-                <td className="p-3 text-right text-foreground">{formatPercent(semana.taxaConversao)}</td>
+                <td className="p-3 text-right text-foreground">{formatCurrency(semana?.investido || 0)}</td>
+                <td className="p-3 text-right text-foreground">{formatCurrency(semana?.faturamentoFunil || 0)}</td>
+                <td className="p-3 text-right text-foreground">{formatCurrency(semana?.lucroFunil || 0)}</td>
+                <td className="p-3 text-right text-foreground">{(semana?.roasTrafego || 0).toFixed(2)}</td>
+                <td className="p-3 text-right text-foreground">{semana?.numeroVenda || 0}</td>
+                <td className="p-3 text-right text-foreground">{formatPercent(semana?.taxaConversao || 0)}</td>
               </tr>
             ))}
             {productData.tendencia && (
               <tr className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 font-bold">
                 <td className="p-3 text-foreground">📈 Tendência</td>
-                <td className="p-3 text-right text-foreground">{formatCurrency(productData.tendencia.investido)}</td>
-                <td className="p-3 text-right text-foreground">{formatCurrency(productData.tendencia.faturamentoFunil)}</td>
-                <td className="p-3 text-right text-foreground">{formatCurrency(productData.tendencia.lucroFunil)}</td>
-                <td className="p-3 text-right text-foreground">{productData.tendencia.roasTrafego.toFixed(2)}</td>
-                <td className="p-3 text-right text-foreground">{productData.tendencia.numeroVenda}</td>
-                <td className="p-3 text-right text-foreground">{formatPercent(productData.tendencia.taxaConversao)}</td>
+                <td className="p-3 text-right text-foreground">{formatCurrency(productData.tendencia?.investido || 0)}</td>
+                <td className="p-3 text-right text-foreground">{formatCurrency(productData.tendencia?.faturamentoFunil || 0)}</td>
+                <td className="p-3 text-right text-foreground">{formatCurrency(productData.tendencia?.lucroFunil || 0)}</td>
+                <td className="p-3 text-right text-foreground">{(productData.tendencia?.roasTrafego || 0).toFixed(2)}</td>
+                <td className="p-3 text-right text-foreground">{productData.tendencia?.numeroVenda || 0}</td>
+                <td className="p-3 text-right text-foreground">{formatPercent(productData.tendencia?.taxaConversao || 0)}</td>
               </tr>
             )}
           </tbody>

@@ -82,13 +82,34 @@ async function syncFunisFromSheets(): Promise<void> {
     const sheetData = await fetchSheetData(currentMonth.name);
     console.log(`✅ ${sheetData.length} produtos encontrados no Google Sheets`);
 
-    // Get existing funis from localStorage
-    const existingFunis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+    // Try to get existing funis from Supabase
+    let existingFunis: Funil[] = [];
+    let useLocalStorage = false;
+
+    try {
+      const { data, error } = await supabase
+        .from('funis')
+        .select('*');
+
+      if (error) {
+        console.log('⚠️ Erro ao buscar funis do Supabase, usando localStorage como fallback');
+        useLocalStorage = true;
+        existingFunis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+      } else {
+        existingFunis = (data as Funil[]) || [];
+        console.log(`📊 ${existingFunis.length} funis existentes no Supabase`);
+      }
+    } catch (err) {
+      console.log('⚠️ Erro ao conectar com Supabase, usando localStorage como fallback');
+      useLocalStorage = true;
+      existingFunis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+    }
+
     const existingFunilNames = new Set(existingFunis.map(f => f.nome_produto.toLowerCase()));
 
     // Create funis that don't exist yet
+    const newFunisToCreate: Array<Omit<Funil, 'id' | 'created_at' | 'updated_at'>> = [];
     let newFunilsCount = 0;
-    const updatedFunis = [...existingFunis];
 
     for (const product of sheetData) {
       const funilName = product.name.trim();
@@ -106,41 +127,99 @@ async function syncFunisFromSheets(): Promise<void> {
       const isSummary = funilName.toLowerCase().includes('geral') ||
                         funilName.toLowerCase().includes('total');
 
-      // Calculate average values from weeks data
-      const totalWeeks = product.weeks.length;
-      const avgVendas = totalWeeks > 0
-        ? product.weeks.reduce((sum, w) => sum + (w.numeroVenda || 0), 0) / totalWeeks
-        : 0;
-      const avgFaturamento = totalWeeks > 0
-        ? product.weeks.reduce((sum, w) => sum + (w.faturamentoFunil || 0), 0) / totalWeeks
-        : 0;
+      // Calculate totals from all weeks
+      const totalInvestimento = product.weeks.reduce((sum, w) => sum + (w.investido || 0), 0);
+      const totalFaturamento = product.weeks.reduce((sum, w) => sum + (w.faturamentoTrafego || 0), 0);
+      const totalLucro = totalFaturamento - totalInvestimento;
+      const totalVendas = product.weeks.reduce((sum, w) => sum + (w.numeroVenda || 0), 0);
 
-      // Create new funil
-      const newFunil: Funil = {
-        id: generateId(),
+      // Get tendencia data (if available)
+      const tendenciaFaturamento = product.tendencia?.faturamentoTrafego || 0;
+      const tendenciaInvestimento = product.tendencia?.investido || 0;
+      const tendenciaLucro = tendenciaFaturamento - tendenciaInvestimento;
+
+      // Create new funil data
+      const newFunilData = {
         nome_produto: funilName,
-        valor_venda: avgFaturamento > 0 ? Math.round(avgFaturamento / Math.max(1, avgVendas)) : 0,
+        valor_venda: totalFaturamento > 0 ? Math.round(totalFaturamento / Math.max(1, totalVendas)) : 0,
         especialista: isSummary ? '📊 Total/Compilado (Somente Visualização)' : 'Importado do Google Sheets',
         descricao: isSummary
           ? `Compilado total - Não é um funil real para registrar vendas`
           : `Funil sincronizado automaticamente da planilha de Aquisição (${currentMonth.name})`,
-        total_vendas: Math.round(avgVendas),
-        valor_total_gerado: Math.round(avgFaturamento),
+        total_vendas: Math.round(totalVendas),
+        valor_total_gerado: Math.round(totalFaturamento),
         ativo: !isSummary, // Totais ficam como inativos para não aparecerem em dropdowns
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        // Dados de aquisição
+        investimento: Math.round(totalInvestimento),
+        faturamento: Math.round(totalFaturamento),
+        lucro: Math.round(totalLucro),
+        tendencia_faturamento: Math.round(tendenciaFaturamento),
+        tendencia_lucro: Math.round(tendenciaLucro),
       };
 
-      updatedFunis.push(newFunil);
+      newFunisToCreate.push(newFunilData);
       existingFunilNames.add(funilName.toLowerCase());
       newFunilsCount++;
 
-      console.log(`✅ Criado ${isSummary ? 'total' : 'funil'}: ${funilName}`);
+      console.log(`✅ Preparado ${isSummary ? 'total' : 'funil'}: ${funilName}`);
     }
 
+    // Save new funis
     if (newFunilsCount > 0) {
-      // Save to localStorage
-      saveToStorage(STORAGE_KEYS.funis, updatedFunis);
+      if (useLocalStorage) {
+        // Fallback to localStorage
+        const updatedFunis = [
+          ...existingFunis,
+          ...newFunisToCreate.map(f => ({
+            ...f,
+            id: generateId(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          } as Funil))
+        ];
+        saveToStorage(STORAGE_KEYS.funis, updatedFunis);
+        console.log(`💾 ${newFunilsCount} novos funis salvos no localStorage (fallback)`);
+      } else {
+        // Save to Supabase
+        try {
+          const { data, error } = await supabase
+            .from('funis')
+            .insert(newFunisToCreate)
+            .select();
+
+          if (error) {
+            console.error('❌ Erro ao salvar funis no Supabase:', error);
+            // Fallback to localStorage on error
+            const updatedFunis = [
+              ...existingFunis,
+              ...newFunisToCreate.map(f => ({
+                ...f,
+                id: generateId(),
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              } as Funil))
+            ];
+            saveToStorage(STORAGE_KEYS.funis, updatedFunis);
+            console.log(`💾 ${newFunilsCount} novos funis salvos no localStorage (após erro no Supabase)`);
+          } else {
+            console.log(`☁️ ${data?.length || 0} novos funis salvos no Supabase!`);
+          }
+        } catch (err) {
+          console.error('❌ Erro ao salvar funis no Supabase:', err);
+          // Fallback to localStorage on exception
+          const updatedFunis = [
+            ...existingFunis,
+            ...newFunisToCreate.map(f => ({
+              ...f,
+              id: generateId(),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            } as Funil))
+          ];
+          saveToStorage(STORAGE_KEYS.funis, updatedFunis);
+          console.log(`💾 ${newFunilsCount} novos funis salvos no localStorage (após exceção)`);
+        }
+      }
 
       // Save last sync time
       localStorage.setItem(STORAGE_KEYS.lastSync, new Date().toISOString());
@@ -331,21 +410,24 @@ export function useFunis() {
   const [useLocal, setUseLocal] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
-  const fetchFunis = useCallback(async (shouldSync: boolean = true) => {
+  const fetchFunis = useCallback(async (shouldSync: boolean = true, forceSync: boolean = false) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Sync from Google Sheets if needed (only once per day)
+      // Sync from Google Sheets if needed
       if (shouldSync) {
         const lastSync = localStorage.getItem(STORAGE_KEYS.lastSync);
         const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-        const shouldSyncAgain = !lastSync || new Date(lastSync).getTime() < oneDayAgo;
+        const shouldSyncAgain = forceSync || !lastSync || new Date(lastSync).getTime() < oneDayAgo;
 
         if (shouldSyncAgain) {
+          console.log('🔄 Iniciando sincronização com Google Sheets...');
           setSyncing(true);
           await syncFunisFromSheets();
           setSyncing(false);
+        } else {
+          console.log('⏭️ Sincronização não necessária (última sync há menos de 24h)');
         }
       }
 
@@ -487,12 +569,18 @@ export function useFunis() {
     return cleanup;
   }, [fetchFunis]);
 
+  const forceSyncFromSheets = useCallback(async () => {
+    console.log('🔄 Forçando sincronização manual com Google Sheets...');
+    await fetchFunis(true, true);
+  }, [fetchFunis]);
+
   return {
     funis,
     loading,
     error,
     syncing,
     refetch: fetchFunis,
+    forceSyncFromSheets,
     createFunil,
     updateFunil,
     deleteFunil,
@@ -780,30 +868,31 @@ export function useFunilAquisicao(funilId: string | null) {
       try {
         setLoading(true);
 
-        // Get funil info
-        const funis = getFromStorage<Funil>(STORAGE_KEYS.funis);
-        const funil = funis.find(f => f.id === funilId);
-        if (!funil) return;
+        // Get funil info from Supabase first
+        let funil: Funil | undefined;
 
-        // Get current month
-        const today = new Date();
-        const currentMonth = MONTHS.find(m => {
-          const start = new Date(m.startDate);
-          const end = new Date(m.endDate);
-          return today >= start && today <= end;
-        });
+        try {
+          const { data, error } = await supabase
+            .from('funis')
+            .select('*')
+            .eq('id', funilId)
+            .single();
 
-        if (!currentMonth) return;
+          if (error) {
+            console.log('⚠️ Erro ao buscar funil do Supabase, usando localStorage');
+            const funis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+            funil = funis.find(f => f.id === funilId);
+          } else {
+            funil = data as Funil;
+          }
+        } catch (err) {
+          console.log('⚠️ Erro ao conectar com Supabase, usando localStorage');
+          const funis = getFromStorage<Funil>(STORAGE_KEYS.funis);
+          funil = funis.find(f => f.id === funilId);
+        }
 
-        // Fetch sheet data
-        const sheetData = await fetchSheetData(currentMonth.name);
-
-        // Find product matching funil name
-        const product = sheetData.find(p =>
-          p.name.toLowerCase().trim() === funil.nome_produto.toLowerCase().trim()
-        );
-
-        if (!product) {
+        if (!funil) {
+          console.log('❌ Funil não encontrado:', funilId);
           setAquisicaoData({
             investimento: 0,
             faturamento: 0,
@@ -813,11 +902,57 @@ export function useFunilAquisicao(funilId: string | null) {
           return;
         }
 
-        // Calculate totals from all weeks
+        // Get current month
+        const today = new Date();
+        const currentMonth = MONTHS.find(m => {
+          const start = new Date(m.startDate);
+          const end = new Date(m.endDate);
+          return today >= start && today <= end;
+        });
+
+        if (!currentMonth) {
+          console.log('❌ Mês atual não encontrado');
+          setAquisicaoData({
+            investimento: 0,
+            faturamento: 0,
+            roas: 0,
+            alunos: 0,
+          });
+          return;
+        }
+
+        // Fetch sheet data
+        console.log(`📅 Buscando dados de aquisição do funil "${funil.nome_produto}" (${currentMonth.name})...`);
+        const sheetData = await fetchSheetData(currentMonth.name);
+
+        // Find product matching funil name
+        const product = sheetData.find(p =>
+          p.name.toLowerCase().trim() === funil.nome_produto.toLowerCase().trim()
+        );
+
+        if (!product) {
+          console.log(`⚠️ Produto "${funil.nome_produto}" não encontrado no Google Sheets`);
+          setAquisicaoData({
+            investimento: 0,
+            faturamento: 0,
+            roas: 0,
+            alunos: 0,
+          });
+          return;
+        }
+
+        // Calculate totals from all weeks (AQUISIÇÃO only - using faturamentoTrafego)
         const totalInvestimento = product.weeks.reduce((sum, w) => sum + (w.investido || 0), 0);
-        const totalFaturamento = product.weeks.reduce((sum, w) => sum + (w.faturamentoFunil || 0), 0);
+        const totalFaturamento = product.weeks.reduce((sum, w) => sum + (w.faturamentoTrafego || 0), 0);
         const totalAlunos = product.weeks.reduce((sum, w) => sum + (w.alunos || 0), 0);
         const roas = totalInvestimento > 0 ? totalFaturamento / totalInvestimento : 0;
+
+        console.log(`✅ Dados de aquisição encontrados:`, {
+          investimento: totalInvestimento,
+          faturamento: totalFaturamento,
+          roas,
+          alunos: totalAlunos,
+        });
 
         setAquisicaoData({
           investimento: totalInvestimento,
@@ -826,7 +961,7 @@ export function useFunilAquisicao(funilId: string | null) {
           alunos: totalAlunos,
         });
       } catch (error) {
-        console.error('Erro ao buscar dados de aquisição:', error);
+        console.error('❌ Erro ao buscar dados de aquisição:', error);
         setAquisicaoData({
           investimento: 0,
           faturamento: 0,

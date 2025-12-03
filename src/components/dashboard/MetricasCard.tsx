@@ -34,12 +34,12 @@ export function MetricasCard({ productData }: MetricasCardProps) {
     let numSemanas = 0;
 
     productData.semanas.forEach(semana => {
-      totalInvestido += semana.investido;
-      totalFaturamento += semana.faturamentoFunil;
-      totalLucro += semana.lucroFunil;
-      totalVendas += semana.numeroVenda;
-      somaTaxaConversao += semana.taxaConversao;
-      somaTaxaAgendamento += semana.taxaAgendamento;
+      totalInvestido += semana?.investido || 0;
+      totalFaturamento += semana?.faturamentoFunil || 0;
+      totalLucro += semana?.lucroFunil || 0;
+      totalVendas += semana?.numeroVenda || 0;
+      somaTaxaConversao += semana?.taxaConversao || 0;
+      somaTaxaAgendamento += semana?.taxaAgendamento || 0;
       numSemanas++;
     });
 
@@ -56,9 +56,9 @@ export function MetricasCard({ productData }: MetricasCardProps) {
       const mediaLucro = totalLucro / numSemanas;
       const mediaVendas = totalVendas / numSemanas;
 
-      tendencias.faturamento = mediaFaturamento > 0 ? ((ultimaSemana.faturamentoFunil - mediaFaturamento) / mediaFaturamento) * 100 : 0;
-      tendencias.lucro = mediaLucro > 0 ? ((ultimaSemana.lucroFunil - mediaLucro) / mediaLucro) * 100 : 0;
-      tendencias.vendas = mediaVendas > 0 ? ((ultimaSemana.numeroVenda - mediaVendas) / mediaVendas) * 100 : 0;
+      tendencias.faturamento = mediaFaturamento > 0 ? (((ultimaSemana?.faturamentoFunil || 0) - mediaFaturamento) / mediaFaturamento) * 100 : 0;
+      tendencias.lucro = mediaLucro > 0 ? (((ultimaSemana?.lucroFunil || 0) - mediaLucro) / mediaLucro) * 100 : 0;
+      tendencias.vendas = mediaVendas > 0 ? (((ultimaSemana?.numeroVenda || 0) - mediaVendas) / mediaVendas) * 100 : 0;
     }
 
     return {

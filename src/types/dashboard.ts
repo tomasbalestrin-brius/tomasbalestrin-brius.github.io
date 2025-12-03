@@ -91,6 +91,12 @@ export interface Funil {
   ativo: boolean;
   created_at: string;
   updated_at: string;
+  // Dados de Aquisição do Google Sheets (opcionais)
+  investimento?: number;
+  faturamento?: number;
+  lucro?: number;
+  tendencia_faturamento?: number;
+  tendencia_lucro?: number;
 }
 
 export interface Venda {

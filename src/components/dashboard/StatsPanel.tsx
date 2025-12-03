@@ -2,16 +2,25 @@ import type { ProductData } from '@/types/dashboard';
 
 interface StatsPanelProps {
   data: ProductData;
+  monetizacaoData?: {
+    totalVendas: number;
+    totalEntradas: number;
+  };
 }
 
-export function StatsPanel({ data }: StatsPanelProps) {
+export function StatsPanel({ data, monetizacaoData }: StatsPanelProps) {
   const { semanas, tendencia } = data;
 
-  const totalFaturamentoTrafego = semanas.reduce((sum, s) => sum + s.faturamentoTrafego, 0);
-  const totalInvestido = semanas.reduce((sum, s) => sum + s.investido, 0);
-  const totalRoasTrafego = semanas.reduce((sum, s) => sum + s.roasTrafego, 0);
-  const totalVendaMonetizacao = semanas.reduce((sum, s) => sum + s.vendaMonetizacao, 0);
-  const totalEntradas = semanas.reduce((sum, s) => sum + s.entradas, 0);
+  // Garantir que semanas existe e é um array antes de fazer reduce
+  const semanasArray = Array.isArray(semanas) ? semanas : [];
+
+  const totalFaturamentoTrafego = semanasArray.reduce((sum, s) => sum + (s?.faturamentoTrafego || 0), 0);
+  const totalInvestido = semanasArray.reduce((sum, s) => sum + (s?.investido || 0), 0);
+  const totalRoasTrafego = semanasArray.reduce((sum, s) => sum + (s?.roasTrafego || 0), 0);
+
+  // Use dados de monetização do banco de dados (Supabase) se disponível
+  const totalVendaMonetizacao = monetizacaoData?.totalVendas ?? 0;
+  const totalEntradas = monetizacaoData?.totalEntradas ?? 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 max-md:gap-2">{/* ... keep existing code */}
@@ -51,25 +60,25 @@ export function StatsPanel({ data }: StatsPanelProps) {
             <span>📈</span>
             <span>TENDÊNCIA AQUISIÇÃO</span>
           </div>
-          
+
           <div className="flex justify-between items-center py-2 border-b border-[hsl(var(--border-color))] max-md:py-1.5">
             <span className="text-[hsl(var(--text-secondary))] text-sm font-semibold max-md:text-xs">💰 Faturamento Tráfego</span>
             <span className="text-[hsl(var(--text-primary))] text-lg font-extrabold max-md:text-base">
-              R$ {tendencia.faturamentoTrafego.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              R$ {(tendencia.faturamentoTrafego || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </span>
           </div>
-          
+
           <div className="flex justify-between items-center py-2 border-b border-[hsl(var(--border-color))] max-md:py-1.5">
             <span className="text-[hsl(var(--text-secondary))] text-sm font-semibold max-md:text-xs">💸 Investimento</span>
             <span className="text-[hsl(var(--text-primary))] text-lg font-extrabold max-md:text-base">
-              R$ {tendencia.investido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              R$ {(tendencia.investido || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </span>
           </div>
-          
+
           <div className="flex justify-between items-center py-2 max-md:py-1.5">
             <span className="text-[hsl(var(--text-secondary))] text-sm font-semibold max-md:text-xs">📊 Lucro Tráfego</span>
-            <span className={`text-lg font-extrabold max-md:text-base ${tendencia.roasTrafego >= 0 ? 'text-[hsl(var(--success))]' : 'text-[hsl(var(--danger))]'}`}>
-              R$ {tendencia.roasTrafego.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            <span className={`text-lg font-extrabold max-md:text-base ${(tendencia.roasTrafego || 0) >= 0 ? 'text-[hsl(var(--success))]' : 'text-[hsl(var(--danger))]'}`}>
+              R$ {(tendencia.roasTrafego || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </span>
           </div>
         </div>
@@ -97,25 +106,25 @@ export function StatsPanel({ data }: StatsPanelProps) {
         </div>
       </div>
 
-      {/* Tendência Monetização */}
-      {tendencia && (
+      {/* Tendência Monetização - Desabilitado (dados vêm do banco, não tem tendência) */}
+      {false && tendencia && (
         <div className="bg-[hsl(var(--bg-primary))] p-4 rounded-xl border-l-[3px] border-dashed border-[hsl(var(--success))] opacity-95 max-md:p-3">
           <div className="text-base font-extrabold text-[hsl(var(--text-secondary))] mb-3 uppercase tracking-wide flex items-center gap-2 max-md:text-sm">
             <span>📈</span>
             <span>TENDÊNCIA MONETIZAÇÃO</span>
           </div>
-          
+
           <div className="flex justify-between items-center py-2 border-b border-[hsl(var(--border-color))] max-md:py-1.5">
             <span className="text-[hsl(var(--text-secondary))] text-sm font-semibold max-md:text-xs">💳 Faturamento Monetização</span>
             <span className="text-[hsl(var(--text-primary))] text-lg font-extrabold max-md:text-base">
-              R$ {tendencia.vendaMonetizacao.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              R$ 0
             </span>
           </div>
-          
+
           <div className="flex justify-between items-center py-2 max-md:py-1.5">
             <span className="text-[hsl(var(--text-secondary))] text-sm font-semibold max-md:text-xs">📥 Entradas</span>
             <span className="text-[hsl(var(--text-primary))] text-lg font-extrabold max-md:text-base">
-              R$ {tendencia.entradas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              R$ 0
             </span>
           </div>
         </div>
