@@ -467,14 +467,14 @@ function CloserDetailModal({ closer, vendas, onEdit, onClose }: {
             <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-6">
               <div className="text-slate-400 text-sm mb-2">Valor Total em Vendas</div>
               <div className="text-3xl font-bold text-green-400">
-                R$ {closer.valor_total_vendas.toLocaleString('pt-BR')}
+                R$ {(closer.valor_total_vendas || 0).toLocaleString('pt-BR')}
               </div>
             </div>
 
             <div className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 rounded-xl p-6">
               <div className="text-slate-400 text-sm mb-2">Valor Total em Entradas</div>
               <div className="text-3xl font-bold text-yellow-400">
-                R$ {closer.valor_total_entradas.toLocaleString('pt-BR')}
+                R$ {(closer.valor_total_entradas || 0).toLocaleString('pt-BR')}
               </div>
             </div>
           </div>
@@ -927,10 +927,10 @@ export function MonetizacaoModule() {
     const ticketMedio = totalVendas > 0 ? valorTotal / totalVendas : 0;
 
     return {
-      total_vendas: totalVendas,
-      valor_total: valorTotal,
-      total_entradas: totalEntradas,
-      ticket_medio: ticketMedio,
+      totalVendas: totalVendas,
+      valorTotalVendas: valorTotal,
+      valorTotalEntradas: totalEntradas,
+      ticketMedio: ticketMedio,
     };
   }, [vendas]);
 
@@ -1143,7 +1143,7 @@ export function MonetizacaoModule() {
                         <div className="text-slate-400 text-sm">{closer.numero_vendas} vendas</div>
                       </div>
                       <div className="text-green-400 font-medium">
-                        R$ {closer.valor_total_vendas.toLocaleString('pt-BR')}
+                        R$ {(closer.valor_total_vendas || 0).toLocaleString('pt-BR')}
                       </div>
                     </div>
                   ))}
@@ -1169,7 +1169,7 @@ export function MonetizacaoModule() {
                         <div className="text-slate-400 text-sm">{funil.total_vendas} vendas</div>
                       </div>
                       <div className="text-green-400 font-medium">
-                        R$ {funil.valor_total_gerado.toLocaleString('pt-BR')}
+                        R$ {(funil.valor_total_gerado || 0).toLocaleString('pt-BR')}
                       </div>
                     </div>
                   ))}
@@ -1239,7 +1239,7 @@ export function MonetizacaoModule() {
                     </div>
                     <div className="col-span-2">
                       <div className="text-slate-400">Total Vendido</div>
-                      <div className="text-green-400 font-medium">R$ {closer.valor_total_vendas.toLocaleString('pt-BR')}</div>
+                      <div className="text-green-400 font-medium">R$ {(closer.valor_total_vendas || 0).toLocaleString('pt-BR')}</div>
                     </div>
                   </div>
                   <div className="flex items-center justify-center gap-2 text-xs text-blue-400 mt-4 pt-3 border-t border-slate-700">

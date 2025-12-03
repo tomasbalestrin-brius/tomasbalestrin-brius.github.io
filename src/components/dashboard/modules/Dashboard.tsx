@@ -35,29 +35,57 @@ export function DashboardModule({
 }: DashboardModuleProps) {
   const productData = allData[currentProduct];
 
+  // Se não houver productData, mostrar mensagem
+  if (!productData) {
+    return (
+      <div>
+        <div className="text-center mb-10 p-5">
+          <h1 className="text-[3.5rem] bg-gradient-to-r from-[hsl(var(--accent-primary))] to-[hsl(var(--accent-secondary))] bg-clip-text text-transparent mb-[15px] font-extrabold max-md:text-[1.8rem]">
+            📊 ACOMPANHAMENTO GERAL FUNIS
+          </h1>
+          <p className="text-xl text-[hsl(var(--text-secondary))] mb-2.5 max-md:text-sm">
+            Análise Completa de Performance por Produto
+          </p>
+        </div>
+
+        <MonthSelector currentMonth={currentMonth} onMonthSelect={onMonthSelect} />
+
+        <div className="bg-[hsl(var(--bg-secondary))] rounded-2xl p-12 shadow-lg text-center">
+          <div className="text-6xl mb-4">📭</div>
+          <h2 className="text-2xl font-bold text-[hsl(var(--text-primary))] mb-2">
+            Nenhum produto encontrado
+          </h2>
+          <p className="text-[hsl(var(--text-secondary))]">
+            Não há dados disponíveis para este mês. Adicione produtos na planilha do Google Sheets.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const getFunnelData = () => {
     if (!productData) return { alunos: 0, formularios: 0, qualificados: 0, agendados: 0, callRealizada: 0, vendas: 0 };
 
     if (currentWeek === 'total') {
       return {
-        alunos: productData.semanas.reduce((sum, s) => sum + s.alunos, 0),
-        formularios: productData.semanas.reduce((sum, s) => sum + s.formularios, 0),
-        qualificados: productData.semanas.reduce((sum, s) => sum + s.qualificados, 0),
-        agendados: productData.semanas.reduce((sum, s) => sum + s.agendados, 0),
-        callRealizada: productData.semanas.reduce((sum, s) => sum + s.callRealizada, 0),
-        vendas: productData.semanas.reduce((sum, s) => sum + s.numeroVenda, 0),
+        alunos: productData.semanas.reduce((sum, s) => sum + (s?.alunos || 0), 0),
+        formularios: productData.semanas.reduce((sum, s) => sum + (s?.formularios || 0), 0),
+        qualificados: productData.semanas.reduce((sum, s) => sum + (s?.qualificados || 0), 0),
+        agendados: productData.semanas.reduce((sum, s) => sum + (s?.agendados || 0), 0),
+        callRealizada: productData.semanas.reduce((sum, s) => sum + (s?.callRealizada || 0), 0),
+        vendas: productData.semanas.reduce((sum, s) => sum + (s?.numeroVenda || 0), 0),
       };
     } else {
       const weekIndex = parseInt(currentWeek) - 1;
       if (productData.semanas[weekIndex]) {
         const semana = productData.semanas[weekIndex];
         return {
-          alunos: semana.alunos,
-          formularios: semana.formularios,
-          qualificados: semana.qualificados,
-          agendados: semana.agendados,
-          callRealizada: semana.callRealizada,
-          vendas: semana.numeroVenda,
+          alunos: semana?.alunos || 0,
+          formularios: semana?.formularios || 0,
+          qualificados: semana?.qualificados || 0,
+          agendados: semana?.agendados || 0,
+          callRealizada: semana?.callRealizada || 0,
+          vendas: semana?.numeroVenda || 0,
         };
       }
     }
