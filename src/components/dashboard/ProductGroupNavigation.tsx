@@ -37,7 +37,7 @@ export function ProductGroupNavigation({
       icon: '👩‍💼',
       color: 'from-pink-500 to-rose-500',
       total: 'Total Julia',
-      items: ['Teste', 'MPM', 'IA Julia', 'Autentiq', 'Mentoria Ju', 'Social Selling Ju']
+      items: ['Teste', 'MPM', 'IA Julia', 'Autentiq', 'Mentoria Julia', 'Social Selling JU']
     }
   ];
 
