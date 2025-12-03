@@ -35,6 +35,34 @@ export function DashboardModule({
 }: DashboardModuleProps) {
   const productData = allData[currentProduct];
 
+  // Se não houver productData, mostrar mensagem
+  if (!productData) {
+    return (
+      <div>
+        <div className="text-center mb-10 p-5">
+          <h1 className="text-[3.5rem] bg-gradient-to-r from-[hsl(var(--accent-primary))] to-[hsl(var(--accent-secondary))] bg-clip-text text-transparent mb-[15px] font-extrabold max-md:text-[1.8rem]">
+            📊 ACOMPANHAMENTO GERAL FUNIS
+          </h1>
+          <p className="text-xl text-[hsl(var(--text-secondary))] mb-2.5 max-md:text-sm">
+            Análise Completa de Performance por Produto
+          </p>
+        </div>
+
+        <MonthSelector currentMonth={currentMonth} onMonthSelect={onMonthSelect} />
+
+        <div className="bg-[hsl(var(--bg-secondary))] rounded-2xl p-12 shadow-lg text-center">
+          <div className="text-6xl mb-4">📭</div>
+          <h2 className="text-2xl font-bold text-[hsl(var(--text-primary))] mb-2">
+            Nenhum produto encontrado
+          </h2>
+          <p className="text-[hsl(var(--text-secondary))]">
+            Não há dados disponíveis para este mês. Adicione produtos na planilha do Google Sheets.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const getFunnelData = () => {
     if (!productData) return { alunos: 0, formularios: 0, qualificados: 0, agendados: 0, callRealizada: 0, vendas: 0 };
 
