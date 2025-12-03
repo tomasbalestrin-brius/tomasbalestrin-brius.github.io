@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useDashboardData, MONTHS } from '@/hooks/useDashboardData';
 import { useBranding } from '@/hooks/useBranding';
+import { useVendas } from '@/hooks/useMonetizacao';
 import { ThemeSelector } from '@/components/dashboard/ThemeSelector';
 import { ResponsiveSidebar } from '@/components/dashboard/ResponsiveSidebar';
 import { BottomNav } from '@/components/dashboard/BottomNav';
@@ -18,7 +19,7 @@ import type { Month } from '@/types/dashboard';
 
 const Index = () => {
   useBranding(); // Aplicar branding da organização
-  
+
   const {
     allData,
     currentMonth,
@@ -37,6 +38,32 @@ const Index = () => {
     changeTheme,
     removeToast,
   } = useDashboardData();
+
+  // Buscar vendas do módulo de Monetização
+  const { vendas: allVendas } = useVendas();
+
+  // Calcular dados de monetização filtrados por mês
+  const monetizacaoData = useMemo(() => {
+    const month = MONTHS.find(m => m.id === currentMonth);
+    if (!month || !allVendas.length) {
+      return { totalVendas: 0, totalEntradas: 0 };
+    }
+
+    const startDate = new Date(month.startDate);
+    const endDate = new Date(month.endDate);
+
+    // Filtrar vendas do mês atual
+    const vendasDoMes = allVendas.filter(venda => {
+      const vendaDate = new Date(venda.data_venda);
+      return vendaDate >= startDate && vendaDate <= endDate;
+    });
+
+    // Calcular totais
+    const totalVendas = vendasDoMes.reduce((sum, v) => sum + (v.valor_venda || 0), 0);
+    const totalEntradas = vendasDoMes.reduce((sum, v) => sum + (v.valor_entrada || 0), 0);
+
+    return { totalVendas, totalEntradas };
+  }, [allVendas, currentMonth]);
 
   const [sidebarMinimized, setSidebarMinimized] = React.useState(false);
 
@@ -84,6 +111,7 @@ const Index = () => {
                   onMonthSelect={selectMonth}
                   onProductSelect={selectProduct}
                   onWeekChange={setCurrentWeek}
+                  monetizacaoData={monetizacaoData}
                 />
               )}
               {currentModule === 'aquisicao' && (

@@ -17,6 +17,10 @@ interface DashboardModuleProps {
   onMonthSelect: (monthId: string) => void;
   onProductSelect: (productId: string) => void;
   onWeekChange: (week: string) => void;
+  monetizacaoData?: {
+    totalVendas: number;
+    totalEntradas: number;
+  };
 }
 
 export function DashboardModule({
@@ -27,6 +31,7 @@ export function DashboardModule({
   onMonthSelect,
   onProductSelect,
   onWeekChange,
+  monetizacaoData,
 }: DashboardModuleProps) {
   const productData = allData[currentProduct];
 
@@ -121,7 +126,7 @@ export function DashboardModule({
       </div>
 
       {/* Stats Panel - Movido para baixo */}
-      {productData && <StatsPanel data={productData} />}
+      {productData && <StatsPanel data={productData} monetizacaoData={monetizacaoData} />}
 
       {/* Gráficos de Evolução */}
       <GraficosEvolucao productData={productData} productName={currentProduct} />
