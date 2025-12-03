@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { DollarSign, Users, ShoppingCart, Plus, TrendingUp, Award, Target, X, Edit2, Trash2, Loader2, BarChart3, ArrowRight, Package, Clock, Briefcase, RefreshCcw } from 'lucide-react';
 import type { Closer, Funil, Venda } from '@/types/dashboard';
 import { useClosers, useFunis, useVendas, useMonetizacaoMetrics, useFunilAquisicao } from '@/hooks/useMonetizacao';
+import { MonthSelector } from '@/components/dashboard/MonthSelector';
+import { MONTHS, getCurrentMonth } from '@/hooks/useDashboardData';
 
 // Lista de produtos disponíveis
 const PRODUTOS_DISPONIVEIS = [
@@ -879,12 +881,86 @@ function FunilDetailModal({ funil, vendas, onClose }: {
 
 export function MonetizacaoModule() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'closers' | 'funis' | 'produtos' | 'vendas'>('dashboard');
+  const [currentMonth, setCurrentMonth] = useState<string>(getCurrentMonth());
 
   // Hooks
-  const { closers, loading: loadingClosers, createCloser, updateCloser, deleteCloser } = useClosers();
+  const { closers: allClosers, loading: loadingClosers, createCloser, updateCloser, deleteCloser } = useClosers();
   const { funis, loading: loadingFunis, syncing: syncingFunis, forceSyncFromSheets, createFunil, updateFunil, deleteFunil } = useFunis();
-  const { vendas, loading: loadingVendas, createVenda, updateVenda, deleteVenda } = useVendas();
-  const { metrics, top3Closers, top3Funis, loading: loadingMetrics } = useMonetizacaoMetrics();
+  const { vendas: allVendas, loading: loadingVendas, createVenda, updateVenda, deleteVenda } = useVendas();
+
+  // Filter vendas by selected month
+  const vendas = useMemo(() => {
+    const month = MONTHS.find(m => m.id === currentMonth);
+    if (!month) return allVendas;
+
+    const startDate = new Date(month.startDate);
+    const endDate = new Date(month.endDate);
+
+    return allVendas.filter(venda => {
+      const vendaDate = new Date(venda.data_venda);
+      return vendaDate >= startDate && vendaDate <= endDate;
+    });
+  }, [allVendas, currentMonth]);
+
+  // Recalculate closers metrics based on filtered vendas
+  const closers = useMemo(() => {
+    return allClosers.map(closer => {
+      const closerVendas = vendas.filter(v => v.closer_id === closer.id);
+      const numeroVendas = closerVendas.length;
+      const valorTotalVendas = closerVendas.reduce((sum, v) => sum + (v.valor_venda || 0), 0);
+      const valorTotalEntradas = closerVendas.reduce((sum, v) => sum + (v.valor_entrada || 0), 0);
+
+      return {
+        ...closer,
+        numero_vendas: numeroVendas,
+        valor_total_vendas: valorTotalVendas,
+        valor_total_entradas: valorTotalEntradas,
+      };
+    });
+  }, [allClosers, vendas]);
+
+  // Recalculate metrics based on filtered vendas
+  const metrics = useMemo(() => {
+    const totalVendas = vendas.length;
+    const valorTotal = vendas.reduce((sum, v) => sum + (v.valor_venda || 0), 0);
+    const totalEntradas = vendas.reduce((sum, v) => sum + (v.valor_entrada || 0), 0);
+    const ticketMedio = totalVendas > 0 ? valorTotal / totalVendas : 0;
+
+    return {
+      total_vendas: totalVendas,
+      valor_total: valorTotal,
+      total_entradas: totalEntradas,
+      ticket_medio: ticketMedio,
+    };
+  }, [vendas]);
+
+  // Recalculate top 3 closers based on filtered data
+  const top3Closers = useMemo(() => {
+    return [...closers]
+      .filter(c => c.numero_vendas > 0)
+      .sort((a, b) => b.valor_total_vendas - a.valor_total_vendas)
+      .slice(0, 3);
+  }, [closers]);
+
+  // Recalculate top 3 funis based on filtered vendas
+  const top3Funis = useMemo(() => {
+    const funisWithVendas = funis.map(funil => {
+      const funilVendas = vendas.filter(v => v.funil_id === funil.id);
+      const numeroVendas = funilVendas.length;
+      const valorTotal = funilVendas.reduce((sum, v) => sum + (v.valor_venda || 0), 0);
+
+      return {
+        ...funil,
+        total_vendas: numeroVendas,
+        valor_total_gerado: valorTotal,
+      };
+    });
+
+    return funisWithVendas
+      .filter(f => f.total_vendas > 0)
+      .sort((a, b) => b.valor_total_gerado - a.valor_total_gerado)
+      .slice(0, 3);
+  }, [funis, vendas]);
 
   // Modal states
   const [closerModal, setCloserModal] = useState<{ open: boolean; closer?: Closer }>({ open: false });
@@ -968,12 +1044,18 @@ export function MonetizacaoModule() {
           </h1>
           <p className="text-slate-400 mt-1">Gestão de closers, funis e vendas</p>
         </div>
-        {(loading || syncingFunis) && (
-          <div className="flex items-center gap-2 text-slate-400">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            {syncingFunis ? 'Sincronizando funis do Google Sheets...' : 'Carregando...'}
-          </div>
-        )}
+        <div className="flex items-center gap-4">
+          <MonthSelector
+            currentMonth={currentMonth}
+            onMonthSelect={setCurrentMonth}
+          />
+          {(loading || syncingFunis) && (
+            <div className="flex items-center gap-2 text-slate-400">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              {syncingFunis ? 'Sincronizando funis do Google Sheets...' : 'Carregando...'}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}

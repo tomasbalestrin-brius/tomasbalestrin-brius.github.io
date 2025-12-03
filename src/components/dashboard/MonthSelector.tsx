@@ -1,20 +1,17 @@
 import { MONTHS, getCurrentMonth } from '@/hooks/useDashboardData';
-import type { Month } from '@/types/dashboard';
 
 interface MonthSelectorProps {
-  currentMonth: Month;
-  onMonthSelect: (month: Month) => void;
+  currentMonth: string;
+  onMonthSelect: (monthId: string) => void;
 }
 
 export function MonthSelector({ currentMonth, onMonthSelect }: MonthSelectorProps) {
   const actualCurrentMonth = getCurrentMonth();
-  const isActualCurrent = currentMonth?.id === actualCurrentMonth;
+  const isActualCurrent = currentMonth === actualCurrentMonth;
+  const currentMonthObj = MONTHS.find(m => m.id === currentMonth);
 
   const handleChange = (monthId: string) => {
-    const month = MONTHS.find(m => m.id === monthId);
-    if (month) {
-      onMonthSelect(month);
-    }
+    onMonthSelect(monthId);
   };
 
   return (
@@ -24,7 +21,7 @@ export function MonthSelector({ currentMonth, onMonthSelect }: MonthSelectorProp
           📅 Selecionar Mês:
         </label>
         <select
-          value={currentMonth?.id || ''}
+          value={currentMonth || ''}
           onChange={(e) => e.target.value && handleChange(e.target.value)}
           className="py-2.5 px-5 rounded-lg border-2 border-[hsl(var(--border-color))] bg-[hsl(var(--bg-primary))] text-[hsl(var(--text-primary))] text-base font-semibold cursor-pointer transition-all duration-300 min-w-[180px] hover:border-[hsl(var(--accent-primary))] focus:outline-none focus:border-[hsl(var(--accent-primary))] focus:shadow-[0_0_0_4px_rgba(59,130,246,0.2)] max-md:w-full"
         >
@@ -38,7 +35,7 @@ export function MonthSelector({ currentMonth, onMonthSelect }: MonthSelectorProp
       </div>
 
       <div className="flex justify-center gap-[15px] flex-wrap">
-        {currentMonth && (
+        {currentMonthObj && (
           <button
             className={`
               py-4 px-[35px] border-2 border-[hsl(var(--border-color))] rounded-[10px] bg-[hsl(var(--bg-secondary))] text-[hsl(var(--text-primary))] text-[1.15rem] font-bold cursor-pointer transition-all duration-300 relative
@@ -54,7 +51,7 @@ export function MonthSelector({ currentMonth, onMonthSelect }: MonthSelectorProp
             `}
             onClick={() => onMonthSelect(currentMonth)}
           >
-            {currentMonth.name}
+            {currentMonthObj.name}
           </button>
         )}
       </div>
